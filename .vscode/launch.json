@@ -1,0 +1,35 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "Launch (Debug)",
+			"type": "cppdbg",
+			"request": "launch",
+			"program": "${workspaceFolder}/Game/Binaries/Output/Debug/Game.exe",
+			"args": [],
+			"stopAtEntry": false,
+			"cwd": "${workspaceFolder}",
+			"environment": [],
+			"preLaunchTask": "Build (Debug)",
+			"externalConsole": true,
+			"MIMode": "gdb",
+			"logging": {
+				"engineLogging": true,
+				"exceptions": false,
+			}
+		},
+		{
+			"name": "Launch (Release)",
+			"type": "cppvsdbg",
+			"request": "launch",
+			"program": "${workspaceFolder}/Game/Binaries/Output/Release/Game.exe",
+			"args": [],
+			"stopAtEntry": false,
+			"cwd": "${workspaceFolder}",
+			"environment": [],
+			"preLaunchTask": "Build (Release)",
+			"console": "externalTerminal"
+		}
+	],
+	"compounds": []
+}

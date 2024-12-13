@@ -1,0 +1,35 @@
+{
+    "configurations": [
+        {
+            "name": "Debug",
+			"browse": {
+				"path": [
+					"Engine/Source",
+					"Game/Source"
+				]
+			},
+			"cppStandard": "c++20",
+			"defines": [ "_DEBUG" ],
+			"includePath": [
+				"Engine/Source",
+				"Game/Source"
+			]
+        },
+		{
+            "name": "Release",
+			"browse": {
+				"path": [
+					"Engine/Source",
+					"Game/Source"
+				]
+			},
+			"cppStandard": "c++20",
+			"defines": [ "NDEBUG" ],
+			"includePath": [
+				"Engine/Source",
+				"Game/Source"
+			]
+        }
+    ],
+    "version": 4
+}

@@ -1,0 +1,9 @@
+# Engine
+Engine/Binaries/*
+Engine/Makefile
+
+# Game
+Game/Binaries/*
+Game/Makefile
+
+Makefile

@@ -1,0 +1,35 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Build (Debug)",
+			"command": "premake5 gmake2 && make -s config=debug CC=g++",
+			"type": "shell",
+			"args": [],
+			"problemMatcher": [
+				"$gcc"
+			],
+			"presentation": {
+				"reveal": "always",
+				"revealProblems": "onProblem",
+				"clear": true
+			},
+			"group": "build"
+		},
+		{
+			"label": "Build (Release)",
+			"command": "premake5 gmake2 && make -s config=release CC=g++",
+			"type": "shell",
+			"args": [],
+			"problemMatcher": [
+				"$gcc"
+			],
+			"presentation": {
+				"reveal": "always",
+				"revealProblems": "onProblem",
+				"clear": true
+			},
+			"group": "build"
+		}
+	]
+}
