@@ -13,23 +13,26 @@ namespace Arcane {
 		Window() { }
 		~Window() { }
 
-		inline void SetVisible(bool visible) { mNativeHandle->SetVisible(visible); }
-		inline void SetMaximized(bool maximized) { mNativeHandle->SetMaximized(maximized); }
+		inline void SetVisible(bool visible) { mNativeWindow->SetVisible(visible); }
+		inline void SetMaximized(bool maximized) { mNativeWindow->SetMaximized(maximized); }
 
-		inline void Update() { mNativeHandle->Update(); }
+		inline void Update() { mNativeWindow->Update(); }
+		inline void Destroy() { mNativeWindow->Destroy(); }
 
-		inline bool IsVisible() const { return mNativeHandle->IsVisible(); }
-		inline bool IsMaximized() const { return mNativeHandle->IsMaximized(); }
-		inline bool IsClosed() const { return mNativeHandle->IsClosed(); }
+		inline bool IsVisible() const { return mNativeWindow->IsVisible(); }
+		inline bool IsMaximized() const { return mNativeWindow->IsMaximized(); }
+		inline bool IsClosed() const { return mNativeWindow->IsClosed(); }
 
-		inline Vector2 GetClientSize() const { return mNativeHandle->GetClientSize(); }
-		inline Vector2 GetScreenSize() const { return mNativeHandle->GetScreenSize(); }
+		inline Vector2 GetClientSize() const { return mNativeWindow->GetClientSize(); }
+		inline Vector2 GetScreenSize() const { return mNativeWindow->GetScreenSize(); }
+
+		inline std::shared_ptr<NativeWindow> GetNativeWindow() const { return mNativeWindow; }
 
 	private:
-		Window(const std::shared_ptr<NativeWindow> &native) : mNativeHandle(native) { }
+		Window(const std::shared_ptr<NativeWindow> &window) : mNativeWindow(window) { }
 
 	private:
-		std::shared_ptr<NativeWindow> mNativeHandle;
+		std::shared_ptr<NativeWindow> mNativeWindow;
 	};
 
 }

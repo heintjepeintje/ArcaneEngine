@@ -21,12 +21,16 @@ namespace Arcane {
 
 		virtual void Update() override;
 
+		virtual void Destroy() override;
+
 		virtual bool IsVisible() const override;
 		virtual bool IsMaximized() const override;
 		virtual bool IsClosed() const override;
 
 		virtual Vector2 GetClientSize() const override;
 		virtual Vector2 GetScreenSize() const override;
+
+		inline HWND GetHWND() const { return mHandle; }
 
 	private:
 		Win32WindowData mData;

@@ -16,6 +16,9 @@ project "Game"
 	}
 
 	links {
+		"gdi32",
+		"opengl32",
+		"glad",
 		"Engine"
 	}
 

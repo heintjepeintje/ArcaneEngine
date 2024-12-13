@@ -1,18 +1,17 @@
-project "Engine"
+project "glad"
 	kind "StaticLib"
-	language "C++"
-	cppdialect "C++20"
+	language "C"
+	cdialect "C11"
 
 	objdir "Binaries/Intermediate/%{cfg.buildcfg}"
 	targetdir "Binaries/Output/%{cfg.buildcfg}"
 
 	files {
-		"Source/**.cpp"
+		"src/**.c"
 	}
 
 	includedirs {
-		"Libraries/glad/include",
-		"Source"
+		"include"
 	}
 
 	filter "configurations:Debug"

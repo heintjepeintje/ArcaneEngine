@@ -44,9 +44,7 @@ namespace Arcane {
 			nullptr, nullptr, nullptr, nullptr
 		);
 
-		if (mHandle == nullptr) {
-			// ! Handle invalid window handle
-		}
+		AR_ASSERT(mHandle != nullptr, "Failed to create Win32 window");
 
 		mData.isClosed = false;
 
@@ -71,6 +69,10 @@ namespace Arcane {
 			TranslateMessage(&message);
 			DispatchMessageA(&message);
 		}
+	}
+	
+	void Win32Window::Destroy() {
+		DestroyWindow(mHandle);
 	}
 
 	bool Win32Window::IsVisible() const {

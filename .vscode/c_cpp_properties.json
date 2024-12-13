@@ -11,9 +11,12 @@
 			"cppStandard": "c++20",
 			"defines": [ "_DEBUG" ],
 			"includePath": [
+				"Engine/Libraries/glad/include",
 				"Engine/Source",
 				"Game/Source"
-			]
+			],
+			"intelliSenseMode": "windows-gcc-x64",
+			"compilerPath": "C:\\Program Files\\mingw64\\bin\\g++.exe"
         },
 		{
             "name": "Release",
@@ -26,9 +29,12 @@
 			"cppStandard": "c++20",
 			"defines": [ "NDEBUG" ],
 			"includePath": [
+				"Engine/Libraries/glad/include",
 				"Engine/Source",
 				"Game/Source"
-			]
+			],
+			"intelliSenseMode": "windows-gcc-x64",
+			"compilerPath": "C:\\Program Files\\mingw64\\bin\\g++.exe"
         }
     ],
     "version": 4

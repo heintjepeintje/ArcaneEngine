@@ -18,9 +18,12 @@ namespace Arcane {
 
 		virtual void Update() = 0;
 
+		virtual void Destroy() = 0;
+
 		virtual bool IsVisible() const = 0;
 		virtual bool IsMaximized() const = 0;
 		virtual bool IsClosed() const = 0;
+
 
 		virtual Vector2 GetClientSize() const = 0;
 		virtual Vector2 GetScreenSize() const = 0;
