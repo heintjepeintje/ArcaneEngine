@@ -14,7 +14,7 @@ project "Engine"
 		"Libraries/glad/include",
 		"Source"
 	}
-
+	
 	filter "configurations:Debug"
 		symbols "On"
 		defines {

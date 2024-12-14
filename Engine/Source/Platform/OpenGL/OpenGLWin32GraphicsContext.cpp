@@ -31,7 +31,9 @@ namespace Arcane {
 
 		mRenderContext = wglCreateContext(mDeviceContext);
 		wglMakeCurrent(mDeviceContext, mRenderContext);
-		gladLoadGLLoader(GetOpenGLProcAddress);
+
+		
+		gladLoadGL();
 	}
 
 	OpenGLGraphicsContext::~OpenGLGraphicsContext() {

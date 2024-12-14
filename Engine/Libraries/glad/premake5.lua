@@ -1,7 +1,7 @@
 project "glad"
 	kind "StaticLib"
-	language "C"
-	cdialect "C11"
+	language "C++"
+	cppdialect "C++17"
 
 	objdir "Binaries/Intermediate/%{cfg.buildcfg}"
 	targetdir "Binaries/Output/%{cfg.buildcfg}"

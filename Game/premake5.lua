@@ -1,7 +1,7 @@
 project "Game"
 	kind "ConsoleApp"
-	language "C++"
-	cppdialect "C++20"
+	language "C"
+	cdialect "C17"
 
 	objdir "Binaries/Intermediate/%{cfg.buildcfg}"
 	targetdir "Binaries/Output/%{cfg.buildcfg}"

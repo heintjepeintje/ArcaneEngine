@@ -16,6 +16,8 @@ namespace Arcane {
 
 		inline void SwapBuffers() { mNativeContext->SwapBuffers(); }
 
+		inline std::shared_ptr<NativeGraphicsContext> GetNativeContext() const { return mNativeContext; }
+
 	private:
 		GraphicsContext(const std::shared_ptr<NativeGraphicsContext> &context) : mNativeContext(context) { }
 
