@@ -11,7 +11,6 @@ project "Engine"
 	}
 
 	includedirs {
-		"Libraries/glad/include",
 		"Source"
 	}
 	

@@ -6,12 +6,8 @@
 
 namespace Arcane {
 
-	void *GetOpenGLProcAddress(const char *procName) {
-		return (void*)wglGetProcAddress(procName);
-	}
-
 	OpenGLGraphicsContext::OpenGLGraphicsContext(const std::shared_ptr<NativeWindow> &window) : mWindow(window) {
-		std::shared_ptr<Win32Window> win32Window = std::dynamic_pointer_cast<Win32Window>(window); 
+		std::shared_ptr<Win32Window> win32Window = std::dynamic_pointer_cast<Win32Window>(window);
 
 		PIXELFORMATDESCRIPTOR pfd = {};
 		pfd.nSize = sizeof(PIXELFORMATDESCRIPTOR);
@@ -32,8 +28,8 @@ namespace Arcane {
 		mRenderContext = wglCreateContext(mDeviceContext);
 		wglMakeCurrent(mDeviceContext, mRenderContext);
 
-		
-		gladLoadGL();
+		std::printf("Loading OpenGL...\n");
+		LoadGL();
 	}
 
 	OpenGLGraphicsContext::~OpenGLGraphicsContext() {

@@ -5,6 +5,11 @@
 #include <vector>
 
 namespace Arcane {
+
+	enum class InputAttribute {
+		None = 0,
+		Position, Normal, UV, Color
+	};
 	
 	enum class InputElementType {
 		None = 0,
@@ -15,6 +20,7 @@ namespace Arcane {
 	};
 
 	struct InputElement {
+		InputAttribute attribute;
 		uint32_t Count;
 		InputElementType Type;
 	};
@@ -22,6 +28,7 @@ namespace Arcane {
 	class InputLayout {
 	public:
 		InputLayout(const std::initializer_list<InputElement> &elements);
+		InputLayout() { }
 		~InputLayout() { }
 
 		inline std::vector<InputElement> GetElements() const { return mElements; }
