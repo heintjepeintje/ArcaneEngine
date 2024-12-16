@@ -4,41 +4,37 @@
 #include <Arcane/Graphics/InputLayout.hpp>
 #include <Arcane/Math/Vector.hpp>
 #include <Arcane/Native/NativeGraphicsContext.hpp>
+#include <Arcane/Math/Math.hpp>
 
 namespace Arcane {
 
 	enum class CullMode {
-		None,
+		None = 0,
 		Front,
-		Back
+		Back,
+		FrontAndBack
 	};
 
 	enum class WindingOrder {
+		None = 0,
 		Clockwise,
 		CounterClockwise
 	};
 
 	enum class FillMode {
+		None = 0,
 		Solid,
-		Wireframe
+		Wireframe,
+		Points
 	};
 
 	enum class PrimitiveTopology {
+		None = 0,
 		TriangleList,
 		TriangleStrip,
 		LineList,
 		LineStrip,
 		PointList
-	};
-
-	struct Viewport {
-		Vector2 Offset;
-		Vector2 Size;
-	};
-
-	struct Scissor {
-		Vector2 Offset;
-		Vector2 Size;
 	};
 
 	struct PipelineInfo {
@@ -51,6 +47,9 @@ namespace Arcane {
 		PrimitiveTopology Topology;	
 
 		InputLayout Layout;
+
+		Rect2D Viewport;
+		Rect2D Scissor;
 		
 		void *VertexShaderBinary;
 		size_t VertexShaderBinarySize;

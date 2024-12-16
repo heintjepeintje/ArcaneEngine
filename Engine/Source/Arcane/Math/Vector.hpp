@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Math.hpp"
+
 namespace Arcane {
 
 	class Vector2 {

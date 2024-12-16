@@ -14,7 +14,13 @@ namespace Arcane {
 		OpenGLGraphicsContext(const std::shared_ptr<NativeWindow> &window);
 		~OpenGLGraphicsContext();
 
-		virtual void SwapBuffers() override;
+		virtual void Present() override;
+
+		virtual uint32_t GetVersionMajor() const override;
+		virtual uint32_t GetVersionMinor() const override;
+		virtual uint32_t GetPatchLevel() const override;
+
+		inline std::shared_ptr<NativeWindow> GetWindow() const { return mWindow; }
 
 	private:
 		std::shared_ptr<NativeWindow> mWindow;

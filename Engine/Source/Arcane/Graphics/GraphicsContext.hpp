@@ -14,7 +14,11 @@ namespace Arcane {
 		GraphicsContext() { }
 		~GraphicsContext() { }
 
-		inline void SwapBuffers() { mNativeContext->SwapBuffers(); }
+		inline void Present() { mNativeContext->Present(); }
+		
+		inline uint32_t GetVersionMajor() const { return mNativeContext->GetVersionMajor(); }
+		inline uint32_t GetVersionMinor() const { return mNativeContext->GetVersionMinor(); }
+		inline uint32_t GetPatchLevel() const { return mNativeContext->GetPatchLevel(); }
 
 		inline std::shared_ptr<NativeGraphicsContext> GetNativeContext() const { return mNativeContext; }
 

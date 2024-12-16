@@ -13,7 +13,11 @@ namespace Arcane {
 		NativeGraphicsContext() { }
 		virtual ~NativeGraphicsContext() { }
 
-		virtual void SwapBuffers() = 0;
+		virtual void Present() = 0;
+		
+		virtual uint32_t GetVersionMajor() const = 0;
+		virtual uint32_t GetVersionMinor() const = 0;
+		virtual uint32_t GetPatchLevel() const = 0;
 	};
 
 }

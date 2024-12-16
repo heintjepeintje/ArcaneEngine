@@ -15,6 +15,8 @@ int main(int argc, char **argv) {
 
 	GraphicsContext context = GraphicsContext::Create(window);
 
+	std::cout << context.GetVersionMajor() << "." << context.GetVersionMinor() << "." << context.GetPatchLevel() << std::endl;
+
 	float vertices[] = {
 		-0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
 		 0.0f,  0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
@@ -49,7 +51,7 @@ int main(int argc, char **argv) {
 	pipelineInfo.Topology = PrimitiveTopology::TriangleList;
 
 	while (!window.IsClosed()) {
-		context.SwapBuffers();
+		context.Present();
 		window.Update();
 	}
 

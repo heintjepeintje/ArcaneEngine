@@ -41,8 +41,24 @@ namespace Arcane {
 		wglDeleteContext(mRenderContext);
 	}
 
-	void OpenGLGraphicsContext::SwapBuffers() {
+	void OpenGLGraphicsContext::Present() {
 		wglSwapLayerBuffers(mDeviceContext, WGL_SWAP_MAIN_PLANE);
+	}
+
+	uint32_t OpenGLGraphicsContext::GetVersionMajor() const {
+		int32_t major = 0;
+		glGetIntegerv(GL_MAJOR_VERSION, &major);
+		return major;
+	}
+
+	uint32_t OpenGLGraphicsContext::GetVersionMinor() const {
+		int32_t major = 0;
+		glGetIntegerv(GL_MINOR_VERSION, &major);
+		return major;
+	}
+
+	uint32_t OpenGLGraphicsContext::GetPatchLevel() const {
+		return 0;
 	}
 
 	std::shared_ptr<NativeGraphicsContext> NativeGraphicsContext::Create(const std::shared_ptr<NativeWindow> &window) {

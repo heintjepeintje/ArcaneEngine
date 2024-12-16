@@ -2,6 +2,7 @@
 
 #include <Arcane/Core.hpp>
 #include "NativeGraphicsContext.hpp"
+#include <Arcane/Graphics/InputLayout.hpp>
 
 namespace Arcane {
 
@@ -18,7 +19,8 @@ namespace Arcane {
 	class NativeBuffer {
 	public:
 		static std::shared_ptr<NativeBuffer> Create(const std::shared_ptr<NativeGraphicsContext> &context, BufferType type, size_t size);
-	
+		static std::shared_ptr<NativeBuffer> Create(const std::shared_ptr<NativeGraphicsContext> &context, BufferType type, const InputLayout &layout, size_t size);
+
 	public:
 		NativeBuffer() { }
 		virtual ~NativeBuffer() { }
