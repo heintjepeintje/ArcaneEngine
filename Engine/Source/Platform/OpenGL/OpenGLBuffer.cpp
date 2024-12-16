@@ -25,9 +25,9 @@ namespace Arcane {
 	void *OpenGLBuffer::Map(MapMode mode) {
 		GLenum access = 0;
 		switch (mode) {
-			case MapMode::Read: access = GL_MAP_READ_BIT; break;
-			case MapMode::Write: access = GL_MAP_WRITE_BIT; break;
-			case MapMode::ReadWrite: access = GL_MAP_READ_BIT | GL_MAP_WRITE_BIT; break;
+			case MapMode::Read: access = GL_READ_ONLY; break;
+			case MapMode::Write: access = GL_WRITE_ONLY; break;
+			case MapMode::ReadWrite: access = GL_READ_WRITE; break;
 		}
 
 		return glMapNamedBuffer(mBuffer, access);

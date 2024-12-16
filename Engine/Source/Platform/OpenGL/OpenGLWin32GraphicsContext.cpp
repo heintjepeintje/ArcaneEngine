@@ -30,6 +30,8 @@ namespace Arcane {
 
 		std::printf("Loading OpenGL...\n");
 		LoadGL();
+
+		const GLubyte *version = glGetString(GL_VERSION);
 	}
 
 	OpenGLGraphicsContext::~OpenGLGraphicsContext() {

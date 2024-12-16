@@ -1,8 +1,10 @@
 #pragma once
 
+#include <Arcane/Core.hpp>
+
 #include <cstdint>
 
-#define GLAPI static
+#define GLAPI extern
 
 typedef unsigned int GLenum;
 typedef unsigned char GLboolean;
