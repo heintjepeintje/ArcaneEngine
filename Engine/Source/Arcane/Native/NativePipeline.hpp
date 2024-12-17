@@ -3,7 +3,7 @@
 #include <Arcane/Core.hpp>
 #include <Arcane/Graphics/InputLayout.hpp>
 #include <Arcane/Math/Vector.hpp>
-#include <Arcane/Math/Math.hpp>
+#include <Arcane/Math/Rect2D.hpp>
 #include "NativeGraphicsContext.hpp"
 #include "NativeBuffer.hpp"
 

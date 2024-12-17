@@ -1,12 +1,13 @@
 #pragma once
 
+#include "Math.hpp"
 #include "Vector.hpp"
 
 namespace Arcane {
 
 	class Matrix4 {
 	public:
-		static Matrix4 Identity(float scalar = 1.0f) {
+		inline static Matrix4 Identity(float scalar = 1.0f) {
 			return Matrix4(
 				scalar, 0.0f, 0.0f, 0.0f,
 				0.0f, scalar, 0.0f, 0.0f,
@@ -15,7 +16,16 @@ namespace Arcane {
 			);
 		}
 
-		static Matrix4 Scale(const Vector3 &scale) {
+		inline static Matrix4 Identity(const Vector4 &scalar) {
+			return Matrix4(
+				scalar.x, 0.0f, 0.0f, 0.0f,
+				0.0f, scalar.y, 0.0f, 0.0f,
+				0.0f, 0.0f, scalar.z, 0.0f,
+				0.0f, 0.0f, 0.0f, scalar.w
+			);
+		}
+
+		inline static Matrix4 Scale(const Vector3 &scale) {
 			return Matrix4(
 				scale.x, 0.0f, 0.0f, 0.0f,
 				0.0f, scale.y, 0.0f, 0.0f,
@@ -24,12 +34,75 @@ namespace Arcane {
 			);
 		}
 
-		static Matrix4 Transpose(const Matrix4 &matrix) {
+		inline static Matrix4 RotateX(float angle) {
+			return Matrix4(
+				1.0f, 0.0f, 0.0f, 0.0f,
+				0.0f, Cos(angle), -Sin(angle), 0.0f,
+				0.0f, Sin(angle), Cos(angle), 0.0f,
+				0.0f, 0.0f, 0.0f, 1.0f
+			);
+		}
+
+		inline static Matrix4 RotateY(float angle) {
+			return Matrix4(
+				Cos(angle), 0.0f, Sin(angle), 0.0f,
+				0.0f, 1.0f, 0.0f, 0.0f,
+				-Sin(angle), 0.0f, Cos(angle), 0.0f,
+				0.0f, 0.0f, 0.0f, 1.0f	
+			);
+		}
+
+		inline static Matrix4 RotateZ(float angle) {
+			return Matrix4(
+				Cos(angle), -Sin(angle), 0.0f, 0.0f,
+				Sin(angle),  Cos(angle), 0.0f, 0.0f,
+				0.0f, 0.0f, 1.0f, 0.0f,
+				0.0f, 0.0f, 0.0f, 1.0f	
+			);
+		}
+
+		inline static Matrix4 Translate(const Vector3 &translation) {
+			return Matrix4(
+				1.0f, 0.0f, 0.0f, translation.x,
+				0.0f, 1.0f, 0.0f, translation.y,
+				0.0f, 0.0f, 1.0f, translation.z,
+				0.0f, 0.0f, 0.0f, 1.0f
+			);
+		}
+
+		inline static Matrix4 Transpose(const Matrix4 &matrix) {
 			return Matrix4(
 				matrix.m00, matrix.m10, matrix.m20, matrix.m30,
 				matrix.m01, matrix.m11, matrix.m21, matrix.m31,
 				matrix.m02, matrix.m12, matrix.m22, matrix.m32,
 				matrix.m03, matrix.m13, matrix.m23, matrix.m33
+			);
+		}
+
+		inline static Matrix4 Perspective(float fovy, float aspect, float near, float far) {
+			const float tanHalfFovY = Tan(fovy / 2.0f);
+			return Matrix4(
+				1.0f / (aspect * tanHalfFovY), 0.0f, 0.0f, 0.0f,
+				0.0f, 1.0f / tanHalfFovY, 0.0f, 0.0f,
+				0.0f, 0.0f, (far + near) / (far - near), -(2.0f * far * near) / (far - near),
+				0.0f, 0.0f, 1.0f, 0.0f
+			);
+		}
+
+		inline static Matrix4 Perspective(float fovy, Vector2 size, float near, float far) {
+			return Perspective(fovy, size.x / size.y, near, far);
+		}
+
+		inline static Matrix4 LookAt(const Vector3 &eye, const Vector3 &target, const Vector3 &up) {
+			const Vector3 N = Vector3::Normalize(target - eye);
+			const Vector3 V = Vector3::Normalize(up);
+			const Vector3 U = Vector3::Cross(V, N);
+
+			return Matrix4(
+				U.x, U.y, U.z, -eye.x,
+				V.x, V.y, V.z, -eye.y,
+				N.x, N.y, N.z, -eye.z,
+				0.0f, 0.0f, 0.0f, 1.0f
 			);
 		}
 

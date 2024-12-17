@@ -1,20 +1,10 @@
 #pragma once
 
-#include "Vector.hpp"
-
 namespace Arcane {
 
-	struct Rect2D {
-		Rect2D(const Vector2 &position, const Vector2 &size) : Position(position), Size(size) { }
-		Rect2D(float x, float y, float width, float height) : Position(x, y), Size(width, height) { }
-		Rect2D(const Vector2 &size) : Position(0.0f), Size(size) { }
-		Rect2D(float width, float height) : Position(0.0f), Size(width, height) { }
-		Rect2D() : Position(0.0f), Size(0.0f) { }
-		~Rect2D() { }
-
-		Vector2 Position;
-		Vector2 Size;
-	};
+	static constexpr float Pi = 3.14159265358979323846f;
+	static constexpr float HalfPi = Pi / 2.0f;
+	static constexpr float TwoPi = Pi * 2.0f;
 
 	constexpr float Min(float a, float b) {
 		return a < b ? a : b;
@@ -26,6 +16,19 @@ namespace Arcane {
 
 	constexpr float Clamp(float value, float min, float max) {
 		return Min(max, Max(value, min));
+	}
+
+	float Sin(float angle);
+	float Cos(float angle);
+	float Tan(float angle);
+	float Sqrt(float value);
+
+	constexpr float ToRadians(float angle) {
+		return (angle / 180.0f) * Pi;
+	}
+
+	constexpr float ToDegrees(float angle) {
+		return (angle / Pi) * 180.0f;
 	}
 
 }

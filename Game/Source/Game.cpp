@@ -16,10 +16,10 @@ int main(int argc, char **argv) {
 	std::cout << "Using OpenGL " << context.GetVersionMajor() << "." << context.GetVersionMinor() << "." << context.GetPatchLevel() << std::endl;
 
 	float vertices[] = {
-		-0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f,
-		-0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
-		 0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
-		 0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f 
+		-0.5f,  0.5f, 5.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+		-0.5f, -0.5f, 5.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
+		 0.5f, -0.5f, 5.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+		 0.5f,  0.5f, 5.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f
 	};
 
 	int32_t indices[] = {
@@ -53,8 +53,10 @@ int main(int argc, char **argv) {
 	uint64_t vertexSourceLength = ftell(file);
 	fseek(file, 0, SEEK_SET);
 
-	char *vertexSource = (char*)alloca(vertexSourceLength * sizeof(char));
+	char *vertexSource = (char*)alloca((vertexSourceLength + 1) * sizeof(char));
+	memset(vertexSource, 0, vertexSourceLength + 1);
 	fread((void*)vertexSource, 1, vertexSourceLength, file);
+	std::printf("Vertex Shader:\n%s\n", vertexSource);
 
 	fclose(file);
 
@@ -63,8 +65,10 @@ int main(int argc, char **argv) {
 	uint64_t fragmentSourceLength = ftell(file);
 	fseek(file, 0, SEEK_SET);
 
-	char *fragmentSource = (char*)alloca(fragmentSourceLength * sizeof(char));
+	char *fragmentSource = (char*)alloca((fragmentSourceLength + 1) * sizeof(char));
+	memset(fragmentSource, 0, fragmentSourceLength + 1);
 	fread((void*)fragmentSource, 1, fragmentSourceLength, file);
+	std::printf("Fragment Shader:\n%s\n", fragmentSource);
 
 	fclose(file);
 
@@ -72,11 +76,15 @@ int main(int argc, char **argv) {
 		{ 0, 1, DescriptorType::UniformBuffer }
 	};
 
-	Matrix4 matrix = Matrix4::Scale(Vector3(0.5));
+	Matrix4 convert = Matrix4::Identity(Vector4(1.0f, 1.0f, -1.0f, 1.0f));
+	Matrix4 projection = Matrix4::Perspective(ToRadians(90.0f), window.GetClientSize(), 0.1f, 1000.0f);
+	Matrix4 view = Matrix4::LookAt(Vector3(0.0f, 5.0f, -5.0f), Vector3(0, 0, 5), Vector3(0, 1, 0));
 
-	Buffer cameraBuffer = Buffer::Create(context, BufferType::Uniform, sizeof(Matrix4));
-	mapped = cameraBuffer.Map(MapMode::Write);
-	memcpy(mapped, &matrix, sizeof(Matrix4));
+	Buffer cameraBuffer = Buffer::Create(context, BufferType::Uniform, 3 * sizeof(Matrix4));
+	Matrix4 *matrices = (Matrix4*)cameraBuffer.Map(MapMode::Write);
+	matrices[0] = Matrix4::Transpose(convert);
+	matrices[1] = Matrix4::Transpose(projection);
+	matrices[2] = Matrix4::Transpose(view);
 	cameraBuffer.Unmap();
 
 	PipelineInfo pipelineInfo = { };
