@@ -15,7 +15,7 @@ namespace Arcane {
 		GLenum openglBufferType = ToOpenGLBufferType(type);
 
 		glCreateBuffers(1, &mBuffer);
-		glNamedBufferData(mBuffer, size, nullptr, GL_STATIC_DRAW);
+		glNamedBufferData(mBuffer, mSize, nullptr, GL_STATIC_DRAW);
 	}
 
 	OpenGLBuffer::~OpenGLBuffer() {

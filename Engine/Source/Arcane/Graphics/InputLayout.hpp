@@ -25,7 +25,7 @@ namespace Arcane {
 		InputElementType Type;
 	};
 
-	class InputLayout {	
+	class InputLayout {
 	public:
 		InputLayout(const std::initializer_list<InputElement> &elements);
 		InputLayout() { }

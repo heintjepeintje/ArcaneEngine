@@ -7,7 +7,7 @@
 namespace Arcane {
 
 	void OnOpenGLDebugMessage(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const void *userParam) {
-		printf("OpenGL > %*s\n", length, message);
+		AR_ASSERT(type != GL_DEBUG_TYPE_ERROR, "OpenGL > %*s\n", length, message);
 	}
 
 	OpenGLGraphicsContext::OpenGLGraphicsContext(const std::shared_ptr<NativeWindow> &window) : mWindow(window) {

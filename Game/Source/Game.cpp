@@ -15,27 +15,21 @@ int main(int argc, char **argv) {
 
 	std::cout << "Using OpenGL " << context.GetVersionMajor() << "." << context.GetVersionMinor() << "." << context.GetPatchLevel() << std::endl;
 
-	float vertices[] = {
-		-0.5f,  0.5f, 5.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f,
-		-0.5f, -0.5f, 5.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
-		 0.5f, -0.5f, 5.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
-		 0.5f,  0.5f, 5.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f
-	};
+	MeshData data = LoadCube(Vector3(2.0f));
 
-	int32_t indices[] = {
-		0, 1, 2,
-		0, 2, 3
-	};
-
-	Buffer vertexBuffer = Buffer::Create(context, BufferType::Vertex, sizeof(vertices));
+	Buffer vertexBuffer = Buffer::Create(context, BufferType::Vertex, data.Vertices.size() * sizeof(Vertex));
 	void *mapped = vertexBuffer.Map(MapMode::Write);
-	memcpy(mapped, vertices, sizeof(vertices));
+	memcpy(mapped, data.Vertices.data(), vertexBuffer.GetSize());
 	vertexBuffer.Unmap();
 
-	Buffer indexBuffer = Buffer::Create(context, BufferType::Index, sizeof(indices));
+	Buffer indexBuffer = Buffer::Create(context, BufferType::Index, data.Indices.size() * sizeof(uint32_t));
 	mapped = indexBuffer.Map(MapMode::Write);
-	memcpy(mapped, indices, sizeof(indices));
+	memcpy(mapped, data.Indices.data(), indexBuffer.GetSize());
 	indexBuffer.Unmap();
+
+	for (uint32_t i = 0; i < data.Indices.size(); i++) {
+		std::printf("%u: { %f, %f, %f }, { %f, %f, %f }\n", i, data.Vertices[data.Indices[i]].Position.x, data.Vertices[data.Indices[i]].Position.y, data.Vertices[data.Indices[i]].Position.z, data.Vertices[data.Indices[i]].Normal.x, data.Vertices[data.Indices[i]].Normal.y, data.Vertices[data.Indices[i]].Normal.z);
+	}
 
 	InputLayout layout = {
 		{ InputAttribute::Position, 1, InputElementType::Vector3 },
@@ -78,7 +72,7 @@ int main(int argc, char **argv) {
 
 	Matrix4 convert = Matrix4::Identity(Vector4(1.0f, 1.0f, -1.0f, 1.0f));
 	Matrix4 projection = Matrix4::Perspective(ToRadians(90.0f), window.GetClientSize(), 0.1f, 1000.0f);
-	Matrix4 view = Matrix4::LookAt(Vector3(0.0f, 5.0f, -5.0f), Vector3(0, 0, 5), Vector3(0, 1, 0));
+	Matrix4 view = Matrix4::LookAt(Vector3(0.0f, 0.0f, -10.0f), Vector3(0, 0, 0), Vector3(0, 1, 0));
 
 	Buffer cameraBuffer = Buffer::Create(context, BufferType::Uniform, 3 * sizeof(Matrix4));
 	Matrix4 *matrices = (Matrix4*)cameraBuffer.Map(MapMode::Write);
@@ -88,7 +82,7 @@ int main(int argc, char **argv) {
 	cameraBuffer.Unmap();
 
 	PipelineInfo pipelineInfo = { };
-	pipelineInfo.CullMode = CullMode::Back;
+	pipelineInfo.CullMode = CullMode::None;
 	pipelineInfo.WindingOrder = WindingOrder::CounterClockwise;
 	pipelineInfo.FillMode = FillMode::Solid;
 	pipelineInfo.Topology = PrimitiveTopology::TriangleList;
@@ -116,7 +110,7 @@ int main(int argc, char **argv) {
 		renderer.SetScissor(Rect2D(window.GetClientSize()));
 		renderer.SetPipeline(pipeline);
 		renderer.SetMesh(mesh);
-		renderer.DrawIndexed(6);
+		renderer.DrawIndexed(36);
 
 		context.Present();
 		window.Update();

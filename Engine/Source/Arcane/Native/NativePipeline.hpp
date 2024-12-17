@@ -82,7 +82,7 @@ namespace Arcane {
 		NativePipeline() { }
 		virtual ~NativePipeline() { }
 
-		virtual CullMode GetCullMode() const = 0;
+	virtual CullMode GetCullMode() const = 0;
 		virtual WindingOrder GetWindingOrder() const = 0;
 		virtual FillMode GetFillMode() const = 0;
 		virtual PrimitiveTopology GetTopology() const = 0;

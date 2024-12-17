@@ -4,6 +4,9 @@ namespace Arcane {
 
 	OpenGLRendererAPI::OpenGLRendererAPI(const std::shared_ptr<OpenGLGraphicsContext> &context) : mContext(context) {
 		glEnable(GL_SCISSOR_TEST);
+
+		glEnable(GL_DEPTH_TEST);
+		glDepthFunc(GL_LESS);
 	}
 
 	OpenGLRendererAPI::~OpenGLRendererAPI() { }
