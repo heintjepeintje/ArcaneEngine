@@ -22,7 +22,14 @@ namespace Arcane {
 	}
 
 	InputLayout::InputLayout(const std::initializer_list<InputElement> &element) : mElements(element), mTotalSize(0) {
-		for (InputElement &e : mElements) {
+		for (const InputElement &e : mElements) {
+			mTotalSize += GetElementSize(e);
+		}
+	}
+
+	void InputLayout::Append(const InputLayout &other) {
+		for (const InputElement &e : other.mElements) {
+			mElements.push_back(e);
 			mTotalSize += GetElementSize(e);
 		}
 	}

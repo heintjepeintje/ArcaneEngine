@@ -1,4 +1,4 @@
 @Echo Off
 
-glslc -g Source/BasicShader.vert -o Binaries/BasicShader.vert.spv
-glslc -g Source/BasicShader.frag -o Binaries/BasicShader.frag.spv
+glslangValidator -V -G -S vert Source/BasicShader.vert -o Binaries/Output/Debug/BasicShader.vert.spv
+glslangValidator -V -G -S frag Source/BasicShader.frag -o Binaries/Output/Debug/BasicShader.frag.spv

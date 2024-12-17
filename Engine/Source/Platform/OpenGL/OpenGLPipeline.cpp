@@ -48,9 +48,11 @@ namespace Arcane {
 		
 		GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
 		glShaderBinary(1, &vertexShader, GL_SHADER_BINARY_FORMAT_SPIR_V, info.VertexShaderBinary, info.VertexShaderBinarySize);
+		glSpecializeShader(vertexShader, "main", 0, nullptr, nullptr);
 
 		GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 		glShaderBinary(1, &fragmentShader, GL_SHADER_BINARY_FORMAT_SPIR_V, info.FragmentShaderBinary, info.FragmentShaderBinarySize);
+		glSpecializeShader(fragmentShader, "main", 0, nullptr, nullptr);
 
 		glAttachShader(mProgram, vertexShader);
 		glAttachShader(mProgram, fragmentShader);
@@ -71,6 +73,17 @@ namespace Arcane {
 		}
 
 		glValidateProgram(mProgram);
+	}
+
+	OpenGLPipeline::~OpenGLPipeline() {
+		glDeleteProgram(mProgram);
+	}
+
+	std::shared_ptr<NativePipeline> NativePipeline::Create(const std::shared_ptr<NativeGraphicsContext> &context, const PipelineInfo &info) {
+		return std::make_shared<OpenGLPipeline>(
+			std::dynamic_pointer_cast<OpenGLGraphicsContext>(context),
+			info
+		);
 	}
 
 }

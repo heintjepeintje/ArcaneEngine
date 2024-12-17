@@ -61,6 +61,7 @@
 		"*.fsh": "glsl",
 		"fstream": "cpp",
 		"sstream": "cpp",
-		"cinttypes": "cpp"
+		"cinttypes": "cpp",
+		"cstring": "cpp"
 	}
 }

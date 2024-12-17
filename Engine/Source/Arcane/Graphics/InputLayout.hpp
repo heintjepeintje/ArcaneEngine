@@ -25,7 +25,7 @@ namespace Arcane {
 		InputElementType Type;
 	};
 
-	class InputLayout {
+	class InputLayout {	
 	public:
 		InputLayout(const std::initializer_list<InputElement> &elements);
 		InputLayout() { }
@@ -33,6 +33,8 @@ namespace Arcane {
 
 		inline std::vector<InputElement> GetElements() const { return mElements; }
 		inline size_t GetTotalSize() const { return mTotalSize; }
+
+		void Append(const InputLayout &other);
 
 	private:
 		size_t mTotalSize;

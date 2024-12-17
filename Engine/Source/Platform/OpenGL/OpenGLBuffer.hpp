@@ -17,6 +17,8 @@ namespace Arcane {
 		inline size_t GetSize() const { return mSize; }
 		inline virtual BufferType GetType() const { return mType; }
 
+		inline GLuint GetOpenGLID() const { return mBuffer; }
+
 	private:
 		BufferType mType;
 		size_t mSize;

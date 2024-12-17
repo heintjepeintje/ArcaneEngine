@@ -6,6 +6,10 @@
 
 namespace Arcane {
 
+	void OnOpenGLDebugMessage(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const void *userParam) {
+		printf("OpenGL > %*s\n", length, message);
+	}
+
 	OpenGLGraphicsContext::OpenGLGraphicsContext(const std::shared_ptr<NativeWindow> &window) : mWindow(window) {
 		std::shared_ptr<Win32Window> win32Window = std::dynamic_pointer_cast<Win32Window>(window);
 
@@ -31,7 +35,9 @@ namespace Arcane {
 		std::printf("Loading OpenGL...\n");
 		LoadGL();
 
-		const GLubyte *version = glGetString(GL_VERSION);
+		glDebugMessageCallback(OnOpenGLDebugMessage, nullptr);
+		glEnable(GL_DEBUG_OUTPUT);
+		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 	}
 
 	OpenGLGraphicsContext::~OpenGLGraphicsContext() {
