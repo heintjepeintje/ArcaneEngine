@@ -15,6 +15,9 @@ namespace Arcane {
 		virtual void SetIndexBuffer(const std::shared_ptr<NativeBuffer> &indexBuffer) override;
 
 		inline virtual InputLayout GetLayout() const override { return mLayout; }	
+
+		inline GLuint GetVertexArray() const { return mVertexArray; }
+
 	private:
 		std::shared_ptr<OpenGLGraphicsContext> mContext;
 		GLuint mVertexArray;

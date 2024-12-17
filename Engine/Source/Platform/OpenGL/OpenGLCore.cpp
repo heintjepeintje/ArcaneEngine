@@ -732,7 +732,7 @@ namespace Arcane {
 		OpenGLModule = LoadLibraryW(L"opengl32.dll");
 		wglGetProcAddress = (PROCWGLGETPROCADDRESS)GetProcAddress(OpenGLModule, "wglGetProcAddress");
 		AR_ASSERT(wglGetProcAddress != NULL, "Failed to load wglGetProcAddress\n");
-#endif _WIN32
+#endif // _WIN32
 
 		ARGLCullFace = (PFNGLCULLFACEPROC)LoadGLFunction("glCullFace");
 		ARGLFrontFace = (PFNGLFRONTFACEPROC)LoadGLFunction("glFrontFace");

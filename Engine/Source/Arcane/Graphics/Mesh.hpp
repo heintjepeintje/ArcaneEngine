@@ -19,6 +19,8 @@ namespace Arcane {
 
 		inline InputLayout GetLayout() const { return mNativeMesh->GetLayout(); }
 
+		inline std::shared_ptr<NativeMesh> GetNativeMesh() const { return mNativeMesh; }
+
 	private:
 		Mesh(const std::shared_ptr<NativeMesh> &mesh) : mNativeMesh(mesh) { }
 

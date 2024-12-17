@@ -3,8 +3,9 @@
 #include <Arcane/Core.hpp>
 #include <Arcane/Graphics/InputLayout.hpp>
 #include <Arcane/Math/Vector.hpp>
-#include <Arcane/Native/NativeGraphicsContext.hpp>
 #include <Arcane/Math/Math.hpp>
+#include "NativeGraphicsContext.hpp"
+#include "NativeBuffer.hpp"
 
 namespace Arcane {
 
@@ -37,6 +38,18 @@ namespace Arcane {
 		PointList
 	};
 
+	enum class DescriptorType {
+		None = 0,
+		UniformBuffer,
+		Sampler2D
+	};
+
+	struct Descriptor {
+		uint32_t Binding;
+		uint32_t Count;
+		DescriptorType Type;
+	};
+
 	struct PipelineInfo {
 		PipelineInfo() { }
 		~PipelineInfo() { }
@@ -51,11 +64,14 @@ namespace Arcane {
 		Rect2D Viewport;
 		Rect2D Scissor;
 		
-		void *VertexShaderBinary;
-		size_t VertexShaderBinarySize;
+		char *VertexShaderSource;
+		size_t VertexShaderSourceLength;
 
-		void *FragmentShaderBinary;
-		size_t FragmentShaderBinarySize;
+		char *FragmentShaderSource;
+		size_t FragmentShaderSourceLength;
+
+		Descriptor *Descriptors;
+		uint32_t DescriptorCount;
 	};
 
 	class NativePipeline {
@@ -65,6 +81,16 @@ namespace Arcane {
 	public:
 		NativePipeline() { }
 		virtual ~NativePipeline() { }
+
+		virtual CullMode GetCullMode() const = 0;
+		virtual WindingOrder GetWindingOrder() const = 0;
+		virtual FillMode GetFillMode() const = 0;
+		virtual PrimitiveTopology GetTopology() const = 0;
+		virtual InputLayout GetLayout() const = 0;
+		virtual Rect2D GetViewport() const = 0;
+		virtual Rect2D GetScissor() const = 0;
+
+		virtual void SetDescriptor(uint32_t binding, const std::shared_ptr<NativeBuffer> &uniformBuffer) = 0;
 	};
 
 }

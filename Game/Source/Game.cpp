@@ -1,9 +1,4 @@
-#include <Arcane/System/Window.hpp>
-#include <Arcane/Graphics/GraphicsContext.hpp>
-#include <Arcane/Graphics/InputLayout.hpp>
-#include <Arcane/Graphics/Buffer.hpp>
-#include <Arcane/Graphics/Pipeline.hpp>
-#include <Arcane/Graphics/Mesh.hpp>
+#include <Arcane/Arcane.hpp>
 
 #include <fstream>
 #include <iostream>
@@ -18,16 +13,18 @@ int main(int argc, char **argv) {
 
 	GraphicsContext context = GraphicsContext::Create(window);
 
-	std::cout << context.GetVersionMajor() << "." << context.GetVersionMinor() << "." << context.GetPatchLevel() << std::endl;
+	std::cout << "Using OpenGL " << context.GetVersionMajor() << "." << context.GetVersionMinor() << "." << context.GetPatchLevel() << std::endl;
 
 	float vertices[] = {
-		-0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
-		 0.0f,  0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
-		 0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f
+		-0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+		-0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
+		 0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+		 0.5f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f 
 	};
 
 	int32_t indices[] = {
-		0, 1, 2
+		0, 1, 2,
+		0, 2, 3
 	};
 
 	Buffer vertexBuffer = Buffer::Create(context, BufferType::Vertex, sizeof(vertices));
@@ -51,42 +48,68 @@ int main(int argc, char **argv) {
 	mesh.SetVertexBuffer(0, layout, vertexBuffer);
 	mesh.SetIndexBuffer(indexBuffer);
 
-	FILE *file = fopen("Engine/Shaders/BasicShader/Binaries/Output/Debug/BasicShader.vert.spv", "r");
+	FILE *file = fopen("Engine/Shaders/BasicShader/Source/BasicShader.vert", "r");
 	fseek(file, 0, SEEK_END);
-	uint64_t vertexBinarySize = ftell(file);
+	uint64_t vertexSourceLength = ftell(file);
 	fseek(file, 0, SEEK_SET);
 
-	void *vertexBinary = malloc(vertexBinarySize);
-	fread(vertexBinary, 1, vertexBinarySize, file);
+	char *vertexSource = (char*)alloca(vertexSourceLength * sizeof(char));
+	fread((void*)vertexSource, 1, vertexSourceLength, file);
 
 	fclose(file);
 
-	file = fopen("Engine/Shaders/BasicShader/Binaries/Output/Debug/BasicShader.frag.spv", "r");
+	file = fopen("Engine/Shaders/BasicShader/Source/BasicShader.frag", "r");
 	fseek(file, 0, SEEK_END);
-	uint64_t fragmentBinarySize = ftell(file);
+	uint64_t fragmentSourceLength = ftell(file);
 	fseek(file, 0, SEEK_SET);
 
-	void *fragmentBinary = malloc(fragmentBinarySize);
-	fread(fragmentBinary, 1, fragmentBinarySize, file);
+	char *fragmentSource = (char*)alloca(fragmentSourceLength * sizeof(char));
+	fread((void*)fragmentSource, 1, fragmentSourceLength, file);
 
 	fclose(file);
+
+	Descriptor descriptors[] = {
+		{ 0, 1, DescriptorType::UniformBuffer }
+	};
+
+	Matrix4 matrix = Matrix4::Scale(Vector3(0.5));
+
+	Buffer cameraBuffer = Buffer::Create(context, BufferType::Uniform, sizeof(Matrix4));
+	mapped = cameraBuffer.Map(MapMode::Write);
+	memcpy(mapped, &matrix, sizeof(Matrix4));
+	cameraBuffer.Unmap();
 
 	PipelineInfo pipelineInfo = { };
 	pipelineInfo.CullMode = CullMode::Back;
 	pipelineInfo.WindingOrder = WindingOrder::CounterClockwise;
 	pipelineInfo.FillMode = FillMode::Solid;
 	pipelineInfo.Topology = PrimitiveTopology::TriangleList;
-	pipelineInfo.VertexShaderBinary = vertexBinary;
-	pipelineInfo.VertexShaderBinarySize = vertexBinarySize;
-	pipelineInfo.FragmentShaderBinary = fragmentBinary;
-	pipelineInfo.FragmentShaderBinarySize = fragmentBinarySize;
+	pipelineInfo.Layout = layout;
+	pipelineInfo.Viewport = { Vector2::Zero(), Vector2::MaxValue() };
+	pipelineInfo.Scissor = { Vector2::Zero(), Vector2::MaxValue() };
+	pipelineInfo.VertexShaderSource = vertexSource;
+	pipelineInfo.VertexShaderSourceLength = vertexSourceLength;
+	pipelineInfo.FragmentShaderSource = fragmentSource;
+	pipelineInfo.FragmentShaderSourceLength = fragmentSourceLength;
+	pipelineInfo.Descriptors = descriptors;
+	pipelineInfo.DescriptorCount = 1;
 
 	Pipeline pipeline = Pipeline::Create(context, pipelineInfo);
 
-	free(vertexBinary);
-	free(fragmentBinary);
+	pipeline.SetDescriptor(0, cameraBuffer);
+
+	RendererAPI renderer = RendererAPI::Create(context);
+	renderer.SetClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
 	while (!window.IsClosed()) {
+		renderer.Clear();
+		
+		renderer.SetViewport(Rect2D(window.GetClientSize()));
+		renderer.SetScissor(Rect2D(window.GetClientSize()));
+		renderer.SetPipeline(pipeline);
+		renderer.SetMesh(mesh);
+		renderer.DrawIndexed(6);
+
 		context.Present();
 		window.Update();
 	}

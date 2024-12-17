@@ -10,11 +10,15 @@ layout (location = 1) out vec3 oNormal;
 layout (location = 2) out vec2 oUV;
 layout (location = 3) out vec4 oColor;
 
+layout (std140, binding = 0) uniform Camera {
+	mat4 Projection;
+} uCamera;
+
 void main(void) {
 	oPosition = aPosition;
 	oNormal = aNormal;
 	oUV = aUV;
 	oColor = aColor;
 
-	gl_Position = vec4(aPosition, 1.0);
+	gl_Position = uCamera.Projection * vec4(aPosition, 1.0);
 }

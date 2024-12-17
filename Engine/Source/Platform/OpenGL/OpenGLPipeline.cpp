@@ -1,65 +1,70 @@
 #include "OpenGLPipeline.hpp"
 
+#include "OpenGLBuffer.hpp"
+
 namespace Arcane {
 
 	OpenGLPipeline::OpenGLPipeline(const std::shared_ptr<OpenGLGraphicsContext> &context, const PipelineInfo &info) : mContext(context) {
-		switch (info.CullMode) {
-			case CullMode::Back: mCullMode = GL_BACK; break;
-			case CullMode::Front: mCullMode = GL_BACK; break;
-			case CullMode::FrontAndBack: mCullMode = GL_FRONT_AND_BACK; break;
-			default: mCullMode = GL_NONE; break;
-		}
-
-		switch (info.WindingOrder) {
-			case WindingOrder::Clockwise: mCullMode = GL_CW; break;
-			case WindingOrder::CounterClockwise: mCullMode = GL_CCW; break;
-			default: mFillMode = GL_NONE; break;
-		}
-
-		switch (info.FillMode) {
-			case FillMode::Solid: mFillMode = GL_FILL; break;
-			case FillMode::Wireframe: mFillMode = GL_LINE; break;
-			case FillMode::Points: mFillMode = GL_POINT; break;
-			default: mFillMode = GL_NONE; break;
-		}
-
-		switch (info.Topology) {
-			case PrimitiveTopology::TriangleList: mTopology = GL_TRIANGLES; break;
-			case PrimitiveTopology::TriangleStrip: mTopology = GL_TRIANGLE_STRIP; break;
-			case PrimitiveTopology::LineList: mTopology = GL_LINES; break;
-			case PrimitiveTopology::LineStrip: mTopology = GL_LINE_STRIP; break;
-			case PrimitiveTopology::PointList: mTopology = GL_POINTS; break;
-			default: mTopology = GL_NONE; break;
-		}
-
+		mCullMode = info.CullMode;
+		mWindingOrder = info.WindingOrder;
+		mFillMode = info.FillMode;
+		mTopology = info.Topology;
 		mLayout = info.Layout;
-		mViewport.Position.x = Clamp(info.Viewport.Position.x, 0, context->GetWindow()->GetClientSize().x);
-		mViewport.Position.y = Clamp(info.Viewport.Position.y, 0, context->GetWindow()->GetClientSize().y);
-		mViewport.Size.x = Clamp(info.Viewport.Size.x, 0, context->GetWindow()->GetClientSize().x - mViewport.Position.x);
-		mViewport.Size.y = Clamp(info.Viewport.Size.y, 0, context->GetWindow()->GetClientSize().y - mViewport.Position.y);
 
+		mViewport = info.Viewport;
 		mScissor = info.Scissor;
-		mScissor.Position.x = Clamp(info.Scissor.Position.x, 0, mViewport.Size.x);
-		mScissor.Position.y = Clamp(info.Scissor.Position.y, 0, mViewport.Size.y);
-		mScissor.Size.x = Clamp(info.Scissor.Size.x, 0, mViewport.Size.x - mScissor.Position.x);
-		mScissor.Size.y = Clamp(info.Scissor.Size.y, 0, mViewport.Size.y - mScissor.Position.y);
-		
+
+		mDescriptorCount = info.DescriptorCount;
+		mDescriptors = new Descriptor[mDescriptorCount];
+		for (uint32_t i = 0; i < mDescriptorCount; i++) {
+			mDescriptors[i] = info.Descriptors[i];
+		}
+
 		mProgram = glCreateProgram();
 		
 		GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-		glShaderBinary(1, &vertexShader, GL_SHADER_BINARY_FORMAT_SPIR_V, info.VertexShaderBinary, info.VertexShaderBinarySize);
-		glSpecializeShader(vertexShader, "main", 0, nullptr, nullptr);
+
+		GLint vertexShaderLengths[] = { (GLint)info.VertexShaderSourceLength };
+
+		glShaderSource(vertexShader, 1, &info.VertexShaderSource, vertexShaderLengths);
+		glCompileShader(vertexShader);
+
+		GLint status = GL_FALSE;
+		glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &status);
+		if (status != GL_TRUE) {
+			GLint length = 0;
+			glGetShaderiv(vertexShader, GL_INFO_LOG_LENGTH, &length);
+
+			char *buffer = (char*)alloca(length * sizeof(char));
+			glGetShaderInfoLog(vertexShader, length, NULL, buffer);
+
+			AR_ASSERT(false, "Vertex Shader Compilation Error: %s\n", buffer);
+			return;
+		}
+
+		GLint fragmentShaderLengths[] = { (GLint)info.FragmentShaderSourceLength };
 
 		GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-		glShaderBinary(1, &fragmentShader, GL_SHADER_BINARY_FORMAT_SPIR_V, info.FragmentShaderBinary, info.FragmentShaderBinarySize);
-		glSpecializeShader(fragmentShader, "main", 0, nullptr, nullptr);
+		glShaderSource(fragmentShader, 1, &info.FragmentShaderSource, fragmentShaderLengths);
+		glCompileShader(fragmentShader);
+
+		glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &status);
+		if (status != GL_TRUE) {
+			GLint length = 0;
+			glGetShaderiv(fragmentShader, GL_INFO_LOG_LENGTH, &length);
+
+			char *buffer = (char*)alloca(length * sizeof(char));
+			glGetShaderInfoLog(fragmentShader, length, NULL, buffer);
+
+			AR_ASSERT(false, "Framgent Shader Compilation Error: %s\n", buffer);
+			return;
+		}
 
 		glAttachShader(mProgram, vertexShader);
 		glAttachShader(mProgram, fragmentShader);
 
 		glLinkProgram(mProgram);
 
-		GLint status = GL_FALSE;
 		glGetProgramiv(mProgram, GL_LINK_STATUS, &status);
 		if (status != GL_TRUE) {
 			GLint length = 0;
@@ -68,7 +73,7 @@ namespace Arcane {
 			char *buffer = (char*)alloca(length * sizeof(char));
 			glGetProgramInfoLog(mProgram, length, NULL, buffer);
 
-			std::fprintf(stderr, "Error linking program: %s\n", buffer);
+			AR_ASSERT(false, "Shader Program Linker Error: %s\n", buffer);
 			return;
 		}
 
@@ -77,6 +82,11 @@ namespace Arcane {
 
 	OpenGLPipeline::~OpenGLPipeline() {
 		glDeleteProgram(mProgram);
+		delete[] mDescriptors;
+	}
+
+	void OpenGLPipeline::SetDescriptor(uint32_t binding, const std::shared_ptr<NativeBuffer> &uniformBuffer) {
+		mUniformBufferDescriptors.push_back({ binding, std::dynamic_pointer_cast<OpenGLBuffer>(uniformBuffer)->GetOpenGLID() });
 	}
 
 	std::shared_ptr<NativePipeline> NativePipeline::Create(const std::shared_ptr<NativeGraphicsContext> &context, const PipelineInfo &info) {
