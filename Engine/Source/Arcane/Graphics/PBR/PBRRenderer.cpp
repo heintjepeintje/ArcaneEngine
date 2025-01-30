@@ -155,6 +155,66 @@ namespace Arcane {
 
 	}
 
+	void PBRRenderer::Reload() {
+		Descriptor descriptors[] = {
+			{ 0, DescriptorType::UniformBuffer },
+			{ 1, DescriptorType::UniformBuffer },
+			{ 2, DescriptorType::UniformBuffer },
+			
+			{ 0, DescriptorType::CombinedImageSampler },
+			{ 1, DescriptorType::CombinedImageSampler },
+			{ 2, DescriptorType::CombinedImageSampler },
+			{ 3, DescriptorType::CombinedImageSampler },
+			{ 4, DescriptorType::CombinedImageSampler }
+		};
+
+		PipelineInfo pipelineInfo{};
+		pipelineInfo.CullMode = CullMode::Back;
+		pipelineInfo.WindingOrder = WindingOrder::CounterClockwise;
+		pipelineInfo.Topology = PrimitiveTopology::TriangleList;
+		pipelineInfo.Descriptors = descriptors;
+		pipelineInfo.DescriptorCount = 7;
+		pipelineInfo.FillMode = FillMode::Solid;
+		pipelineInfo.Layout = {
+			{ InputAttribute::Position, 1, InputElementType::Vector3 },
+			{ InputAttribute::Normal, 1, InputElementType::Vector3 },
+			{ InputAttribute::UV, 1, InputElementType::Vector2 },
+			{ InputAttribute::Tangent, 1, InputElementType::Vector3 },
+			{ InputAttribute::Bitangent, 1, InputElementType::Vector3 },
+		};
+
+		size_t vertexBinarySize = 0, fragmentBinarySize = 0;
+		uint8_t *vertexShaderBinary = ReadFileBinary(AR_PBR_VERTEX_SHADER_PATH, &vertexBinarySize);
+		uint8_t *fragmentShaderBinary = ReadFileBinary(AR_PBR_FRAGMENT_SHADER_PATH, &fragmentBinarySize);
+
+		pipelineInfo.VertexShaderBinary = vertexShaderBinary;
+		pipelineInfo.VertexShaderSize = vertexBinarySize;
+
+		pipelineInfo.FragmentShaderBinary = fragmentShaderBinary;
+		pipelineInfo.FragmentShaderSize = fragmentBinarySize;
+
+		pipelineInfo.SampleCount = 16;
+		pipelineInfo.Scissor = { Vector2::Zero(), Vector2::MaxValue() };
+		pipelineInfo.Viewport = { Vector2::Zero(), Vector2::MaxValue() };
+
+		sPBRPipeline = Pipeline::Create(sContext, pipelineInfo);
+
+		const Attachment attachments[] = {
+			{ AttachmentType::Color, ImageFormat::RGBA8, 16 },
+			{ AttachmentType::DepthStencil, ImageFormat::D24S8, 16 },
+		};
+
+		sRenderPass = RenderPass::Create(sContext, sPBRPipeline, attachments, 2);
+
+		sPBRPipeline.SetUniformBuffer(0, sCameraBuffer);
+		sPBRPipeline.SetUniformBuffer(1, sObjectBuffer);
+		sPBRPipeline.SetUniformBuffer(2, sLightBuffer);
+
+		std::memset(&sObjectData, 0, sizeof(sObjectData));
+		std::memset(&sCameraData, 0, sizeof(sCameraData));
+		std::memset(&sLightData, 0, sizeof(sLightData));
+	}
+
 	void PBRRenderer::Begin(const Camera3D &camera) {
 		sCamera = camera;
 

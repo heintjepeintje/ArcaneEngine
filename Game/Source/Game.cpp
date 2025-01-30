@@ -15,6 +15,7 @@ int main(int argc, char **argv) {
 	Arcane::PBRRenderer::Init(context);
 
 	Arcane::MeshData meshData = Arcane::LoadCube(Arcane::Vector3(10.0f, 1.0f, 10.0f), false);
+	Arcane::ProcessMesh(meshData, Arcane::MeshProcess::GenerateTangents);
 
 	Arcane::Mesh mesh = Arcane::Mesh::Create(context, meshData);
 
@@ -45,41 +46,50 @@ int main(int argc, char **argv) {
 	camera = Arcane::Camera3D(90.0f, window.GetClientSize(), 0.0001f, 10000.0f);
 
 	window.SetVisible(true);
-	Arcane::SetCursorLocked(true);
-	Arcane::SetCursorVisible(false);
 
-	Arcane::PointLight light = Arcane::PointLight(Arcane::Color::White(), 2.0f);
+	Arcane::PointLight light = Arcane::PointLight(Arcane::Color::White(), 10.0f);
 	Arcane::Transform lightPosition = Arcane::Transform();
-	lightPosition.Position = { -1, 1, 2 };
 
 	while (!window.IsClosed()) {
 		lightPosition.Position = camera.Position;
 
-		yaw -= Arcane::GetMouseDelta().X * sensitivity;
-		pitch -= Arcane::GetMouseDelta().Y * sensitivity;
+		if (window.IsFocused()) {
+			Arcane::SetCursorLocked(true);
+			Arcane::SetCursorVisible(false);
 
-		if (pitch >= 89.9f) pitch = 89.9f;
-		if (pitch <= -89.9f) pitch = -89.9f;
+			yaw -= Arcane::GetMouseDelta().X * sensitivity;
+			pitch -= Arcane::GetMouseDelta().Y * sensitivity;
 
-		Arcane::Vector3 direction = Arcane::Vector3(0);
-		direction.X = Arcane::Cos(Arcane::ToRadians(yaw)) * Arcane::Cos(Arcane::ToRadians(pitch));
-		direction.Y = Arcane::Sin(Arcane::ToRadians(pitch));
-		direction.Z = Arcane::Sin(Arcane::ToRadians(yaw)) * Arcane::Cos(Arcane::ToRadians(pitch));
-		camera.Front = Arcane::Vector3::Normalize(direction);
+			if (pitch >= 89.9f) pitch = 89.9f;
+			if (pitch <= -89.9f) pitch = -89.9f;
 
-		if (Arcane::IsKeyPressed(Arcane::KeyCode::Space))
-			camera.Position += camera.Up * speed * Arcane::GetDeltaTime();
-		if (Arcane::IsKeyPressed(Arcane::KeyCode::LeftShift) || Arcane::IsKeyPressed(Arcane::KeyCode::RightShift))
-			camera.Position -= camera.Up * speed * Arcane::GetDeltaTime();
+			Arcane::Vector3 direction = Arcane::Vector3(0);
+			direction.X = Arcane::Cos(Arcane::ToRadians(yaw)) * Arcane::Cos(Arcane::ToRadians(pitch));
+			direction.Y = Arcane::Sin(Arcane::ToRadians(pitch));
+			direction.Z = Arcane::Sin(Arcane::ToRadians(yaw)) * Arcane::Cos(Arcane::ToRadians(pitch));
+			camera.Front = Arcane::Vector3::Normalize(direction);
 
-		if (Arcane::IsKeyPressed(Arcane::KeyCode::W)) 
-			camera.Position += camera.Front * speed * Arcane::GetDeltaTime();
-		if (Arcane::IsKeyPressed(Arcane::KeyCode::S))
-			camera.Position -= camera.Front * speed * Arcane::GetDeltaTime();
-		if (Arcane::IsKeyPressed(Arcane::KeyCode::A))
-			camera.Position -= Arcane::Vector3::Normalize(Arcane::Vector3::Cross(camera.Up, camera.Front)) * speed * Arcane::GetDeltaTime();
-		if (Arcane::IsKeyPressed(Arcane::KeyCode::D))		
-			camera.Position += Arcane::Vector3::Normalize(Arcane::Vector3::Cross(camera.Up, camera.Front)) * speed * Arcane::GetDeltaTime();
+			if (Arcane::IsKeyDown(Arcane::KeyCode::R)) {
+				Arcane::PBRRenderer::Reload();
+			}
+
+			if (Arcane::IsKeyPressed(Arcane::KeyCode::Space))
+				camera.Position += camera.Up * speed * Arcane::GetDeltaTime();
+			if (Arcane::IsKeyPressed(Arcane::KeyCode::LeftShift) || Arcane::IsKeyPressed(Arcane::KeyCode::RightShift))
+				camera.Position -= camera.Up * speed * Arcane::GetDeltaTime();
+
+			if (Arcane::IsKeyPressed(Arcane::KeyCode::W)) 
+				camera.Position += camera.Front * speed * Arcane::GetDeltaTime();
+			if (Arcane::IsKeyPressed(Arcane::KeyCode::S))
+				camera.Position -= camera.Front * speed * Arcane::GetDeltaTime();
+			if (Arcane::IsKeyPressed(Arcane::KeyCode::A))
+				camera.Position -= Arcane::Vector3::Normalize(Arcane::Vector3::Cross(camera.Up, camera.Front)) * speed * Arcane::GetDeltaTime();
+			if (Arcane::IsKeyPressed(Arcane::KeyCode::D))		
+				camera.Position += Arcane::Vector3::Normalize(Arcane::Vector3::Cross(camera.Up, camera.Front)) * speed * Arcane::GetDeltaTime();
+		} else {
+			Arcane::SetCursorLocked(false);
+			Arcane::SetCursorVisible(true);
+		}
 			
 		Arcane::PBRRenderer::Begin(camera);
 

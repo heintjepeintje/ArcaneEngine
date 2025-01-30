@@ -22,6 +22,7 @@ namespace Arcane {
 		inline bool IsVisible() const { return mNativeWindow->IsVisible(); }
 		inline bool IsMaximized() const { return mNativeWindow->IsMaximized(); }
 		inline bool IsClosed() const { return mNativeWindow->IsClosed(); }
+		inline bool IsFocused() const { return mNativeWindow->IsFocused(); }
 
 		inline Vector2 GetClientSize() const { return mNativeWindow->GetClientSize(); }
 		inline Vector2 GetScreenSize() const { return mNativeWindow->GetScreenSize(); }

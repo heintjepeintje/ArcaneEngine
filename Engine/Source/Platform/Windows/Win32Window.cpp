@@ -89,6 +89,10 @@ namespace Arcane {
 		return mData.isClosed;
 	}
 
+	bool Win32Window::IsFocused() const {
+		return GetActiveWindow() == mHandle; 
+	}
+
 	Vector2 Win32Window::GetClientSize() const {
 		RECT clientRect = { };
 		GetClientRect(mHandle, &clientRect);

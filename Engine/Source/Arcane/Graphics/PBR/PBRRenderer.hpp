@@ -12,6 +12,7 @@ namespace Arcane {
 	class PBRRenderer {
 	public:
 		static void Init(const GraphicsContext &context);
+		static void Reload();
 		static void Shutdown();
 
 		static void Begin(const Camera3D &camera);

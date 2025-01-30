@@ -28,7 +28,9 @@ const float PI = 3.14159265359;
 layout (location = 0) in vec3 iPosition;
 layout (location = 1) in vec3 iNormal;
 layout (location = 2) in vec2 iUV;
-layout (location = 3) in mat4 iTBN;
+layout (location = 3) in vec3 iTangent;
+layout (location = 4) in vec3 iBitangent;
+layout (location = 5) in mat3 iTBN;
 
 layout (location = 0) out vec4 oColor;
 
@@ -76,7 +78,6 @@ float GeometrySmith(vec3 n, vec3 v, vec3 l, float roughness) {
 }
 
 void main() {
-
 	const vec3 albedo = texture(uAlbedo, iUV).rgb;
 	const vec3 normal = normalize(iTBN * texture(uNormal, iUV).rgb * 2.0 - 1.0);
 	const float metallic = texture(uMetallic, iUV).r;

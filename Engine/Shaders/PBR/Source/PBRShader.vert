@@ -9,7 +9,9 @@ layout (location = 4) in vec3 aBitangent;
 layout (location = 0) out vec3 oPosition;
 layout (location = 1) out vec3 oNormal;
 layout (location = 2) out vec2 oUV;
-layout (location = 3) out vec3 oTBN;
+layout (location = 3) out vec3 oTangent;
+layout (location = 4) out vec3 oBitangent;
+layout (location = 5) out mat3 oTBN;
 
 layout (std140, binding = 0) uniform CameraData {
 	mat4 Projection;
@@ -27,6 +29,8 @@ void main() {
 	oPosition = (uObject.Model * vec4(aPosition, 1.0)).xyz;
 	oNormal = mat3(transpose(inverse(uObject.Model))) * aNormal;
 	oUV = aUV;
+	oTangent = aTangent;
+	oBitangent = aBitangent;
 
 	const vec3 t = normalize(vec3(uObject.Model * vec4(aTangent, 0.0)));
 	const vec3 b = normalize(vec3(uObject.Model * vec4(aBitangent, 0.0)));

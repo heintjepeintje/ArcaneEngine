@@ -26,6 +26,7 @@ namespace Arcane {
 		virtual bool IsVisible() const override;
 		virtual bool IsMaximized() const override;
 		virtual bool IsClosed() const override;
+		virtual bool IsFocused() const override;
 
 		virtual Vector2 GetClientSize() const override;
 		virtual Vector2 GetScreenSize() const override;
