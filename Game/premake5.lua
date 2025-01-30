@@ -12,7 +12,8 @@ project "Game"
 
 	includedirs {
 		"Source",
-		"../Engine/Source"
+		"../Engine/Source",
+		"../Engine/Libraries/glm"
 	}
 
 	links {

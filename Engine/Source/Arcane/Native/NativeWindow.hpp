@@ -1,13 +1,13 @@
 #pragma once
 
 #include <Arcane/Core.hpp>
-#include <Arcane/Math/Vector.hpp>
+#include <Arcane/Math/Vector2.hpp>
 
 namespace Arcane {
 
 	class NativeWindow {
 	public:
-		static std::shared_ptr<NativeWindow> Create(uint32_t width, uint32_t height, const std::string &title);
+		static Ref<NativeWindow> Create(uint32_t width, uint32_t height, const std::string &title);
 
 	public:
 		NativeWindow() { }

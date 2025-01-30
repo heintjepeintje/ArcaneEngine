@@ -2,20 +2,9 @@
 
 namespace Arcane {
 
-	GLenum ToOpenGLBufferType(BufferType type) {
-		switch (type) {
-			case BufferType::Vertex: return GL_ARRAY_BUFFER;
-			case BufferType::Index: return GL_ELEMENT_ARRAY_BUFFER;
-			case BufferType::Uniform: return GL_UNIFORM_BUFFER;
-			default: return GL_NONE;
-		}
-	}
-
-	OpenGLBuffer::OpenGLBuffer(BufferType type, size_t size) : mType(type), mSize(size) {
-		GLenum openglBufferType = ToOpenGLBufferType(type);
-
+	OpenGLBuffer::OpenGLBuffer(size_t size) : mSize(size) {
 		glCreateBuffers(1, &mBuffer);
-		glNamedBufferData(mBuffer, mSize, nullptr, GL_STATIC_DRAW);
+		glNamedBufferStorage(mBuffer, mSize, nullptr, GL_DYNAMIC_STORAGE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_WRITE_BIT | GL_MAP_READ_BIT);
 	}
 
 	OpenGLBuffer::~OpenGLBuffer() {
@@ -37,8 +26,8 @@ namespace Arcane {
 		glUnmapNamedBuffer(mBuffer);
 	}
 
-	std::shared_ptr<NativeBuffer> NativeBuffer::Create(const std::shared_ptr<NativeGraphicsContext> &context, BufferType type, size_t size) {
-		return std::make_shared<OpenGLBuffer>(type, size);
+	void OpenGLBuffer::SetData(size_t offset, size_t size, const void *data) {
+		glNamedBufferSubData(mBuffer, offset, size, data);
 	}
 
 }

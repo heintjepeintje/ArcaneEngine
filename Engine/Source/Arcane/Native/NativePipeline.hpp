@@ -2,10 +2,10 @@
 
 #include <Arcane/Core.hpp>
 #include <Arcane/Graphics/InputLayout.hpp>
-#include <Arcane/Math/Vector.hpp>
 #include <Arcane/Math/Rect2D.hpp>
 #include "NativeGraphicsContext.hpp"
 #include "NativeBuffer.hpp"
+#include "NativeTexture.hpp"
 
 namespace Arcane {
 
@@ -41,12 +41,11 @@ namespace Arcane {
 	enum class DescriptorType {
 		None = 0,
 		UniformBuffer,
-		Sampler2D
+		CombinedImageSampler
 	};
 
 	struct Descriptor {
 		uint32_t Binding;
-		uint32_t Count;
 		DescriptorType Type;
 	};
 
@@ -64,25 +63,27 @@ namespace Arcane {
 		Rect2D Viewport;
 		Rect2D Scissor;
 		
-		char *VertexShaderSource;
-		size_t VertexShaderSourceLength;
+		uint8_t *VertexShaderBinary;
+		size_t VertexShaderSize;
 
-		char *FragmentShaderSource;
-		size_t FragmentShaderSourceLength;
+		uint8_t *FragmentShaderBinary;
+		size_t FragmentShaderSize;
 
 		Descriptor *Descriptors;
 		uint32_t DescriptorCount;
+
+		uint32_t SampleCount;
 	};
 
 	class NativePipeline {
 	public:
-		static std::shared_ptr<NativePipeline> Create(const std::shared_ptr<NativeGraphicsContext> &context, const PipelineInfo &info);
+		static Ref<NativePipeline> Create(const Ref<NativeGraphicsContext> &context, const PipelineInfo &info);
 
 	public:
 		NativePipeline() { }
 		virtual ~NativePipeline() { }
 
-	virtual CullMode GetCullMode() const = 0;
+		virtual CullMode GetCullMode() const = 0;
 		virtual WindingOrder GetWindingOrder() const = 0;
 		virtual FillMode GetFillMode() const = 0;
 		virtual PrimitiveTopology GetTopology() const = 0;
@@ -90,7 +91,10 @@ namespace Arcane {
 		virtual Rect2D GetViewport() const = 0;
 		virtual Rect2D GetScissor() const = 0;
 
-		virtual void SetDescriptor(uint32_t binding, const std::shared_ptr<NativeBuffer> &uniformBuffer) = 0;
+		virtual uint32_t GetSampleCount() const = 0;
+
+		virtual void SetUniformBuffer(uint32_t binding, const Ref<NativeBuffer> &uniformBuffer) = 0;
+		virtual void SetCombinedImageSampler(uint32_t binding, const Ref<NativeTexture> &texture, const Ref<NativeSampler> &sampler) = 0;
 	};
 
 }

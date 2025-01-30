@@ -8,7 +8,12 @@ namespace Arcane {
 
 	enum class InputAttribute {
 		None = 0,
-		Position, Normal, UV, Color
+		Position, 
+		Normal, 
+		UV, 
+		Color,
+		Tangent,
+		Bitangent
 	};
 	
 	enum class InputElementType {
@@ -35,6 +40,9 @@ namespace Arcane {
 		inline size_t GetTotalSize() const { return mTotalSize; }
 
 		void Append(const InputLayout &other);
+
+		void operator+=(const InputLayout &other) { Append(other); }
+		InputLayout operator+(const InputLayout &other) { InputLayout result = *this; result.Append(other); return result; }
 
 	private:
 		size_t mTotalSize;

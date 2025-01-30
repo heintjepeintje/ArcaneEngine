@@ -6,11 +6,6 @@
 
 namespace Arcane {
 
-	enum class BufferType {
-		None = 0,
-		Vertex, Index, Uniform
-	};
-
 	enum class MapMode {
 		None = 0,
 		Read, Write, ReadWrite
@@ -18,7 +13,7 @@ namespace Arcane {
 
 	class NativeBuffer {
 	public:
-		static std::shared_ptr<NativeBuffer> Create(const std::shared_ptr<NativeGraphicsContext> &context, BufferType type, size_t size);
+		static Ref<NativeBuffer> Create(const Ref<NativeGraphicsContext> &context, size_t size);
 
 	public:
 		NativeBuffer() { }
@@ -26,9 +21,9 @@ namespace Arcane {
 
 		virtual void *Map(MapMode mode) = 0;
 		virtual void Unmap() = 0;
+		virtual void SetData(size_t offset, size_t size, const void *data) = 0;
 
 		virtual size_t GetSize() const = 0;
-		virtual BufferType GetType() const = 0;
 	};
 
 }

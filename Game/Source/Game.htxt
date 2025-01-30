@@ -1,0 +1,39 @@
+#pragma once
+
+#include <Arcane/Arcane.hpp>
+
+class Game {
+public:
+	Game();
+	~Game();
+
+	void Start();
+	void Update();
+	void Draw();
+	void Stop();
+
+	inline bool IsRunning() { return !mWindow.IsClosed(); }
+
+private:
+	Arcane::Window mWindow;
+	Arcane::GraphicsContext mContext;
+	Arcane::RendererAPI mRendererAPI;
+	Arcane::Mesh mMesh;
+	Arcane::Buffer mCameraData;
+	Arcane::Buffer mObjectData;
+	
+	Arcane::Texture mTexture;
+	Arcane::Sampler mSampler;
+
+	Arcane::Pipeline mPipeline;
+	Arcane::RenderPass mRenderPass;
+	Arcane::Framebuffer mFramebuffer;
+
+	Arcane::Camera3D mCamera;
+	float pitch = 0.0f, yaw = 0.0f;
+	const float sensitivity = 0.1f;
+	const float speed = 1.0f;
+
+	Arcane::Transform mObjectTransform; 
+	uint32_t mIndexCount;
+};

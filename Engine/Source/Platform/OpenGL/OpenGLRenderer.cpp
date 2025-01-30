@@ -2,58 +2,131 @@
 
 namespace Arcane {
 
-	OpenGLRendererAPI::OpenGLRendererAPI(const std::shared_ptr<OpenGLGraphicsContext> &context) : mContext(context) {
+	OpenGLRendererAPI::OpenGLRendererAPI(const Ref<OpenGLGraphicsContext> &context) : mContext(context) {
 		glEnable(GL_SCISSOR_TEST);
-
 		glEnable(GL_DEPTH_TEST);
-		glDepthFunc(GL_LESS);
+		glClipControl(GL_UPPER_LEFT, GL_ZERO_TO_ONE);
 	}
 
 	OpenGLRendererAPI::~OpenGLRendererAPI() { }
 
-	void OpenGLRendererAPI::SetClearColor(float r, float g, float b, float a) {
-		glClearColor(r, g, b, a);
+	void OpenGLRendererAPI::Begin() {
+		
 	}
 
-	void OpenGLRendererAPI::Clear() {
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	void OpenGLRendererAPI::End() {
+		glBlitNamedFramebuffer(
+			mFramebuffer->GetOpenGLID(), 0,
+			0, 0, mFramebuffer->GetWidth(), mFramebuffer->GetHeight(), 
+			0, mOutputViewport.Size.Y, mOutputViewport.Size.X, 0, 
+			GL_COLOR_BUFFER_BIT, 
+			GL_NEAREST
+		);
+		
+		GLsync sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+		glWaitSync(sync, 0, GL_TIMEOUT_IGNORED);
 	}
 
-	void OpenGLRendererAPI::SetViewport(Rect2D viewport) {
-		mViewport = viewport;
-	}
+	void OpenGLRendererAPI::BeginRenderPass(const Ref<NativeRenderPass> &renderPass, const Ref<NativeFramebuffer> &framebuffer) {
+		AR_ASSERT(renderPass->GetAttachmentCount() == framebuffer->GetAttachmentCount(), "RenderPass and Framebuffer attachments are not compatible (count mismatch)");
 
-	void OpenGLRendererAPI::SetScissor(Rect2D scissor) {
-		mScissor = scissor;
-	}
+		const Attachment *renderPassAttachments = renderPass->GetAttachments();
+		const Attachment *framebufferAttachments = framebuffer->GetAttachments();
 
-	void OpenGLRendererAPI::SetPipeline(const std::shared_ptr<NativePipeline> &pipeline) {
-		mPipeline = std::dynamic_pointer_cast<OpenGLPipeline>(pipeline);
+		for (size_t i = 0; i < renderPass->GetAttachmentCount(); i++) {
+			AR_ASSERT(renderPassAttachments[i].Format == framebufferAttachments[i].Format, "RenderPass and Framebuffer attachments are not compatible (format mismatch)");
+			AR_ASSERT(renderPassAttachments[i].Type == framebufferAttachments[i].Type, "RenderPass and Framebuffer attachments are not compatible (type mismatch)");
+		}
+
+		mFramebuffer = CastRef<OpenGLFramebuffer>(framebuffer);
+		mRenderPass = CastRef<OpenGLRenderPass>(renderPass);
+
+		mPipeline = CastRef<OpenGLPipeline>(renderPass->GetPipeline());
+
+		glBindFramebuffer(GL_FRAMEBUFFER, mFramebuffer->GetOpenGLID());
 
 		glEnable(GL_CULL_FACE);
 
-		switch (pipeline->GetCullMode()) {
+		switch (mPipeline->GetCullMode()) {
 			case CullMode::Back: glCullFace(GL_BACK); break;
 			case CullMode::Front: glCullFace(GL_FRONT); break;
 			case CullMode::FrontAndBack: glCullFace(GL_FRONT_AND_BACK); break;
 			default: glDisable(GL_CULL_FACE); break;
 		}
 
-		switch (pipeline->GetWindingOrder()) {
+		switch (mPipeline->GetWindingOrder()) {
 			case WindingOrder::Clockwise: glFrontFace(GL_CW); break;
 			case WindingOrder::CounterClockwise: glFrontFace(GL_CCW); break;
 		}
 
-		switch (pipeline->GetFillMode()) {
+		switch (mPipeline->GetFillMode()) {
 			case FillMode::Solid: glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); break;
 			case FillMode::Wireframe: glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); break;
 			case FillMode::Points: glPolygonMode(GL_FRONT_AND_BACK, GL_POINT); break;
 			default: glPolygonMode(GL_FRONT_AND_BACK, GL_NONE); break;
 		}
+
+		for (uint32_t i = 0; i < mFramebuffer->GetAttachmentCount(); i++) {
+			const Attachment &attachment = mFramebuffer->GetAttachments()[i];
+			if (attachment.Type == AttachmentType::Color) {
+				AR_ASSERT(attachment.Samples == mPipeline->GetSampleCount(), "Color attachment samples do not match pipeline samples");
+			}
+		}
+
+		if (mPipeline->GetSampleCount() > 1) {
+			glEnable(GL_MULTISAMPLE);
+		} else {
+			glDisable(GL_MULTISAMPLE);
+		}
+
+		glUseProgram(mPipeline->GetShaderProgram());
+
+		for (OpenGLUniformBufferDescriptor &uniformBufferDesc : mPipeline->GetUniformBufferDescriptors()) {
+			glBindBufferBase(GL_UNIFORM_BUFFER, uniformBufferDesc.binding, uniformBufferDesc.buffer);
+		}
+
+		for (OpenGLCombinedImageSamplerDescriptor &combinedImageSamplerDesc : mPipeline->GetCombinedImageSamplerDescriptors()) {
+			glBindTextureUnit(combinedImageSamplerDesc.binding, combinedImageSamplerDesc.texture);
+			glBindSampler(combinedImageSamplerDesc.binding, combinedImageSamplerDesc.sampler);
+		}
+
 	}
 
-	void OpenGLRendererAPI::SetMesh(const std::shared_ptr<NativeMesh> &mesh) {
-		mMesh = std::dynamic_pointer_cast<OpenGLMesh>(mesh);
+	void OpenGLRendererAPI::EndRenderPass() {
+		glBindFramebuffer(GL_FRAMEBUFFER, mFramebuffer->GetOpenGLID());
+		for (OpenGLCombinedImageSamplerDescriptor &combinedImageSamplerDesc : mPipeline->GetCombinedImageSamplerDescriptors()) {
+			glBindTextureUnit(combinedImageSamplerDesc.binding, 0);
+			glBindSampler(combinedImageSamplerDesc.binding, 0);
+		}
+
+		for (OpenGLUniformBufferDescriptor &uniformBufferDesc : mPipeline->GetUniformBufferDescriptors()) {
+			glBindBufferBase(GL_UNIFORM_BUFFER, uniformBufferDesc.binding, 0);
+		}
+
+		glUseProgram(0);
+
+		glBindVertexArray(0);
+	}
+
+	void OpenGLRendererAPI::SetClearColor(float r, float g, float b, float a) {
+		glClearColor(r, g, b, a);
+	}
+
+	void OpenGLRendererAPI::Clear() {
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	}
+
+	void OpenGLRendererAPI::SetViewport(Rect2D viewport) {
+		mSpecifiedViewport = viewport;
+	}
+
+	void OpenGLRendererAPI::SetScissor(Rect2D scissor) {
+		mSpecifiedScissor = scissor;
+	}
+
+	void OpenGLRendererAPI::SetMesh(const Ref<NativeMesh> &mesh) {
+		mMesh = CastRef<OpenGLMesh>(mesh);
+		glBindVertexArray(mMesh->GetVertexArray());
 	}
 
 	void OpenGLRendererAPI::DrawIndexed(uint32_t count) {
@@ -67,46 +140,29 @@ namespace Arcane {
 			default: return;
 		}
 
-		Rect2D viewport;
-		if (mPipeline->GetViewport().Position == Vector2::Zero() && mPipeline->GetViewport().Size == Vector2::MaxValue()) {
-			viewport = mViewport;
+		if (mPipeline->GetViewport().Position == Vector2(0) && mPipeline->GetViewport().Size == Vector2(__FLT_MAX__)) {
+			mOutputViewport = mSpecifiedViewport;
 		} else {
-			viewport = mPipeline->GetViewport();
+			mOutputViewport = mPipeline->GetViewport();
 		}
 
 		glViewport(
-			viewport.Position.x, viewport.Position.y,
-			viewport.Size.x, viewport.Size.y
+			mOutputViewport.Position.X, mOutputViewport.Position.Y,
+			mOutputViewport.Size.X, mOutputViewport.Size.Y
 		);
 
-		Rect2D scissor;
-		if (mPipeline->GetScissor().Position == Vector2::Zero() && mPipeline->GetScissor().Size == Vector2::MaxValue()) {
-			scissor = mScissor;
+		if (mPipeline->GetScissor().Position == Vector2(0) && mPipeline->GetScissor().Size == Vector2(__FLT_MAX__)) {
+			mOutputScissor = mSpecifiedScissor;
 		} else {
-			scissor = mPipeline->GetScissor();
+			mOutputScissor = mPipeline->GetScissor();
 		}
 		
 		glScissor(
-			scissor.Position.x, scissor.Position.y,
-			scissor.Size.x, scissor.Size.y
+			mOutputScissor.Position.X, mOutputScissor.Position.Y,
+			mOutputScissor.Size.X, mOutputScissor.Size.Y
 		);
-
-		glBindVertexArray(mMesh->GetVertexArray());
-		glUseProgram(mPipeline->GetShaderProgram());
-
-		for (OpenGLUniformBufferDescriptor &uniformBufferDesc : mPipeline->GetUniformBufferDescriptors()) {
-			glBindBufferBase(GL_UNIFORM_BUFFER, uniformBufferDesc.binding, uniformBufferDesc.buffer);
-		}
 
 		glDrawElements(topology, count, GL_UNSIGNED_INT, nullptr);
-		glUseProgram(0);
-		glBindVertexArray(0);
-	}
-
-	std::shared_ptr<NativeRendererAPI> NativeRendererAPI::Create(const std::shared_ptr<NativeGraphicsContext> &context) {
-		return std::make_shared<OpenGLRendererAPI>(
-			std::dynamic_pointer_cast<OpenGLGraphicsContext>(context)
-		);
 	}
 
 }

@@ -5,6 +5,9 @@
 #include "GraphicsContext.hpp"
 #include "Pipeline.hpp"
 #include "Mesh.hpp"
+#include "RenderPass.hpp"
+#include "Framebuffer.hpp"
+#include "Color.hpp"
 
 namespace Arcane {
 
@@ -13,21 +16,37 @@ namespace Arcane {
 		static RendererAPI Create(const GraphicsContext &context);
 
 	public:
-		inline void SetClearColor(float r, float g, float b, float a) { mNativeRenderer->SetClearColor(r, g, b, a); }
-		inline void Clear() { mNativeRenderer->Clear(); }
+		RendererAPI() { }
+		~RendererAPI() { }
 
-		inline void SetViewport(Rect2D viewport) { mNativeRenderer->SetViewport(viewport); }
-		inline void SetScissor(Rect2D scissor) { mNativeRenderer->SetScissor(scissor); }
+		inline void SetClearColor(float r, float g, float b, float a) { GetNativeRendererAPI()->SetClearColor(r, g, b, a); }
+		inline void SetClearColor(const Color &color) { GetNativeRendererAPI()->SetClearColor(color.R, color.G, color.B, color.A); }
+		inline void Clear() { GetNativeRendererAPI()->Clear(); }
 
-		inline void SetPipeline(const Pipeline &pipeline) { mNativeRenderer->SetPipeline(pipeline.GetNativePipeline()); }
-		inline void SetMesh(const Mesh &mesh) { mNativeRenderer->SetMesh(mesh.GetNativeMesh()); }
-		inline void DrawIndexed(uint32_t count) { mNativeRenderer->DrawIndexed(count); }
+		inline void Begin()	{ GetNativeRendererAPI()->Begin(); }
+		inline void End() { GetNativeRendererAPI()->End(); }
+
+		inline void BeginRenderPass(const RenderPass &renderPass, const Framebuffer &framebuffer) { GetNativeRendererAPI()->BeginRenderPass(renderPass.GetNativeRenderPass(), framebuffer.GetNativeFramebuffer()); }
+		inline void EndRenderPass() { GetNativeRendererAPI()->EndRenderPass(); }
+
+		inline void SetViewport(Rect2D viewport) { GetNativeRendererAPI()->SetViewport(viewport); }
+		inline Rect2D GetViewport() { return GetNativeRendererAPI()->GetViewport(); }
+		inline void SetScissor(Rect2D scissor) { GetNativeRendererAPI()->SetScissor(scissor); }
+		inline Rect2D GetScissor() { return GetNativeRendererAPI()->GetScissor(); }
+
+		inline void SetMesh(const Mesh &mesh) { GetNativeRendererAPI()->SetMesh(mesh.GetNativeMesh()); }
+		inline void DrawIndexed(uint32_t count) { GetNativeRendererAPI()->DrawIndexed(count); }
+
+		inline Ref<NativeRendererAPI> GetNativeRendererAPI() {
+			AR_ASSERT(mNativeRendererAPI, "Native renderer API is invalid");
+			return mNativeRendererAPI;
+		}
 
 	private:
-		RendererAPI(const std::shared_ptr<NativeRendererAPI> &renderer) : mNativeRenderer(renderer) { }
+		RendererAPI(const Ref<NativeRendererAPI> &rendererAPI) : mNativeRendererAPI(rendererAPI) { }
 
 	private:
-		std::shared_ptr<NativeRendererAPI> mNativeRenderer;
+		Ref<NativeRendererAPI> mNativeRendererAPI;
 	};
 
 }

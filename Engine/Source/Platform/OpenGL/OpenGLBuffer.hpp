@@ -5,22 +5,20 @@
 
 namespace Arcane {
 
-	class OpenGLBuffer : public NativeBuffer{
+	class OpenGLBuffer : public NativeBuffer {
 	public:
-		OpenGLBuffer(BufferType type, size_t size);
-		OpenGLBuffer(BufferType type, const InputLayout &layout, size_t size);
+		OpenGLBuffer(size_t size);
 		~OpenGLBuffer();
 
 		virtual void *Map(MapMode mode) override;
 		virtual void Unmap() override;
+		virtual void SetData(size_t offset, size_t size, const void *data) override;
 
 		inline size_t GetSize() const { return mSize; }
-		inline virtual BufferType GetType() const { return mType; }
 
 		inline GLuint GetOpenGLID() const { return mBuffer; }
 
 	private:
-		BufferType mType;
 		size_t mSize;
 		GLuint mBuffer;
 	};

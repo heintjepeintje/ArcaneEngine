@@ -10,8 +10,8 @@ namespace Arcane {
 		AR_ASSERT(type != GL_DEBUG_TYPE_ERROR, "OpenGL > %*s\n", length, message);
 	}
 
-	OpenGLGraphicsContext::OpenGLGraphicsContext(const std::shared_ptr<NativeWindow> &window) : mWindow(window) {
-		std::shared_ptr<Win32Window> win32Window = std::dynamic_pointer_cast<Win32Window>(window);
+	OpenGLGraphicsContext::OpenGLGraphicsContext(const Ref<NativeWindow> &window) : mWindow(window) {
+		Ref<Win32Window> win32Window = CastRef<Win32Window>(window);
 
 		PIXELFORMATDESCRIPTOR pfd = {};
 		pfd.nSize = sizeof(PIXELFORMATDESCRIPTOR);
@@ -35,9 +35,26 @@ namespace Arcane {
 		std::printf("Loading OpenGL...\n");
 		LoadGL();
 
-		glDebugMessageCallback(OnOpenGLDebugMessage, nullptr);
 		glEnable(GL_DEBUG_OUTPUT);
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+		glDebugMessageCallback(OnOpenGLDebugMessage, nullptr);
+
+
+		typedef void(*ARWGLSwapIntervalEXT)(int);
+		ARWGLSwapIntervalEXT wglSwapIntervalEXT = nullptr;
+
+		GLint extensionCount = 0;
+		glGetIntegerv(GL_NUM_EXTENSIONS, &extensionCount);
+		for (int32_t i = 0; i < extensionCount; i++) {
+			const GLubyte *extension = glGetStringi(GL_EXTENSIONS, i);
+			if (strcmp((const char *)extension, "WGL_EXT_swap_control ") == 0) {
+				wglSwapIntervalEXT = (ARWGLSwapIntervalEXT)wglGetProcAddress("wglSwapIntervalEXT");
+			}
+		}
+
+		if (wglSwapIntervalEXT) {
+			wglSwapIntervalEXT(0);
+		}
 	}
 
 	OpenGLGraphicsContext::~OpenGLGraphicsContext() {
@@ -67,10 +84,9 @@ namespace Arcane {
 		return 0;
 	}
 
-	std::shared_ptr<NativeGraphicsContext> NativeGraphicsContext::Create(const std::shared_ptr<NativeWindow> &window) {
-		return std::make_shared<OpenGLGraphicsContext>(
-			window
-		);
+	std::string OpenGLGraphicsContext::GetDeviceName() const {
+		const unsigned char *buffer = glGetString(GL_RENDERER);
+		return std::string((const char*)buffer);
 	}
 
 }

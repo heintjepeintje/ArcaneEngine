@@ -101,10 +101,6 @@ namespace Arcane {
 		return Vector2(screenRect.right - screenRect.left, screenRect.bottom - screenRect.top);
 	}
 
-	std::shared_ptr<NativeWindow> NativeWindow::Create(uint32_t width, uint32_t height, const std::string &title) {
-		return std::make_shared<Win32Window>(width, height, title);
-	}
-
 }
 
 #endif // _WIN32

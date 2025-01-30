@@ -1,122 +1,99 @@
 #include <Arcane/Arcane.hpp>
 
-#include <fstream>
-#include <iostream>
-#include <cstring>
+float pitch, yaw;
+const float sensitivity = 0.1f;
+const float speed = 1.0f;
 
-using namespace Arcane;
+Arcane::Camera3D camera;
 
 int main(int argc, char **argv) {
-	Window window = Window::Create(1920 / 2, 1080 / 2, "Arcane Engine");
-	window.SetVisible(true);
+	Arcane::Window window = Arcane::Window::Create(1920 / 2, 1080 / 2, "Arcane Engine");
 	window.SetMaximized(true);
 
-	GraphicsContext context = GraphicsContext::Create(window);
+	Arcane::GraphicsContext context = Arcane::GraphicsContext::Create(window);
 
-	std::cout << "Using OpenGL " << context.GetVersionMajor() << "." << context.GetVersionMinor() << "." << context.GetPatchLevel() << std::endl;
+	Arcane::PBRRenderer::Init(context);
 
-	MeshData data = LoadCube(Vector3(2.0f));
+	Arcane::MeshData meshData = Arcane::LoadCube(Arcane::Vector3(10.0f, 1.0f, 10.0f), false);
 
-	Buffer vertexBuffer = Buffer::Create(context, BufferType::Vertex, data.Vertices.size() * sizeof(Vertex));
-	void *mapped = vertexBuffer.Map(MapMode::Write);
-	memcpy(mapped, data.Vertices.data(), vertexBuffer.GetSize());
-	vertexBuffer.Unmap();
+	Arcane::Mesh mesh = Arcane::Mesh::Create(context, meshData);
 
-	Buffer indexBuffer = Buffer::Create(context, BufferType::Index, data.Indices.size() * sizeof(uint32_t));
-	mapped = indexBuffer.Map(MapMode::Write);
-	memcpy(mapped, data.Indices.data(), indexBuffer.GetSize());
-	indexBuffer.Unmap();
+	Arcane::Texture blackTexture = Arcane::Texture::Create(context, Arcane::LoadImage(Arcane::Color::Black(), Arcane::ImageFormat::RGBA8));
 
-	for (uint32_t i = 0; i < data.Indices.size(); i++) {
-		std::printf("%u: { %f, %f, %f }, { %f, %f, %f }\n", i, data.Vertices[data.Indices[i]].Position.x, data.Vertices[data.Indices[i]].Position.y, data.Vertices[data.Indices[i]].Position.z, data.Vertices[data.Indices[i]].Normal.x, data.Vertices[data.Indices[i]].Normal.y, data.Vertices[data.Indices[i]].Normal.z);
-	}
+	Arcane::ImageData colorTexture = Arcane::LoadImage("Game/Assets/Images/PavingStones_Color.png", Arcane::ImageFormat::RGB8);
+	Arcane::ProcessImage(colorTexture, Arcane::ImageProcess::FlipVertical);
 
-	InputLayout layout = {
-		{ InputAttribute::Position, 1, InputElementType::Vector3 },
-		{ InputAttribute::Normal, 1, InputElementType::Vector3 },
-		{ InputAttribute::UV, 1, InputElementType::Vector2 },
-		{ InputAttribute::Color, 1, InputElementType::Vector4 }
-	};
+	Arcane::ImageData aoTexture = Arcane::LoadImage("Game/Assets/Images/PavingStones_AmbientOcclusion.png", Arcane::ImageFormat::RGB8);
+	Arcane::ProcessImage(aoTexture, Arcane::ImageProcess::FlipVertical);
 
-	Mesh mesh = Mesh::Create(context);
-	mesh.SetVertexBuffer(0, layout, vertexBuffer);
-	mesh.SetIndexBuffer(indexBuffer);
+	Arcane::ImageData roughnessMap = Arcane::LoadImage("Game/Assets/Images/PavingStones_Roughness.png", Arcane::ImageFormat::RGB8);
+	Arcane::ProcessImage(roughnessMap, Arcane::ImageProcess::FlipVertical);
 
-	FILE *file = fopen("Engine/Shaders/BasicShader/Source/BasicShader.vert", "r");
-	fseek(file, 0, SEEK_END);
-	uint64_t vertexSourceLength = ftell(file);
-	fseek(file, 0, SEEK_SET);
+	Arcane::ImageData normalMap = Arcane::LoadImage("Game/Assets/Images/PavingStones_Normal.png", Arcane::ImageFormat::RGB8);
+	Arcane::ProcessImage(normalMap, Arcane::ImageProcess::FlipVertical);
 
-	char *vertexSource = (char*)alloca((vertexSourceLength + 1) * sizeof(char));
-	memset(vertexSource, 0, vertexSourceLength + 1);
-	fread((void*)vertexSource, 1, vertexSourceLength, file);
-	std::printf("Vertex Shader:\n%s\n", vertexSource);
+	Arcane::PBRMaterial material;
+	material.AlbedoMap = Arcane::Texture::Create(context, colorTexture);
+	material.NormalMap = Arcane::Texture::Create(context, normalMap);
+	material.MetallicMap = Arcane::Texture::Create(context, Arcane::LoadImage(Arcane::Color::Gray(), Arcane::ImageFormat::RGB8));
+	material.RoughnessMap = Arcane::Texture::Create(context, roughnessMap);
+	material.AmbientOcclusionMap = Arcane::Texture::Create(context, aoTexture);
 
-	fclose(file);
+	Arcane::Transform transform;
+	transform.Position = Arcane::Vector3(0, -1.0f, 0.0f);
 
-	file = fopen("Engine/Shaders/BasicShader/Source/BasicShader.frag", "r");
-	fseek(file, 0, SEEK_END);
-	uint64_t fragmentSourceLength = ftell(file);
-	fseek(file, 0, SEEK_SET);
+	camera = Arcane::Camera3D(90.0f, window.GetClientSize(), 0.0001f, 10000.0f);
 
-	char *fragmentSource = (char*)alloca((fragmentSourceLength + 1) * sizeof(char));
-	memset(fragmentSource, 0, fragmentSourceLength + 1);
-	fread((void*)fragmentSource, 1, fragmentSourceLength, file);
-	std::printf("Fragment Shader:\n%s\n", fragmentSource);
+	window.SetVisible(true);
+	Arcane::SetCursorLocked(true);
+	Arcane::SetCursorVisible(false);
 
-	fclose(file);
-
-	Descriptor descriptors[] = {
-		{ 0, 1, DescriptorType::UniformBuffer }
-	};
-
-	Matrix4 convert = Matrix4::Identity(Vector4(1.0f, 1.0f, -1.0f, 1.0f));
-	Matrix4 projection = Matrix4::Perspective(ToRadians(90.0f), window.GetClientSize(), 0.1f, 1000.0f);
-	Matrix4 view = Matrix4::LookAt(Vector3(0.0f, 0.0f, -10.0f), Vector3(0, 0, 0), Vector3(0, 1, 0));
-
-	Buffer cameraBuffer = Buffer::Create(context, BufferType::Uniform, 3 * sizeof(Matrix4));
-	Matrix4 *matrices = (Matrix4*)cameraBuffer.Map(MapMode::Write);
-	matrices[0] = Matrix4::Transpose(convert);
-	matrices[1] = Matrix4::Transpose(projection);
-	matrices[2] = Matrix4::Transpose(view);
-	cameraBuffer.Unmap();
-
-	PipelineInfo pipelineInfo = { };
-	pipelineInfo.CullMode = CullMode::None;
-	pipelineInfo.WindingOrder = WindingOrder::CounterClockwise;
-	pipelineInfo.FillMode = FillMode::Solid;
-	pipelineInfo.Topology = PrimitiveTopology::TriangleList;
-	pipelineInfo.Layout = layout;
-	pipelineInfo.Viewport = { Vector2::Zero(), Vector2::MaxValue() };
-	pipelineInfo.Scissor = { Vector2::Zero(), Vector2::MaxValue() };
-	pipelineInfo.VertexShaderSource = vertexSource;
-	pipelineInfo.VertexShaderSourceLength = vertexSourceLength;
-	pipelineInfo.FragmentShaderSource = fragmentSource;
-	pipelineInfo.FragmentShaderSourceLength = fragmentSourceLength;
-	pipelineInfo.Descriptors = descriptors;
-	pipelineInfo.DescriptorCount = 1;
-
-	Pipeline pipeline = Pipeline::Create(context, pipelineInfo);
-
-	pipeline.SetDescriptor(0, cameraBuffer);
-
-	RendererAPI renderer = RendererAPI::Create(context);
-	renderer.SetClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	Arcane::PointLight light = Arcane::PointLight(Arcane::Color::White(), 2.0f);
+	Arcane::Transform lightPosition = Arcane::Transform();
+	lightPosition.Position = { -1, 1, 2 };
 
 	while (!window.IsClosed()) {
-		renderer.Clear();
-		
-		renderer.SetViewport(Rect2D(window.GetClientSize()));
-		renderer.SetScissor(Rect2D(window.GetClientSize()));
-		renderer.SetPipeline(pipeline);
-		renderer.SetMesh(mesh);
-		renderer.DrawIndexed(36);
+		lightPosition.Position = camera.Position;
 
+		yaw -= Arcane::GetMouseDelta().X * sensitivity;
+		pitch -= Arcane::GetMouseDelta().Y * sensitivity;
+
+		if (pitch >= 89.9f) pitch = 89.9f;
+		if (pitch <= -89.9f) pitch = -89.9f;
+
+		Arcane::Vector3 direction = Arcane::Vector3(0);
+		direction.X = Arcane::Cos(Arcane::ToRadians(yaw)) * Arcane::Cos(Arcane::ToRadians(pitch));
+		direction.Y = Arcane::Sin(Arcane::ToRadians(pitch));
+		direction.Z = Arcane::Sin(Arcane::ToRadians(yaw)) * Arcane::Cos(Arcane::ToRadians(pitch));
+		camera.Front = Arcane::Vector3::Normalize(direction);
+
+		if (Arcane::IsKeyPressed(Arcane::KeyCode::Space))
+			camera.Position += camera.Up * speed * Arcane::GetDeltaTime();
+		if (Arcane::IsKeyPressed(Arcane::KeyCode::LeftShift) || Arcane::IsKeyPressed(Arcane::KeyCode::RightShift))
+			camera.Position -= camera.Up * speed * Arcane::GetDeltaTime();
+
+		if (Arcane::IsKeyPressed(Arcane::KeyCode::W)) 
+			camera.Position += camera.Front * speed * Arcane::GetDeltaTime();
+		if (Arcane::IsKeyPressed(Arcane::KeyCode::S))
+			camera.Position -= camera.Front * speed * Arcane::GetDeltaTime();
+		if (Arcane::IsKeyPressed(Arcane::KeyCode::A))
+			camera.Position -= Arcane::Vector3::Normalize(Arcane::Vector3::Cross(camera.Up, camera.Front)) * speed * Arcane::GetDeltaTime();
+		if (Arcane::IsKeyPressed(Arcane::KeyCode::D))		
+			camera.Position += Arcane::Vector3::Normalize(Arcane::Vector3::Cross(camera.Up, camera.Front)) * speed * Arcane::GetDeltaTime();
+			
+		Arcane::PBRRenderer::Begin(camera);
+
+		Arcane::PBRRenderer::AddLight(lightPosition, light);
+		Arcane::PBRRenderer::Submit(transform, mesh, material);
+
+		Arcane::PBRRenderer::End();
 		context.Present();
 		window.Update();
+
+		Arcane::UpdateInput();
+		Arcane::UpdateTime();
 	}
 
-	window.Destroy();
+	Arcane::PBRRenderer::Shutdown();
 
-	return 0;
 }

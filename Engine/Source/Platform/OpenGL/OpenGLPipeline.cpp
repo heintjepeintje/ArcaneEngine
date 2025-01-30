@@ -1,10 +1,11 @@
 #include "OpenGLPipeline.hpp"
 
 #include "OpenGLBuffer.hpp"
+#include "OpenGLTexture.hpp"
 
 namespace Arcane {
 
-	OpenGLPipeline::OpenGLPipeline(const std::shared_ptr<OpenGLGraphicsContext> &context, const PipelineInfo &info) : mContext(context) {
+	OpenGLPipeline::OpenGLPipeline(const Ref<OpenGLGraphicsContext> &context, const PipelineInfo &info) : mContext(context) {
 		mCullMode = info.CullMode;
 		mWindingOrder = info.WindingOrder;
 		mFillMode = info.FillMode;
@@ -20,51 +21,23 @@ namespace Arcane {
 			mDescriptors[i] = info.Descriptors[i];
 		}
 
+		mSampleCount = info.SampleCount;
+
 		mProgram = glCreateProgram();
 		
 		GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-
-		GLint vertexShaderLengths[] = { (GLint)info.VertexShaderSourceLength };
-
-		glShaderSource(vertexShader, 1, &info.VertexShaderSource, vertexShaderLengths);
-		glCompileShader(vertexShader);
-
-		GLint status = GL_FALSE;
-		glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &status);
-		if (status != GL_TRUE) {
-			GLint length = 0;
-			glGetShaderiv(vertexShader, GL_INFO_LOG_LENGTH, &length);
-
-			char *buffer = (char*)alloca(length * sizeof(char));
-			glGetShaderInfoLog(vertexShader, length, NULL, buffer);
-
-			AR_ASSERT(false, "Vertex Shader Compilation Error: %s\n", buffer);
-			return;
-		}
-
-		GLint fragmentShaderLengths[] = { (GLint)info.FragmentShaderSourceLength };
+		glShaderBinary(1, &vertexShader, GL_SHADER_BINARY_FORMAT_SPIR_V, info.VertexShaderBinary, info.VertexShaderSize);
+		glAttachShader(mProgram, vertexShader);
+		glSpecializeShader(vertexShader, "main", 0, nullptr, nullptr);
 
 		GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-		glShaderSource(fragmentShader, 1, &info.FragmentShaderSource, fragmentShaderLengths);
-		glCompileShader(fragmentShader);
-
-		glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &status);
-		if (status != GL_TRUE) {
-			GLint length = 0;
-			glGetShaderiv(fragmentShader, GL_INFO_LOG_LENGTH, &length);
-
-			char *buffer = (char*)alloca(length * sizeof(char));
-			glGetShaderInfoLog(fragmentShader, length, NULL, buffer);
-
-			AR_ASSERT(false, "Framgent Shader Compilation Error: %s\n", buffer);
-			return;
-		}
-
-		glAttachShader(mProgram, vertexShader);
+		glShaderBinary(1, &fragmentShader, GL_SHADER_BINARY_FORMAT_SPIR_V, info.FragmentShaderBinary, info.FragmentShaderSize);
 		glAttachShader(mProgram, fragmentShader);
+		glSpecializeShader(fragmentShader, "main", 0, nullptr, nullptr);
 
 		glLinkProgram(mProgram);
 
+		GLint status = 0;
 		glGetProgramiv(mProgram, GL_LINK_STATUS, &status);
 		if (status != GL_TRUE) {
 			GLint length = 0;
@@ -85,15 +58,16 @@ namespace Arcane {
 		delete[] mDescriptors;
 	}
 
-	void OpenGLPipeline::SetDescriptor(uint32_t binding, const std::shared_ptr<NativeBuffer> &uniformBuffer) {
-		mUniformBufferDescriptors.push_back({ binding, std::dynamic_pointer_cast<OpenGLBuffer>(uniformBuffer)->GetOpenGLID() });
+	void OpenGLPipeline::SetUniformBuffer(uint32_t binding, const Ref<NativeBuffer> &uniformBuffer) {
+		mUniformBufferDescriptors.push_back({ binding, CastRef<OpenGLBuffer>(uniformBuffer)->GetOpenGLID() });
 	}
 
-	std::shared_ptr<NativePipeline> NativePipeline::Create(const std::shared_ptr<NativeGraphicsContext> &context, const PipelineInfo &info) {
-		return std::make_shared<OpenGLPipeline>(
-			std::dynamic_pointer_cast<OpenGLGraphicsContext>(context),
-			info
-		);
+	void OpenGLPipeline::SetCombinedImageSampler(uint32_t binding, const Ref<NativeTexture> &texture, const Ref<NativeSampler> &sampler) {
+		mCombinedImageSamplerDescriptors.push_back({ 
+			binding, 
+			CastRef<OpenGLTexture>(texture)->GetOpenGLID(), 
+			CastRef<OpenGLSampler>(sampler)->GetOpenGLID() 
+		});
 	}
 
 }

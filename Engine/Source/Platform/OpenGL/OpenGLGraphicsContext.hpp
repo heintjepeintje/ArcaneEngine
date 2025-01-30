@@ -11,7 +11,7 @@ namespace Arcane {
 
 	class OpenGLGraphicsContext : public NativeGraphicsContext {
 	public:
-		OpenGLGraphicsContext(const std::shared_ptr<NativeWindow> &window);
+		OpenGLGraphicsContext(const Ref<NativeWindow> &window);
 		~OpenGLGraphicsContext();
 
 		virtual void Present() override;
@@ -19,11 +19,12 @@ namespace Arcane {
 		virtual uint32_t GetVersionMajor() const override;
 		virtual uint32_t GetVersionMinor() const override;
 		virtual uint32_t GetPatchLevel() const override;
+		virtual std::string GetDeviceName() const override;
 
-		inline std::shared_ptr<NativeWindow> GetWindow() const { return mWindow; }
+		inline Ref<NativeWindow> GetWindow() const { return mWindow; }
 
 	private:
-		std::shared_ptr<NativeWindow> mWindow;
+		Ref<NativeWindow> mWindow;
 #ifdef _WIN32
 		HGLRC mRenderContext;
 		HDC mDeviceContext;

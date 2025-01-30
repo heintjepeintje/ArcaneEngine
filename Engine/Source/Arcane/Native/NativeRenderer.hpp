@@ -5,25 +5,34 @@
 #include "NativeGraphicsContext.hpp"
 #include "NativePipeline.hpp"
 #include "NativeMesh.hpp"
+#include "NativeRenderPass.hpp"
+#include "NativeFramebuffer.hpp"
 
 namespace Arcane {
 
 	class NativeRendererAPI {
 	public:
-		static std::shared_ptr<NativeRendererAPI> Create(const std::shared_ptr<NativeGraphicsContext> &context);
+		static Ref<NativeRendererAPI> Create(const Ref<NativeGraphicsContext> &context);
 
 	public:
 		NativeRendererAPI() { }
 		virtual ~NativeRendererAPI() { }
 
+		virtual void Begin() = 0;
+		virtual void End() = 0;
+
+		virtual void BeginRenderPass(const Ref<NativeRenderPass> &renderPass, const Ref<NativeFramebuffer> &framebuffer) = 0;
+		virtual void EndRenderPass() = 0;
+
 		virtual void SetClearColor(float r, float g, float b, float a) = 0;
 		virtual void Clear() = 0;
 
 		virtual void SetViewport(Rect2D viewport) = 0;
+		virtual Rect2D GetViewport() const = 0;
 		virtual void SetScissor(Rect2D scissor) = 0;
+		virtual Rect2D GetScissor() const = 0;
 
-		virtual void SetPipeline(const std::shared_ptr<NativePipeline> &pipeline) = 0;
-		virtual void SetMesh(const std::shared_ptr<NativeMesh> &mesh) = 0;
+		virtual void SetMesh(const Ref<NativeMesh> &mesh) = 0;
 		virtual void DrawIndexed(uint32_t count) = 0;
 	};
 

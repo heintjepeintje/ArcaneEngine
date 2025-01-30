@@ -1,5 +1,5 @@
 @ECHO OFF
 
-PUSHD BasicShader
+PUSHD PBR
 CALL Compile.bat
 POPD

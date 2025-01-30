@@ -14,9 +14,15 @@ namespace Arcane {
 		GLuint buffer;
 	};
 
+	struct OpenGLCombinedImageSamplerDescriptor {
+		uint32_t binding;
+		GLuint texture;
+		GLuint sampler;
+	};
+
 	class OpenGLPipeline : public NativePipeline {
 	public:
-		OpenGLPipeline(const std::shared_ptr<OpenGLGraphicsContext> &context, const PipelineInfo &info);
+		OpenGLPipeline(const Ref<OpenGLGraphicsContext> &context, const PipelineInfo &info);
 		~OpenGLPipeline();
 
 		inline GLuint GetShaderProgram() const { return mProgram; }
@@ -28,12 +34,16 @@ namespace Arcane {
 		inline virtual FillMode GetFillMode() const override { return mFillMode; }
 		inline virtual PrimitiveTopology GetTopology() const override { return mTopology; }
 		inline virtual InputLayout GetLayout() const override { return mLayout; }
+		inline virtual uint32_t GetSampleCount() const override { return mSampleCount; }
 
-		virtual void SetDescriptor(uint32_t binding, const std::shared_ptr<NativeBuffer> &uniformBuffer) override;
+		virtual void SetUniformBuffer(uint32_t binding, const Ref<NativeBuffer> &uniformBuffer) override;
+		virtual void SetCombinedImageSampler(uint32_t binding, const Ref<NativeTexture> &texture, const Ref<NativeSampler> &sampler) override;
+		
 		inline std::vector<OpenGLUniformBufferDescriptor> GetUniformBufferDescriptors() const { return mUniformBufferDescriptors; }
+		inline std::vector<OpenGLCombinedImageSamplerDescriptor> GetCombinedImageSamplerDescriptors() const { return mCombinedImageSamplerDescriptors; }
 
 	private:
-		std::shared_ptr<OpenGLGraphicsContext> mContext;
+		Ref<OpenGLGraphicsContext> mContext;
 		GLuint mProgram;
 		
 		CullMode mCullMode;
@@ -47,7 +57,10 @@ namespace Arcane {
 		Descriptor *mDescriptors;
 		uint32_t mDescriptorCount;
 
+		uint32_t mSampleCount;
+
 		std::vector<OpenGLUniformBufferDescriptor> mUniformBufferDescriptors;
+		std::vector<OpenGLCombinedImageSamplerDescriptor> mCombinedImageSamplerDescriptors;
 	};
 
 }

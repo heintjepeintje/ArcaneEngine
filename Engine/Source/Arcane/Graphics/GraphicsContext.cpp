@@ -3,9 +3,11 @@
 namespace Arcane {
 
 	GraphicsContext GraphicsContext::Create(const Window &window) {
-		return GraphicsContext(NativeGraphicsContext::Create(
+		GraphicsContext context = GraphicsContext(NativeGraphicsContext::Create(
 			window.GetNativeWindow()
 		));
+		context.mWindow = window;
+		return context;
 	}
 
 }

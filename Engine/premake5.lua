@@ -11,7 +11,9 @@ project "Engine"
 	}
 
 	includedirs {
-		"Source"
+		"Source",
+		"Libraries/stb",
+		"Libraries/glm"
 	}
 	
 	filter "configurations:Debug"

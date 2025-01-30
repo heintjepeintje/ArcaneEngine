@@ -63,5 +63,6 @@
 		"sstream": "cpp",
 		"cinttypes": "cpp",
 		"cstring": "cpp"
-	}
+	},
+	"makefile.configureOnOpen": false
 }

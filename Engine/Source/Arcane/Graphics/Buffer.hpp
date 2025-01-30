@@ -8,25 +8,30 @@ namespace Arcane {
 
 	class Buffer {
 	public:
-		static Buffer Create(const GraphicsContext &context, BufferType type, size_t size);
+		static Buffer Create(const GraphicsContext &context, size_t size);
 
 	public:
 		Buffer() { }
 		~Buffer() { }
 
-		inline void *Map(MapMode mode) { return mNativeBuffer->Map(mode); }
-		inline void Unmap() { mNativeBuffer->Unmap(); }
+		inline void *Map(MapMode mode) { return GetNativeBuffer()->Map(mode); }
+		inline void Unmap() { GetNativeBuffer()->Unmap(); }
+		inline void SetData(size_t offset, size_t size, const void *data) { GetNativeBuffer()->SetData(offset, size, data); }
+		inline void SetData(size_t size, const void *data) { GetNativeBuffer()->SetData(0, size, data); }
+		inline void SetData(const void *data) { GetNativeBuffer()->SetData(0, mNativeBuffer->GetSize(), data); }
 
-		inline size_t GetSize() const { return mNativeBuffer->GetSize(); }
-		inline BufferType GetType() const { return mNativeBuffer->GetType(); }
+		inline size_t GetSize() const { return GetNativeBuffer()->GetSize(); }
 
-		inline std::shared_ptr<NativeBuffer> GetNativeBuffer() const { return mNativeBuffer; }
+		inline Ref<NativeBuffer> GetNativeBuffer() const {
+			AR_ASSERT(mNativeBuffer, "Native buffer is invalid");
+			return mNativeBuffer;
+		}
 
 	private:
-		Buffer(const std::shared_ptr<NativeBuffer> &buffer) : mNativeBuffer(buffer) { }
+		Buffer(const Ref<NativeBuffer> &buffer) : mNativeBuffer(buffer) { }
 
 	private:
-		std::shared_ptr<NativeBuffer> mNativeBuffer;
+		Ref<NativeBuffer> mNativeBuffer;
 	};
 
 }

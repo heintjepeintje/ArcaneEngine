@@ -1,0 +1,293 @@
+#include "Game.hpp"
+
+#include <fstream>
+#include <iostream>
+#include <cstring>
+
+Game::Game() {
+	mWindow = Arcane::Window::Create(1920 / 2, 1080 / 2, "Game");
+
+	mContext = Arcane::GraphicsContext::Create(mWindow);
+
+	mRendererAPI = Arcane::RendererAPI::Create(mContext);
+
+	mMesh = Arcane::Mesh::Create(mContext);
+
+	Arcane::ImageData imageData = Arcane::LoadImage("Game/Assets/Images/debug.png", Arcane::ImageFormat::None);
+	Arcane::ProcessImage(imageData, Arcane::ImageProcess::FlipVertical);
+
+	Arcane::TextureInfo textureInfo = { };
+	textureInfo.Type = Arcane::ImageType::Texture2D;
+	textureInfo.Format = imageData.Format;
+	textureInfo.Levels = 1;
+	textureInfo.Width = imageData.Width;
+	textureInfo.Height = imageData.Height;
+	textureInfo.Depth = 1;
+	textureInfo.Samples = 1;
+
+	mTexture = Arcane::Texture::Create(mContext, textureInfo);
+
+	Arcane::Image image;
+	image.Data = (void*)imageData.Data;
+	image.Width = imageData.Width;
+	image.Height = imageData.Height;
+	image.Format = imageData.Format;
+
+	mTexture.SetImage(0, image);
+
+	Arcane::SamplerInfo samplerInfo = { };
+	samplerInfo.MinFilter = Arcane::SamplerFilter::Nearest;
+	samplerInfo.MagFilter = Arcane::SamplerFilter::Nearest;
+	samplerInfo.WrapS = Arcane::SamplerWrap::MirroredRepeat;
+	samplerInfo.WrapT = Arcane::SamplerWrap::MirroredRepeat;
+	samplerInfo.WrapR = Arcane::SamplerWrap::MirroredRepeat;
+
+	mSampler = Arcane::Sampler::Create(mContext, samplerInfo);
+	
+	mCamera = Arcane::Camera3D(80.0f, mWindow.GetClientSize(), 0.0001f, 1000.0f);
+
+	FILE *file = fopen("Engine/Shaders/BasicShader/Source/BasicShader.vert", "r");
+	fseek(file, 0, SEEK_END);
+	uint64_t vertexSourceLength = ftell(file);
+	fseek(file, 0, SEEK_SET);
+
+	char *vertexSource = (char*)alloca((vertexSourceLength + 1) * sizeof(char));
+	memset(vertexSource, 0, vertexSourceLength + 1);
+	fread((void*)vertexSource, 1, vertexSourceLength, file);
+
+	fclose(file);
+
+	file = fopen("Engine/Shaders/BasicShader/Source/BasicShader.frag", "r");
+	fseek(file, 0, SEEK_END);
+	uint64_t fragmentSourceLength = ftell(file);
+	fseek(file, 0, SEEK_SET);
+
+	char *fragmentSource = (char*)alloca((fragmentSourceLength + 1) * sizeof(char));
+	memset(fragmentSource, 0, fragmentSourceLength + 1);
+	fread((void*)fragmentSource, 1, fragmentSourceLength, file);
+
+	fclose(file);
+
+	Arcane::Descriptor descriptors[] = {
+		{ 0, Arcane::DescriptorType::UniformBuffer },
+		{ 1, Arcane::DescriptorType::UniformBuffer },
+		{ 2, Arcane::DescriptorType::UniformBuffer },
+		{ 0, Arcane::DescriptorType::CombinedImageSampler }
+	};
+
+	mCameraData = Arcane::Buffer::Create(mContext, Arcane::BufferType::UniformBuffer, 2 * sizeof(Arcane::Matrix4));
+
+	mObjectData = Arcane::Buffer::Create(mContext, Arcane::BufferType::UniformBuffer, 1 * sizeof(Arcane::Matrix4));
+
+	Arcane::InputLayout totalInputLayout = {
+		{ Arcane::InputAttribute::Position, 1, Arcane::InputElementType::Vector3 },	
+		{ Arcane::InputAttribute::Normal, 1, Arcane::InputElementType::Vector3 },
+		{ Arcane::InputAttribute::UV, 1, Arcane::InputElementType::Vector2 },
+		{ Arcane::InputAttribute::Tangent, 1, Arcane::InputElementType::Vector3 },
+		{ Arcane::InputAttribute::Bitangent, 1, Arcane::InputElementType::Vector3 },
+	};
+
+	Arcane::PipelineInfo pipelineInfo = { };
+	pipelineInfo.CullMode = Arcane::CullMode::Back;
+	pipelineInfo.WindingOrder = Arcane::WindingOrder::CounterClockwise;
+	pipelineInfo.FillMode = Arcane::FillMode::Solid;
+	pipelineInfo.Topology = Arcane::PrimitiveTopology::TriangleList;
+	pipelineInfo.Layout = totalInputLayout;
+	pipelineInfo.Viewport = { Arcane::Vector2(0), Arcane::Vector2::MaxValue() };
+	pipelineInfo.Scissor = { Arcane::Vector2(0), Arcane::Vector2::MaxValue() };
+	
+	pipelineInfo.VertexShaderSource = vertexSource;
+	pipelineInfo.VertexShaderSourceLength = vertexSourceLength;
+
+	pipelineInfo.FragmentShaderSource = fragmentSource;
+	pipelineInfo.FragmentShaderSourceLength = fragmentSourceLength;
+	
+	pipelineInfo.Descriptors = descriptors;
+	pipelineInfo.DescriptorCount = sizeof(descriptors) / sizeof(Arcane::Descriptor);
+	pipelineInfo.SampleCount = 1;
+
+	mPipeline = Arcane::Pipeline::Create(mContext, pipelineInfo);
+
+	Arcane::Attachment attachments[] = {
+		{ Arcane::AttachmentType::Color, Arcane::ImageFormat::RGBA8, 1 },
+		{ Arcane::AttachmentType::Depth, Arcane::ImageFormat::D24S8, 1 },
+	};
+
+	Arcane::FramebufferInfo framebufferInfo = { };
+	framebufferInfo.Width = 1920u;
+	framebufferInfo.Height = 1080u;
+	framebufferInfo.Attachments = attachments;
+	framebufferInfo.AttachmentCount = 2;
+
+	mFramebuffer = Arcane::Framebuffer::Create(mContext, framebufferInfo);
+
+	mRenderPass = Arcane::RenderPass::Create(mContext, mPipeline, attachments, 2);
+}
+
+Game::~Game() {
+
+}
+
+void Game::Start() {
+	Arcane::MeshData cubeData = Arcane::LoadCube();
+	Arcane::ProcessMesh(cubeData, Arcane::MeshProcess::GenerateNormals); 
+	Arcane::ProcessMesh(cubeData, Arcane::MeshProcess::NormalizeMesh); 
+	Arcane::ProcessMesh(cubeData, Arcane::MeshProcess::MoveOriginToCenter);
+	Arcane::ProcessMesh(cubeData, Arcane::MeshProcess::GenerateTangents);
+	Arcane::ProcessMesh(cubeData, Arcane::MeshProcess::GenerateBoundingBox);
+
+	mIndexCount = cubeData.Indices.size();
+
+	Arcane::Buffer positionsBuffer = Arcane::Buffer::Create(mContext, Arcane::BufferType::VertexBuffer, cubeData.Positions.size() * sizeof(Arcane::Vector3));
+	void *mapped = positionsBuffer.Map(Arcane::MapMode::Write);
+	memcpy(mapped, cubeData.Positions.data(), positionsBuffer.GetSize());
+	positionsBuffer.Unmap();
+
+	Arcane::Buffer normalBuffer = Arcane::Buffer::Create(mContext, Arcane::BufferType::VertexBuffer, cubeData.Normals.size() * sizeof(Arcane::Vector3));
+	mapped = normalBuffer.Map(Arcane::MapMode::Write);
+	memcpy(mapped, cubeData.Normals.data(), normalBuffer.GetSize());
+	normalBuffer.Unmap();
+
+	Arcane::Buffer uvBuffer = Arcane::Buffer::Create(mContext, Arcane::BufferType::VertexBuffer, cubeData.UVs.size() * sizeof(Arcane::Vector2));
+	mapped = uvBuffer.Map(Arcane::MapMode::Write);
+	memcpy(mapped, cubeData.UVs.data(), uvBuffer.GetSize());
+	uvBuffer.Unmap();
+
+	Arcane::Buffer tangentBuffer = Arcane::Buffer::Create(mContext, Arcane::BufferType::VertexBuffer, cubeData.Tangents.size() * sizeof(Arcane::Vector3));
+	mapped = tangentBuffer.Map(Arcane::MapMode::Write);
+	memcpy(mapped, cubeData.Tangents.data(), tangentBuffer.GetSize());
+	tangentBuffer.Unmap();
+
+	Arcane::Buffer bitangentBuffer = Arcane::Buffer::Create(mContext, Arcane::BufferType::VertexBuffer, cubeData.Bitangents.size() * sizeof(Arcane::Vector3));
+	mapped = bitangentBuffer.Map(Arcane::MapMode::Write);
+	memcpy(mapped, cubeData.Bitangents.data(), bitangentBuffer.GetSize());
+	bitangentBuffer.Unmap();
+
+	Arcane::Buffer indexBuffer = Arcane::Buffer::Create(mContext, Arcane::BufferType::IndexBuffer, cubeData.Indices.size() * sizeof(uint32_t));
+	mapped = indexBuffer.Map(Arcane::MapMode::Write);
+	memcpy(mapped, cubeData.Indices.data(), indexBuffer.GetSize());
+	indexBuffer.Unmap();
+
+	Arcane::InputLayout positionLayout = {
+		{ Arcane::InputAttribute::Position, 1, Arcane::InputElementType::Vector3 }
+	};
+
+	Arcane::InputLayout normalLayout = {
+		{ Arcane::InputAttribute::Normal, 1, Arcane::InputElementType::Vector3 }
+	};
+
+	Arcane::InputLayout uvLayout = {
+		{ Arcane::InputAttribute::UV, 1, Arcane::InputElementType::Vector2 }
+	};
+
+	Arcane::InputLayout tangentLayout = {
+		{ Arcane::InputAttribute::Tangent, 1, Arcane::InputElementType::Vector3 }
+	};
+
+	Arcane::InputLayout bitangentLayout = {
+		{ Arcane::InputAttribute::Bitangent, 1, Arcane::InputElementType::Vector3 }
+	};
+
+	mMesh.SetVertexBuffer(0, positionLayout, positionsBuffer);
+	mMesh.SetVertexBuffer(1, normalLayout, normalBuffer);
+	mMesh.SetVertexBuffer(2, uvLayout, uvBuffer);
+	mMesh.SetVertexBuffer(3, tangentLayout, tangentBuffer);
+	mMesh.SetVertexBuffer(4, bitangentLayout, bitangentBuffer);
+	mMesh.SetIndexBuffer(indexBuffer);
+
+	mObjectTransform.Position = Arcane::Vector3(0.0f, 0.0f, 1.0f);
+
+	mPipeline.SetDescriptor(0, mCameraData);
+	mPipeline.SetDescriptor(1, mObjectData);
+	mPipeline.SetDescriptor(0, mTexture, mSampler);
+
+	mWindow.SetVisible(true);
+	mWindow.SetMaximized(true);
+
+	Arcane::SetCursorLocked(true);
+	Arcane::SetCursorVisible(false);
+}
+
+void Game::Update() {
+	Arcane::Matrix4 *objectMatrices = (Arcane::Matrix4*)mObjectData.Map(Arcane::MapMode::Write);
+	objectMatrices[0] = Arcane::Matrix4::Transpose(mObjectTransform.GetModelMatrix());
+	mObjectData.Unmap();
+
+	Arcane::Matrix4 *cameraMatrices = (Arcane::Matrix4*)mCameraData.Map(Arcane::MapMode::Write);
+	cameraMatrices[0] = Arcane::Matrix4::Transpose(mCamera.GetProjectionMatrix());
+	cameraMatrices[1] = Arcane::Matrix4::Transpose(mCamera.GetViewMatrix());
+	mCameraData.Unmap();
+	
+	yaw += Arcane::GetMouseDelta().X * sensitivity;
+	pitch += -Arcane::GetMouseDelta().Y * sensitivity;
+
+	if (pitch >= 89.9f) pitch = 89.9f;
+	if (pitch <= -89.9f) pitch = -89.9f;
+
+	Arcane::Vector3 direction = Arcane::Vector3(0);
+	direction.X = Arcane::Cos(Arcane::ToRadians(yaw)) * Arcane::Cos(Arcane::ToRadians(pitch));
+	direction.Y = Arcane::Sin(Arcane::ToRadians(pitch));
+	direction.Z = Arcane::Sin(Arcane::ToRadians(yaw)) * Arcane::Cos(Arcane::ToRadians(pitch));
+	mCamera.Front = Arcane::Vector3::Normalize(direction);
+
+	if (Arcane::IsKeyPressed(Arcane::KeyCode::Space))
+		mCamera.Position += mCamera.Up * speed * Arcane::GetDeltaTime();
+	if (Arcane::IsKeyPressed(Arcane::KeyCode::LeftShift) || Arcane::IsKeyPressed(Arcane::KeyCode::RightShift))
+		mCamera.Position -= mCamera.Up * speed * Arcane::GetDeltaTime();
+
+	if (Arcane::IsKeyPressed(Arcane::KeyCode::W)) 
+		mCamera.Position += mCamera.Front * speed * Arcane::GetDeltaTime();
+	if (Arcane::IsKeyPressed(Arcane::KeyCode::S))
+		mCamera.Position -= mCamera.Front * speed * Arcane::GetDeltaTime();
+	if (Arcane::IsKeyPressed(Arcane::KeyCode::A))
+		mCamera.Position -= Arcane::Vector3::Normalize(Arcane::Vector3::Cross(mCamera.Front, mCamera.Up)) * speed * Arcane::GetDeltaTime();
+	if (Arcane::IsKeyPressed(Arcane::KeyCode::D))
+		mCamera.Position += Arcane::Vector3::Normalize(Arcane::Vector3::Cross(mCamera.Front, mCamera.Up)) * speed * Arcane::GetDeltaTime();
+}
+
+void Game::Draw() {
+	const Arcane::Vector2 size = mWindow.GetClientSize();
+
+	mRendererAPI.Begin();
+
+	mRendererAPI.SetViewport(Arcane::Rect2D(0, 0, size.X, size.Y));
+	mRendererAPI.SetScissor(Arcane::Rect2D(0, 0, size.X, size.Y));
+	mFramebuffer.Resize(size);
+
+	mRendererAPI.BeginRenderPass(mRenderPass, mFramebuffer);
+	
+	mRendererAPI.Clear();
+	mRendererAPI.SetMesh(mMesh);
+	mRendererAPI.DrawIndexed(mIndexCount);
+
+	mRendererAPI.EndRenderPass();
+
+	mRendererAPI.End();
+
+	mContext.Present();
+	mWindow.Update();
+}
+
+void Game::Stop() {
+	Arcane::SetCursorLocked(false);
+	Arcane::SetCursorVisible(true);
+
+	mWindow.Destroy();
+}
+
+int main(int argc, char **argv) {
+	Game game;
+	game.Start();
+
+	while (game.IsRunning()) {
+		game.Update();
+		game.Draw();
+
+		Arcane::UpdateInput();
+		Arcane::UpdateTime();
+	}
+
+	game.Stop();
+
+	return 0;
+}

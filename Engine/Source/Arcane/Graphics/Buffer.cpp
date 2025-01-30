@@ -2,8 +2,8 @@
 
 namespace Arcane {
 
-	Buffer Buffer::Create(const GraphicsContext &context, BufferType type, size_t size) {
-		return Buffer(NativeBuffer::Create(context.GetNativeContext(), type, size));
+	Buffer Buffer::Create(const GraphicsContext &context, size_t size) {
+		return Buffer(NativeBuffer::Create(context.GetNativeContext(), size));
 	}
 
 }

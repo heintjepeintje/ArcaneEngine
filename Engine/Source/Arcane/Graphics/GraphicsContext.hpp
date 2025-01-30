@@ -16,17 +16,24 @@ namespace Arcane {
 
 		inline void Present() { mNativeContext->Present(); }
 		
-		inline uint32_t GetVersionMajor() const { return mNativeContext->GetVersionMajor(); }
-		inline uint32_t GetVersionMinor() const { return mNativeContext->GetVersionMinor(); }
-		inline uint32_t GetPatchLevel() const { return mNativeContext->GetPatchLevel(); }
+		inline uint32_t GetVersionMajor() const { return GetNativeContext()->GetVersionMajor(); }
+		inline uint32_t GetVersionMinor() const { return GetNativeContext()->GetVersionMinor(); }
+		inline std::string GetDeviceName() const { return GetNativeContext()->GetDeviceName(); }
+		inline uint32_t GetPatchLevel() const { return GetNativeContext()->GetPatchLevel(); }
 
-		inline std::shared_ptr<NativeGraphicsContext> GetNativeContext() const { return mNativeContext; }
+		inline Ref<NativeGraphicsContext> GetNativeContext() const {
+			AR_ASSERT(mNativeContext, "Native context is invalid");
+			return mNativeContext;
+		}
+
+		inline Window GetWindow() const { return mWindow; }
 
 	private:
-		GraphicsContext(const std::shared_ptr<NativeGraphicsContext> &context) : mNativeContext(context) { }
+		GraphicsContext(const Ref<NativeGraphicsContext> &context) : mNativeContext(context) { }
 
 	private:
-		std::shared_ptr<NativeGraphicsContext> mNativeContext;
+		Ref<NativeGraphicsContext> mNativeContext;
+		Window mWindow;
 	};
 
 }

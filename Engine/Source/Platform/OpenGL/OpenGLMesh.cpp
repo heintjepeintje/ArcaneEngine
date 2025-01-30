@@ -60,7 +60,7 @@ namespace Arcane {
 		}
 	}
 
-	OpenGLMesh::OpenGLMesh(const std::shared_ptr<OpenGLGraphicsContext> &context) : mContext(context) {
+	OpenGLMesh::OpenGLMesh(const Ref<OpenGLGraphicsContext> &context) : mContext(context) {
 		glCreateVertexArrays(1, &mVertexArray);
 	}
 
@@ -68,9 +68,8 @@ namespace Arcane {
 		glDeleteVertexArrays(1, &mVertexArray);
 	}
 
-	void OpenGLMesh::SetVertexBuffer(uint32_t index, const InputLayout &layout, const std::shared_ptr<NativeBuffer> &vertexBuffer) {
-		AR_ASSERT(vertexBuffer->GetType() == BufferType::Vertex, "Buffer is not a vertex buffer!");
-		std::shared_ptr<OpenGLBuffer> buffer = std::static_pointer_cast<OpenGLBuffer>(vertexBuffer);
+	void OpenGLMesh::SetVertexBuffer(uint32_t index, const InputLayout &layout, const Ref<NativeBuffer> &vertexBuffer) {
+		Ref<OpenGLBuffer> buffer = CastRef<OpenGLBuffer>(vertexBuffer);
 
 		mVertexBuffers.emplace(mVertexBuffers.begin() + index, vertexBuffer);
 
@@ -80,7 +79,6 @@ namespace Arcane {
 		for (size_t i = 0; i < layout.GetElements().size(); i++) {
 			glEnableVertexArrayAttrib(mVertexArray, index + i);
 			glVertexArrayAttribFormat(mVertexArray, index + i, GetInputElementTypeCount(layout.GetElements()[i]), GetInputElementOpenGLType(layout.GetElements()[i]), GL_FALSE, offset);
-			std::printf("[%u]: %u, %u\n", index + i, GetInputElementTypeCount(layout.GetElements()[i]), offset);
 			glVertexArrayAttribBinding(mVertexArray, index + i, index);
 
 			offset += GetInputElementSize(layout.GetElements()[i]);
@@ -89,19 +87,13 @@ namespace Arcane {
 		mLayout.Append(layout);
 	}
 
-	void OpenGLMesh::SetIndexBuffer(const std::shared_ptr<NativeBuffer> &indexBuffer) {
-		AR_ASSERT(indexBuffer->GetType() == BufferType::Index, "Buffer is not an index buffer!");
-		std::shared_ptr<OpenGLBuffer> buffer = std::static_pointer_cast<OpenGLBuffer>(indexBuffer);
+	void OpenGLMesh::SetIndexBuffer(const Ref<NativeBuffer> &indexBuffer) {
+		Ref<OpenGLBuffer> buffer = CastRef<OpenGLBuffer>(indexBuffer);
 
 		mIndexBuffer = indexBuffer;
 
 		glVertexArrayElementBuffer(mVertexArray, buffer->GetOpenGLID());
 	}
-
-	std::shared_ptr<NativeMesh> NativeMesh::Create(const std::shared_ptr<NativeGraphicsContext> &context) {
-		return std::make_shared<OpenGLMesh>(
-			std::dynamic_pointer_cast<OpenGLGraphicsContext>(context)
-		);
-	}
+	
 
 }

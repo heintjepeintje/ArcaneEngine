@@ -26,13 +26,13 @@ namespace Arcane {
 		inline Vector2 GetClientSize() const { return mNativeWindow->GetClientSize(); }
 		inline Vector2 GetScreenSize() const { return mNativeWindow->GetScreenSize(); }
 
-		inline std::shared_ptr<NativeWindow> GetNativeWindow() const { return mNativeWindow; }
+		inline Ref<NativeWindow> GetNativeWindow() const { return mNativeWindow; }
 
 	private:
-		Window(const std::shared_ptr<NativeWindow> &window) : mNativeWindow(window) { }
+		Window(const Ref<NativeWindow> &window) : mNativeWindow(window) { }
 
 	private:
-		std::shared_ptr<NativeWindow> mNativeWindow;
+		Ref<NativeWindow> mNativeWindow;
 	};
 
 }
