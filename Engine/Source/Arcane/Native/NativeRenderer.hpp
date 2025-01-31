@@ -33,7 +33,7 @@ namespace Arcane {
 		virtual Rect2D GetScissor() const = 0;
 
 		virtual void SetMesh(const Ref<NativeMesh> &mesh) = 0;
-		virtual void DrawIndexed(uint32_t count) = 0;
+		virtual void DrawIndexed(uint32_t instances, uint32_t count) = 0;
 	};
 
 }

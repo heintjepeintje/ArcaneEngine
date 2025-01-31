@@ -16,8 +16,8 @@ namespace Arcane {
 		static void Shutdown();
 
 		static void Begin(const Camera3D &camera);
-		static void AddLight(const Transform &transform, const PointLight &light);
-		static void AddLight(const Transform &transform, const DirectionalLight &light);
+		static void AddLight(const Vector3 &position, const PointLight &light);
+		static void AddLight(const Vector3 &direction, const DirectionalLight &light);
 		static void Submit(const Transform &transform, const Mesh &mesh, const PBRMaterial &material);
 		static void End();
 	};

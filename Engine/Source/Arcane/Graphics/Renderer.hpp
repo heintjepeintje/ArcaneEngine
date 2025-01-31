@@ -35,7 +35,7 @@ namespace Arcane {
 		inline Rect2D GetScissor() { return GetNativeRendererAPI()->GetScissor(); }
 
 		inline void SetMesh(const Mesh &mesh) { GetNativeRendererAPI()->SetMesh(mesh.GetNativeMesh()); }
-		inline void DrawIndexed(uint32_t count) { GetNativeRendererAPI()->DrawIndexed(count); }
+		inline void DrawIndexed(uint32_t instances, uint32_t count) { GetNativeRendererAPI()->DrawIndexed(instances, count); }
 
 		inline Ref<NativeRendererAPI> GetNativeRendererAPI() {
 			AR_ASSERT(mNativeRendererAPI, "Native renderer API is invalid");

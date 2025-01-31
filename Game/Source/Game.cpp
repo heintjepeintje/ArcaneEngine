@@ -14,34 +14,53 @@ int main(int argc, char **argv) {
 
 	Arcane::PBRRenderer::Init(context);
 
-	Arcane::MeshData meshData = Arcane::LoadCube(Arcane::Vector3(10.0f, 1.0f, 10.0f), false);
-	Arcane::ProcessMesh(meshData, Arcane::MeshProcess::GenerateTangents);
-
-	Arcane::Mesh mesh = Arcane::Mesh::Create(context, meshData);
-
+	Arcane::MeshData floorData = Arcane::LoadCube(Arcane::Vector3(10.0f, 1.0f, 10.0f), false);
+	Arcane::ProcessMesh(floorData, Arcane::MeshProcess::GenerateTangents);
+	Arcane::Mesh floor = Arcane::Mesh::Create(context, floorData);
+	
 	Arcane::Texture blackTexture = Arcane::Texture::Create(context, Arcane::LoadImage(Arcane::Color::Black(), Arcane::ImageFormat::RGBA8));
-
-	Arcane::ImageData colorTexture = Arcane::LoadImage("Game/Assets/Images/PavingStones_Color.png", Arcane::ImageFormat::RGB8);
+	Arcane::ImageData colorTexture = Arcane::LoadImage("Game/Assets/Materials/Paving Stones/PavingStones_Color.png", Arcane::ImageFormat::RGB8);
 	Arcane::ProcessImage(colorTexture, Arcane::ImageProcess::FlipVertical);
-
-	Arcane::ImageData aoTexture = Arcane::LoadImage("Game/Assets/Images/PavingStones_AmbientOcclusion.png", Arcane::ImageFormat::RGB8);
+	Arcane::ImageData aoTexture = Arcane::LoadImage("Game/Assets/Materials/Paving Stones/PavingStones_AmbientOcclusion.png", Arcane::ImageFormat::RGB8); 
 	Arcane::ProcessImage(aoTexture, Arcane::ImageProcess::FlipVertical);
-
-	Arcane::ImageData roughnessMap = Arcane::LoadImage("Game/Assets/Images/PavingStones_Roughness.png", Arcane::ImageFormat::RGB8);
+	Arcane::ImageData roughnessMap = Arcane::LoadImage("Game/Assets/Materials/Paving Stones/PavingStones_Roughness.png", Arcane::ImageFormat::RGB8);
 	Arcane::ProcessImage(roughnessMap, Arcane::ImageProcess::FlipVertical);
-
-	Arcane::ImageData normalMap = Arcane::LoadImage("Game/Assets/Images/PavingStones_Normal.png", Arcane::ImageFormat::RGB8);
+	Arcane::ImageData normalMap = Arcane::LoadImage("Game/Assets/Materials/Paving Stones/PavingStones_Normal.png", Arcane::ImageFormat::RGB8);
 	Arcane::ProcessImage(normalMap, Arcane::ImageProcess::FlipVertical);
 
-	Arcane::PBRMaterial material;
-	material.AlbedoMap = Arcane::Texture::Create(context, colorTexture);
-	material.NormalMap = Arcane::Texture::Create(context, normalMap);
-	material.MetallicMap = Arcane::Texture::Create(context, Arcane::LoadImage(Arcane::Color::Gray(), Arcane::ImageFormat::RGB8));
-	material.RoughnessMap = Arcane::Texture::Create(context, roughnessMap);
-	material.AmbientOcclusionMap = Arcane::Texture::Create(context, aoTexture);
+	Arcane::PBRMaterial floorMaterial;
+	floorMaterial.AlbedoMap = Arcane::Texture::Create(context, colorTexture);
+	floorMaterial.NormalMap = Arcane::Texture::Create(context, normalMap);
+	floorMaterial.MetallicMap = Arcane::Texture::Create(context, Arcane::LoadImage(Arcane::Color::Gray(), Arcane::ImageFormat::RGB8));
+	floorMaterial.RoughnessMap = Arcane::Texture::Create(context, roughnessMap);
+	floorMaterial.AmbientOcclusionMap = Arcane::Texture::Create(context, aoTexture);
 
-	Arcane::Transform transform;
-	transform.Position = Arcane::Vector3(0, -1.0f, 0.0f);
+	Arcane::Transform floorTransform;
+	floorTransform.Position = Arcane::Vector3(0, -1.0f, 0.0f);
+
+	Arcane::MeshData boxData = Arcane::LoadCube();
+	Arcane::ProcessMesh(boxData, Arcane::MeshProcess::GenerateTangents);
+	Arcane::Mesh box = Arcane::Mesh::Create(context, boxData);
+
+	colorTexture = Arcane::LoadImage("Game/Assets/Materials/Wood Floor/WoodFloor_Color.png", Arcane::ImageFormat::RGB8);
+	Arcane::ProcessImage(colorTexture, Arcane::ImageProcess::FlipVertical);
+	aoTexture = Arcane::LoadImage("Game/Assets/Materials/Wood Floor/WoodFloor_AmbientOcclusion.png", Arcane::ImageFormat::RGB8); 
+	Arcane::ProcessImage(aoTexture, Arcane::ImageProcess::FlipVertical);
+	roughnessMap = Arcane::LoadImage("Game/Assets/Materials/Wood Floor/WoodFloor_Roughness.png", Arcane::ImageFormat::RGB8);
+	Arcane::ProcessImage(roughnessMap, Arcane::ImageProcess::FlipVertical);
+	normalMap = Arcane::LoadImage("Game/Assets/Materials/Wood Floor/WoodFloor_Normal.png", Arcane::ImageFormat::RGB8);
+	Arcane::ProcessImage(normalMap, Arcane::ImageProcess::FlipVertical);
+
+	Arcane::PBRMaterial boxMaterial;
+	boxMaterial.AlbedoMap = Arcane::Texture::Create(context, colorTexture);
+	boxMaterial.NormalMap = Arcane::Texture::Create(context, normalMap);
+	boxMaterial.MetallicMap = Arcane::Texture::Create(context, Arcane::LoadImage(Arcane::Color::Gray(), Arcane::ImageFormat::RGB8));
+	boxMaterial.RoughnessMap = Arcane::Texture::Create(context, roughnessMap);
+	boxMaterial.AmbientOcclusionMap = Arcane::Texture::Create(context, aoTexture);
+
+	Arcane::Transform boxTransform;
+	boxTransform.Position = { 0.0f, 3.0f, 0.0f };
+	boxTransform.Rotation = { 45.0f, 45.0f, 0.0f };
 
 	camera = Arcane::Camera3D(90.0f, window.GetClientSize(), 0.0001f, 10000.0f);
 
@@ -49,6 +68,10 @@ int main(int argc, char **argv) {
 
 	Arcane::PointLight light = Arcane::PointLight(Arcane::Color::White(), 10.0f);
 	Arcane::Transform lightPosition = Arcane::Transform();
+
+	Arcane::DirectionalLight sun = Arcane::DirectionalLight(Arcane::Color::Gray());
+	Arcane::Transform sunTransform = Arcane::Transform();
+	sunTransform.Rotation.Z = 180.0f;
 
 	while (!window.IsClosed()) {
 		lightPosition.Position = camera.Position;
@@ -93,8 +116,10 @@ int main(int argc, char **argv) {
 			
 		Arcane::PBRRenderer::Begin(camera);
 
-		Arcane::PBRRenderer::AddLight(lightPosition, light);
-		Arcane::PBRRenderer::Submit(transform, mesh, material);
+		Arcane::PBRRenderer::AddLight(lightPosition.Position, light);
+		Arcane::PBRRenderer::AddLight({ -1, -1, -1 }, sun);
+		Arcane::PBRRenderer::Submit(floorTransform, floor, floorMaterial);
+		Arcane::PBRRenderer::Submit(boxTransform, box, boxMaterial);
 
 		Arcane::PBRRenderer::End();
 		context.Present();

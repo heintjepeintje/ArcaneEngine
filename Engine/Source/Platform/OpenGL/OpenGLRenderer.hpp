@@ -31,7 +31,7 @@ namespace Arcane {
 		virtual Rect2D GetScissor() const { return mOutputScissor; }
 
 		virtual void SetMesh(const Ref<NativeMesh> &mesh) override;
-		virtual void DrawIndexed(uint32_t count) override;
+		virtual void DrawIndexed(uint32_t instances, uint32_t count) override;
 
 	private:
 		Ref<OpenGLGraphicsContext> mContext;

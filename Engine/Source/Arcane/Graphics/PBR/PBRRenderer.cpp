@@ -9,6 +9,8 @@
 #define AR_PBR_VERTEX_SHADER_PATH "Engine/Shaders/PBR/Binaries/Output/PBRShader.vert.spv"
 #define AR_PBR_FRAGMENT_SHADER_PATH "Engine/Shaders/PBR/Binaries/Output/PBRShader.frag.spv"
 
+#define AR_PBR_SAMPLE_COUNT 16
+
 namespace Arcane {
 
 	static struct {
@@ -71,8 +73,8 @@ namespace Arcane {
 		sRendererAPI = RendererAPI::Create(sContext);
 
 		const Attachment attachments[] = {
-			{ AttachmentType::Color, ImageFormat::RGBA8, 4 },
-			{ AttachmentType::DepthStencil, ImageFormat::D24S8, 4 },
+			{ AttachmentType::Color, ImageFormat::RGBA8, AR_PBR_SAMPLE_COUNT },
+			{ AttachmentType::DepthStencil, ImageFormat::D24S8, AR_PBR_SAMPLE_COUNT },
 		};
 
 		FramebufferInfo framebufferInfo{};
@@ -100,7 +102,7 @@ namespace Arcane {
 		pipelineInfo.WindingOrder = WindingOrder::CounterClockwise;
 		pipelineInfo.Topology = PrimitiveTopology::TriangleList;
 		pipelineInfo.Descriptors = descriptors;
-		pipelineInfo.DescriptorCount = 7;
+		pipelineInfo.DescriptorCount = 3;
 		pipelineInfo.FillMode = FillMode::Solid;
 		pipelineInfo.Layout = {
 			{ InputAttribute::Position, 1, InputElementType::Vector3 },
@@ -120,7 +122,7 @@ namespace Arcane {
 		pipelineInfo.FragmentShaderBinary = fragmentShaderBinary;
 		pipelineInfo.FragmentShaderSize = fragmentBinarySize;
 
-		pipelineInfo.SampleCount = 4;
+		pipelineInfo.SampleCount = AR_PBR_SAMPLE_COUNT;
 		pipelineInfo.Scissor = { Vector2::Zero(), Vector2::MaxValue() };
 		pipelineInfo.Viewport = { Vector2::Zero(), Vector2::MaxValue() };
 
@@ -173,7 +175,7 @@ namespace Arcane {
 		pipelineInfo.WindingOrder = WindingOrder::CounterClockwise;
 		pipelineInfo.Topology = PrimitiveTopology::TriangleList;
 		pipelineInfo.Descriptors = descriptors;
-		pipelineInfo.DescriptorCount = 7;
+		pipelineInfo.DescriptorCount = 3;
 		pipelineInfo.FillMode = FillMode::Solid;
 		pipelineInfo.Layout = {
 			{ InputAttribute::Position, 1, InputElementType::Vector3 },
@@ -193,15 +195,15 @@ namespace Arcane {
 		pipelineInfo.FragmentShaderBinary = fragmentShaderBinary;
 		pipelineInfo.FragmentShaderSize = fragmentBinarySize;
 
-		pipelineInfo.SampleCount = 16;
+		pipelineInfo.SampleCount = AR_PBR_SAMPLE_COUNT;
 		pipelineInfo.Scissor = { Vector2::Zero(), Vector2::MaxValue() };
 		pipelineInfo.Viewport = { Vector2::Zero(), Vector2::MaxValue() };
 
 		sPBRPipeline = Pipeline::Create(sContext, pipelineInfo);
 
 		const Attachment attachments[] = {
-			{ AttachmentType::Color, ImageFormat::RGBA8, 16 },
-			{ AttachmentType::DepthStencil, ImageFormat::D24S8, 16 },
+			{ AttachmentType::Color, ImageFormat::RGBA8, AR_PBR_SAMPLE_COUNT },
+			{ AttachmentType::DepthStencil, ImageFormat::D24S8, AR_PBR_SAMPLE_COUNT },
 		};
 
 		sRenderPass = RenderPass::Create(sContext, sPBRPipeline, attachments, 2);
@@ -225,22 +227,16 @@ namespace Arcane {
 		sCameraBuffer.SetData((const void*)&sCameraData);
 	}
 
-	void PBRRenderer::AddLight(const Transform &transform, const PointLight &light) {
+	void PBRRenderer::AddLight(const Vector3 &position, const PointLight &light) {
 		uint32_t index = sLightData.PointLightCount++;
 		sLightData.PointLights[index].Color = light.Color;
 		sLightData.PointLights[index].Intensity = light.Intensity;
-		sLightData.PointLights[index].Position = Vector4(transform.Position, 1.0);
+		sLightData.PointLights[index].Position = Vector4(position, 1.0);
 	}
 
-	void PBRRenderer::AddLight(const Transform &transform, const DirectionalLight &light) {
+	void PBRRenderer::AddLight(const Vector3 &direction, const DirectionalLight &light) {
 		sLightData.DirectionalLight.Color = light.Color;
-	
-		Vector3 direction{};
-		direction.X = Cos(transform.Rotation.Y) * Cos(transform.Rotation.X);
-		direction.Y = Sin(transform.Rotation.Y) * Cos(transform.Rotation.X);
-		direction.Z = Sin(transform.Rotation.X);
-
-		sLightData.DirectionalLight.Direction = Vector4(direction, 1.0);
+		sLightData.DirectionalLight.Direction = Vector4(Vector3::Normalize(direction), 1.0);
 	}
 
 	void PBRRenderer::Submit(const Transform &transform, const Mesh &mesh, const PBRMaterial &material) {
@@ -267,12 +263,13 @@ namespace Arcane {
 
 		sLightBuffer.SetData(&sLightData);
 		
-		for (RenderSubmit &submission : sRenderSubmissions) {
+		for (const RenderSubmit &submission : sRenderSubmissions) {
 			sObjectData.Model = Matrix4::Transpose(submission.Model);
 			sObjectData.MVP = Matrix4::Transpose(sCamera.GetProjectionMatrix() * sCamera.GetViewMatrix() * submission.Model);
 			sObjectData.Position = Vector4(submission.Position, 1.0);
 
 			sObjectBuffer.SetData((const void*)&sObjectData);
+			sPBRPipeline.SetUniformBuffer(1, sObjectBuffer);
 
 			sPBRPipeline.SetCombinedImageSampler(0, submission.AlbedoMap, sTextureSampler);
 			sPBRPipeline.SetCombinedImageSampler(1, submission.NormalMap, sTextureSampler);
@@ -281,7 +278,7 @@ namespace Arcane {
 			sPBRPipeline.SetCombinedImageSampler(4, submission.AmbientOcclusionMap, sTextureSampler);
 
 			sRendererAPI.SetMesh(submission.Mesh);
-			sRendererAPI.DrawIndexed(submission.Mesh.GetIndexCount());
+			sRendererAPI.DrawIndexed(1, submission.Mesh.GetIndexCount());
 		}
 		sRendererAPI.EndRenderPass();
 		sRendererAPI.End();

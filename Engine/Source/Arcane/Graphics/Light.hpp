@@ -17,6 +17,7 @@ namespace Arcane {
 	};
 
 	class DirectionalLight {
+	public:
 		DirectionalLight(const Color &color)
 			: Color(color) { }
 		

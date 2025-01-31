@@ -40,6 +40,35 @@ layout (binding = 2) uniform sampler2D uMetallic;
 layout (binding = 3) uniform sampler2D uRoughness;
 layout (binding = 4) uniform sampler2D uAmbientOcclusion;
 
+vec3 FresnelSchlick(float cosTheta, vec3 f0);
+float DistributionGGX(vec3 n, vec3 h, float roughness);
+float GeometrySchlickGGX(float ndotv, float roughness);
+float GeometrySmith(vec3 n, vec3 v, vec3 l, float roughness);
+
+vec3 GetPointLightColor(uint lightIndex, vec3 albedo, vec3 normal, float metallic, float roughness);
+vec3 GetDirectionalLightColor(vec3 albedo, vec3 normal, float metallic, float roughness);
+
+void main() {
+	const vec3 albedo = texture(uAlbedo, iUV).rgb;
+	const vec3 normal = normalize(iTBN * texture(uNormal, iUV).rgb * 2.0 - 1.0);
+	const float metallic = texture(uMetallic, iUV).r;
+	const float roughness = texture(uRoughness, iUV).r;
+	const float ao = texture(uAmbientOcclusion, iUV).r;
+	
+	vec3 result = vec3(0.0);
+
+	for (uint i = 0; i < uLights.PointLightCount; i++) {
+		result += GetPointLightColor(i, albedo, normal, metallic, roughness);
+	}
+
+	result += GetDirectionalLightColor(albedo, normal, metallic, roughness);
+
+	const vec3 ambient = vec3(0.03) * albedo * ao;
+	const vec3 color = ambient + result;
+
+	oColor = vec4(color, 1.0);
+}
+
 vec3 FresnelSchlick(float cosTheta, vec3 f0) {
 	return f0 + (1.0 - f0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0); 
 }
@@ -77,45 +106,51 @@ float GeometrySmith(vec3 n, vec3 v, vec3 l, float roughness) {
 	return ggx1 * ggx2;
 }
 
-void main() {
-	const vec3 albedo = texture(uAlbedo, iUV).rgb;
-	const vec3 normal = normalize(iTBN * texture(uNormal, iUV).rgb * 2.0 - 1.0);
-	const float metallic = texture(uMetallic, iUV).r;
-	const float roughness = texture(uRoughness, iUV).r;
-	const float ao = texture(uAmbientOcclusion, iUV).r;
-
+vec3 GetPointLightColor(uint lightIndex, vec3 albedo, vec3 normal, float metallic, float roughness) {
 	const vec3 f0 = mix(vec3(0.04), albedo, metallic);
-
-	const vec3 n = normal;
 	const vec3 v = normalize(uCamera.Position.xyz - iPosition);
-	
-	vec3 result = vec3(0.0);
 
-	for (uint i = 0; i < uLights.PointLightCount; i++) {
-		const vec3 l = normalize(uLights.PointLights[i].Position.xyz - iPosition);
-		const vec3 h = normalize(v + l);
+	const vec3 l = normalize(uLights.PointLights[lightIndex].Position.xyz - iPosition);
+	const vec3 h = normalize(v + l);
 
-		const float distance = length(uLights.PointLights[i].Position.xyz - iPosition);
-		const float attenuation = 1.0 / (distance * distance);
-		const vec3 radiance = uLights.PointLights[i].Color.xyz * attenuation * uLights.PointLights[i].Intensity;
+	const float distance = length(uLights.PointLights[lightIndex].Position.xyz - iPosition);
+	const float attenuation = 1.0 / (distance * distance);
+	const vec3 radiance = uLights.PointLights[lightIndex].Color.xyz * attenuation * uLights.PointLights[lightIndex].Intensity;
 
-		const float ndf = DistributionGGX(n, h, roughness);
-		const float g = GeometrySmith(n, v, l, roughness);
-		const vec3 f = FresnelSchlick(max(dot(h, v), 0.0), f0);
+	const float ndf = DistributionGGX(normal, h, roughness);
+	const float g = GeometrySmith(normal, v, l, roughness);
+	const vec3 f = FresnelSchlick(max(dot(h, v), 0.0), f0);
 
-		const vec3 ks = f;
-		const vec3 kd = (vec3(1.0) - ks) * (1.0 - metallic);
+	const vec3 ks = f;
+	const vec3 kd = (vec3(1.0) - ks) * (1.0 - metallic);
 
-		const vec3 num = ndf * g * f;
-		const float denom = 4.0 * max(dot(n, v), 0.0) * max(dot(n, l), 0.0) + 0.0001;
-		const vec3 specular = num / denom;
+	const vec3 num = ndf * g * f;
+	const float denom = 4.0 * max(dot(normal, v), 0.0) * max(dot(normal, l), 0.0) + 0.0001;
+	const vec3 specular = num / denom;
 
-		const float ndotl = max(dot(n, l), 0.0);
-		result += (kd * albedo / PI + specular) * radiance * ndotl;
-	}
+	const float ndotl = max(dot(normal, l), 0.0);
+	return (kd * albedo / PI + specular) * radiance * ndotl;
+}
 
-	const vec3 ambient = vec3(0.03) * albedo * ao;
-	const vec3 color = ambient + result;
+vec3 GetDirectionalLightColor(vec3 albedo, vec3 normal, float metallic, float roughness) {
+	const vec3 f0 = mix(vec3(0.04), albedo, metallic);
+	const vec3 v = normalize(uCamera.Position.xyz - iPosition);
 
-	oColor = vec4(color, 1.0);
+	const vec3 l = normalize(-uLights.DirLight.Direction.xyz);
+	const vec3 h = normalize(v + l);
+
+	const float ndf = DistributionGGX(normal, h, roughness);
+	const float g = GeometrySmith(normal, v, l, roughness);
+	const vec3 f = FresnelSchlick(max(dot(h, v), 0.0), f0);
+
+	const vec3 ks = f;
+	const vec3 kd = (vec3(1.0) - ks) * (1.0 - metallic);
+
+	const vec3 num = ndf * g * f;
+	const float denom = 4.0 * max(dot(normal, v), 0.0) * max(dot(normal, l), 0.0) + 0.0001;
+	const vec3 specular = num / denom;
+
+	const float ndotl = max(dot(normal, l), 0.0);
+	const vec3 radiance = uLights.DirLight.Color.xyz * ndotl;
+	return (kd * albedo / PI + specular) * radiance * 5.0;
 }

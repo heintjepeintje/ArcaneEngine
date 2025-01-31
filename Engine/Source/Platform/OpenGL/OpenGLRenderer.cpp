@@ -80,20 +80,11 @@ namespace Arcane {
 		}
 
 		glUseProgram(mPipeline->GetShaderProgram());
-
-		for (OpenGLUniformBufferDescriptor &uniformBufferDesc : mPipeline->GetUniformBufferDescriptors()) {
-			glBindBufferBase(GL_UNIFORM_BUFFER, uniformBufferDesc.binding, uniformBufferDesc.buffer);
-		}
-
-		for (OpenGLCombinedImageSamplerDescriptor &combinedImageSamplerDesc : mPipeline->GetCombinedImageSamplerDescriptors()) {
-			glBindTextureUnit(combinedImageSamplerDesc.binding, combinedImageSamplerDesc.texture);
-			glBindSampler(combinedImageSamplerDesc.binding, combinedImageSamplerDesc.sampler);
-		}
-
 	}
 
 	void OpenGLRendererAPI::EndRenderPass() {
-		glBindFramebuffer(GL_FRAMEBUFFER, mFramebuffer->GetOpenGLID());
+		glBindVertexArray(0);
+		
 		for (OpenGLCombinedImageSamplerDescriptor &combinedImageSamplerDesc : mPipeline->GetCombinedImageSamplerDescriptors()) {
 			glBindTextureUnit(combinedImageSamplerDesc.binding, 0);
 			glBindSampler(combinedImageSamplerDesc.binding, 0);
@@ -104,8 +95,6 @@ namespace Arcane {
 		}
 
 		glUseProgram(0);
-
-		glBindVertexArray(0);
 	}
 
 	void OpenGLRendererAPI::SetClearColor(float r, float g, float b, float a) {
@@ -129,7 +118,7 @@ namespace Arcane {
 		glBindVertexArray(mMesh->GetVertexArray());
 	}
 
-	void OpenGLRendererAPI::DrawIndexed(uint32_t count) {
+	void OpenGLRendererAPI::DrawIndexed(uint32_t instances, uint32_t count) {
 		GLenum topology = GL_NONE;
 		switch (mPipeline->GetTopology()) {
 			case PrimitiveTopology::TriangleList: topology = GL_TRIANGLES; break;
@@ -162,7 +151,16 @@ namespace Arcane {
 			mOutputScissor.Size.X, mOutputScissor.Size.Y
 		);
 
-		glDrawElements(topology, count, GL_UNSIGNED_INT, nullptr);
+		for (OpenGLUniformBufferDescriptor &uniformBufferDesc : mPipeline->GetUniformBufferDescriptors()) {
+			glBindBufferBase(GL_UNIFORM_BUFFER, uniformBufferDesc.binding, uniformBufferDesc.buffer);
+		}
+
+		for (OpenGLCombinedImageSamplerDescriptor &combinedImageSamplerDesc : mPipeline->GetCombinedImageSamplerDescriptors()) {
+			glBindTextureUnit(combinedImageSamplerDesc.binding, combinedImageSamplerDesc.texture);
+			glBindSampler(combinedImageSamplerDesc.binding, combinedImageSamplerDesc.sampler);
+		}
+
+		glDrawElementsInstanced(topology, count, GL_UNSIGNED_INT, nullptr, instances);
 	}
 
 }
