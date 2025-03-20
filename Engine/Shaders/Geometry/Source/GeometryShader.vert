@@ -26,15 +26,16 @@ layout (std140, binding = 1) uniform ObjectData {
 } uObject;
 
 void main() {
+	const mat3 modelNoScale = mat3(transpose(inverse(uObject.Model))); 
 	oPosition = (uObject.Model * vec4(aPosition, 1.0)).xyz;
-	oNormal = mat3(transpose(inverse(uObject.Model))) * aNormal;
+	oNormal = modelNoScale * aNormal.xyz;
 	oUV = aUV;
-	oTangent = aTangent;
-	oBitangent = aBitangent;
+	oTangent = modelNoScale * aTangent.xyz;
+	oBitangent = modelNoScale * aBitangent.xyz;
 
-	const vec3 t = normalize(vec3(uObject.Model * vec4(aTangent, 0.0)));
-	const vec3 b = normalize(vec3(uObject.Model * vec4(aBitangent, 0.0)));
-	const vec3 n = normalize(vec3(uObject.Model * vec4(aNormal, 0.0)));
+	const vec3 t = normalize(modelNoScale * aTangent);
+	const vec3 b = normalize(modelNoScale * aBitangent);
+	const vec3 n = normalize(modelNoScale * aNormal);
 	oTBN = mat3(t, b, n);
 
 	gl_Position = uObject.MVP * vec4(aPosition, 1.0);

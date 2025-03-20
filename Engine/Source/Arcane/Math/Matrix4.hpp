@@ -58,11 +58,11 @@ namespace Arcane {
 		}
 
 		static Matrix4 Scale(const Matrix4 &m, const Vector3 &scale) {
-			return Matrix4(
-				{ m.Data[0][0] * scale.X, m.Data[0][1], m.Data[0][2], m.Data[0][3] },
-				{ m.Data[1][0], m.Data[1][1] * scale.Y, m.Data[1][2], m.Data[1][3] },
-				{ m.Data[2][0], m.Data[2][1], m.Data[2][2] * scale.Z, m.Data[2][3] },
-				{ m.Data[3][0], m.Data[3][1], m.Data[3][2], m.Data[3][3] }
+			return m * Matrix4(
+				{ scale.X, 0, 0, 0 },
+				{ 0, scale.Y, 0, 0 },
+				{ 0, 0, scale.Z, 0 },
+				{ 0, 0, 0, 1 }
 			);
 		}
 
@@ -122,6 +122,42 @@ namespace Arcane {
 				{ 0.0f, 1.0f / tanHalfFOV, 0.0f, 0.0f, },
 				{ 0.0f, 0.0f, -(far + near) / (far - near), -(2.0f * far * near) / (far - near) },
 				{ 0.0f, 0.0f, -1.0f, 0.0f }
+			);
+		}
+
+		static Matrix4 OrthoLH_ZO(float left, float right, float top, float bottom, float near, float far) {
+			return Matrix4(
+				{ 2.0f / (right - left), 0.0f, 0.0f, -(right + left) / (right - left) },
+				{ 0.0f, 2.0f / (top - bottom), 0.0f, -(top + bottom) / (top - bottom) },
+				{ 0.0f, 0.0f, 1.0f / (far - near), -near / (far - near) },
+				{ 0.0f, 0.0f, 0.0f, 1.0f }
+			);
+		}
+
+		static Matrix4 OrthoLH_NO(float left, float right, float top, float bottom, float near, float far) {
+			return Matrix4(
+				{ 2.0f / (right - left), 0.0f, 0.0f, -(right + left) / (right - left) },
+				{ 0.0f, 2.0f / (top - bottom), 0.0f, -(top + bottom) / (top - bottom) },
+				{ 0.0f, 0.0f, 2.0f / (far - near), -(far + near) / (far - near) },
+				{ 0.0f, 0.0f, 0.0f, 1.0f }
+			);
+		}
+
+		static Matrix4 OrthoRH_ZO(float left, float right, float top, float bottom, float near, float far) {
+			return Matrix4(
+				{ 2.0f / (right - left), 0.0f, 0.0f, -(right + left) / (right - left) },
+				{ 0.0f, 2.0f / (top - bottom), 0.0f, -(top + bottom) / (top - bottom) },
+				{ 0.0f, 0.0f, 1.0f / (far - near), -near / (far - near) },
+				{ 0.0f, 0.0f, 0.0f, 1.0f }
+			);
+		}
+
+		static Matrix4 OrthoRH_NO(float left, float right, float top, float bottom, float near, float far) {
+			return Matrix4(
+				{ 2.0f / (right - left), 0.0f, 0.0f, -(right + left) / (right - left) },
+				{ 0.0f, 2.0f / (top - bottom), 0.0f, -(top + bottom) / (top - bottom) },
+				{ 0.0f, 0.0f, 2.0f / (far - near), -(far + near) / (far - near) },
+				{ 0.0f, 0.0f, 0.0f, 1.0f }
 			);
 		}
 

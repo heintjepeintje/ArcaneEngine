@@ -13,6 +13,7 @@ namespace Arcane {
 		uint32_t Width, Height;
 		uint32_t Depth;
 		uint32_t Samples;
+		bool IsMutable;
 	};
 
 	class NativeTexture {
@@ -22,8 +23,9 @@ namespace Arcane {
 	public:
 		NativeTexture() { }
 		virtual ~NativeTexture() { }
-
-		virtual void Resize(uint32_t width, uint32_t height) = 0;
+		
+		virtual void GenerateMipmaps() = 0;
+		virtual void Resize(uint32_t width, uint32_t height, uint32_t depth) = 0;
 		virtual void SetImage(uint32_t level, const Image &image) = 0;
 
 		virtual ImageFormat GetFormat() = 0;
@@ -51,6 +53,7 @@ namespace Arcane {
 	struct SamplerInfo {
 		SamplerFilter MinFilter;
 		SamplerFilter MagFilter;
+		SamplerFilter MipmapFilter;
 		SamplerWrap WrapS;
 		SamplerWrap WrapT;
 		SamplerWrap WrapR;

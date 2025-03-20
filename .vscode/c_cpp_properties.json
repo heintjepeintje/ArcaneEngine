@@ -12,6 +12,7 @@
 			"defines": [ "_DEBUG" ],
 			"includePath": [
 				"Engine/Libraries/stb",
+				"Engine/Libraries/ImGui",
 				"Engine/Source",
 				"Game/Source"
 			],
@@ -30,6 +31,7 @@
 			"defines": [ "NDEBUG" ],
 			"includePath": [
 				"Engine/Libraries/stb",
+				"Engine/Libraries/ImGui",
 				"Engine/Source",
 				"Game/Source"
 			],

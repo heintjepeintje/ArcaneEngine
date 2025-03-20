@@ -25,6 +25,8 @@ namespace Arcane {
 		virtual void EndRenderPass() = 0;
 
 		virtual void SetClearColor(float r, float g, float b, float a) = 0;
+		virtual void SetClearDepth(float depth) = 0;
+		virtual void SetClearStencil(uint16_t stencil) = 0;
 		virtual void Clear() = 0;
 
 		virtual void SetViewport(Rect2D viewport) = 0;
@@ -33,6 +35,7 @@ namespace Arcane {
 		virtual Rect2D GetScissor() const = 0;
 
 		virtual void SetMesh(const Ref<NativeMesh> &mesh) = 0;
+		virtual void SetPipeline(const Ref<NativePipeline> &pipeline) = 0;
 		virtual void DrawIndexed(uint32_t instances, uint32_t count) = 0;
 	};
 

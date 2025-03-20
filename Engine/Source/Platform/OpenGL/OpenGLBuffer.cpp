@@ -2,9 +2,24 @@
 
 namespace Arcane {
 
-	OpenGLBuffer::OpenGLBuffer(size_t size) : mSize(size) {
+	OpenGLBuffer::OpenGLBuffer(size_t size, uint32_t flags) : mSize(size) {
 		glCreateBuffers(1, &mBuffer);
-		glNamedBufferStorage(mBuffer, mSize, nullptr, GL_DYNAMIC_STORAGE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_WRITE_BIT | GL_MAP_READ_BIT);
+		if (flags & BufferFlag_Mutable) {
+			GLenum usage = 0;
+			if (flags & BufferFlag_Static) {
+				usage = GL_STATIC_DRAW;
+			} else {
+				usage = GL_DYNAMIC_DRAW;
+			}
+
+			glNamedBufferData(mBuffer, mSize, nullptr, usage);
+		} else {
+			GLenum flags = 0;
+			if (flags & ~BufferFlag_Static) flags |= GL_DYNAMIC_STORAGE_BIT;
+			if (flags & BufferFlag_MapRead) flags |= GL_MAP_READ_BIT;
+			if (flags & BufferFlag_MapWrite) flags |= GL_MAP_WRITE_BIT;
+			glNamedBufferStorage(mBuffer, mSize, nullptr, flags);
+		}
 	}
 
 	OpenGLBuffer::~OpenGLBuffer() {

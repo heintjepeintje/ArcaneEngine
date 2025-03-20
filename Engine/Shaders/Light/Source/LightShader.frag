@@ -17,56 +17,51 @@ layout (std140, binding = 0) uniform CameraData {
 	vec4 Position;
 } uCamera;
 
-layout (std140, binding = 2) uniform LightData {
+layout (std140, binding = 1) uniform LightData {
 	PointLight PointLights[32];
 	uint PointLightCount;
 	DirectionalLight DirLight;
 } uLights;
 
-const float PI = 3.14159265359;
+const float PI = 3.1415926535;
 
-layout (location = 0) in vec3 iPosition;
-layout (location = 1) in vec3 iNormal;
-layout (location = 2) in vec2 iUV;
-layout (location = 3) in vec3 iTangent;
-layout (location = 4) in vec3 iBitangent;
-layout (location = 5) in mat3 iTBN;
+layout (location = 0) in vec2 iUV;
 
-layout (location = 0) out vec4 oColor;
+layout (location = 0) out vec3 oColor;
 
-layout (binding = 0) uniform sampler2D uAlbedo;
-layout (binding = 1) uniform sampler2D uNormal;
-layout (binding = 2) uniform sampler2D uMetallic;
-layout (binding = 3) uniform sampler2D uRoughness;
-layout (binding = 4) uniform sampler2D uAmbientOcclusion;
+layout (binding = 0) uniform sampler2D uPosition;
+layout (binding = 1) uniform sampler2D uAlbedo;
+layout (binding = 2) uniform sampler2D uNormal;
+layout (binding = 3) uniform sampler2D uMRA;
 
 vec3 FresnelSchlick(float cosTheta, vec3 f0);
 float DistributionGGX(vec3 n, vec3 h, float roughness);
 float GeometrySchlickGGX(float ndotv, float roughness);
 float GeometrySmith(vec3 n, vec3 v, vec3 l, float roughness);
 
-vec3 GetPointLightColor(uint lightIndex, vec3 albedo, vec3 normal, float metallic, float roughness);
-vec3 GetDirectionalLightColor(vec3 albedo, vec3 normal, float metallic, float roughness);
+vec3 GetPointLightColor(uint lightIndex, vec3 position, vec3 albedo, vec3 normal, float metallic, float roughness);
+vec3 GetDirectionalLightColor(vec3 position, vec3 albedo, vec3 normal, float metallic, float roughness);
 
 void main() {
+	const vec3 position = texture(uPosition, iUV).rgb;
 	const vec3 albedo = texture(uAlbedo, iUV).rgb;
-	const vec3 normal = normalize(iTBN * texture(uNormal, iUV).rgb * 2.0 - 1.0);
-	const float metallic = texture(uMetallic, iUV).r;
-	const float roughness = texture(uRoughness, iUV).r;
-	const float ao = texture(uAmbientOcclusion, iUV).r;
+	const vec3 normal = texture(uNormal, iUV).rgb;
+	const float metallic = texture(uMRA, iUV).r;
+	const float roughness = texture(uMRA, iUV).g;
+	const float ao = texture(uMRA, iUV).b;
 	
 	vec3 result = vec3(0.0);
 
 	for (uint i = 0; i < uLights.PointLightCount; i++) {
-		result += GetPointLightColor(i, albedo, normal, metallic, roughness);
+		result += GetPointLightColor(i, position, albedo, normal, metallic, roughness);
 	}
 
-	result += GetDirectionalLightColor(albedo, normal, metallic, roughness);
+	result += GetDirectionalLightColor(position, albedo, normal, metallic, roughness);
 
-	const vec3 ambient = vec3(0.03) * albedo * ao;
-	const vec3 color = ambient + result;
+	const vec3 ambient = vec3(0.003) * albedo * ao;
+	vec3 color = ambient + result;
 
-	oColor = vec4(color, 1.0);
+	oColor = color;
 }
 
 vec3 FresnelSchlick(float cosTheta, vec3 f0) {
@@ -106,16 +101,16 @@ float GeometrySmith(vec3 n, vec3 v, vec3 l, float roughness) {
 	return ggx1 * ggx2;
 }
 
-vec3 GetPointLightColor(uint lightIndex, vec3 albedo, vec3 normal, float metallic, float roughness) {
+vec3 GetPointLightColor(uint lightIndex, vec3 position, vec3 albedo, vec3 normal, float metallic, float roughness) {
 	const vec3 f0 = mix(vec3(0.04), albedo, metallic);
-	const vec3 v = normalize(uCamera.Position.xyz - iPosition);
+	const vec3 v = normalize(uCamera.Position.xyz - position);
 
-	const vec3 l = normalize(uLights.PointLights[lightIndex].Position.xyz - iPosition);
+	const vec3 l = normalize(uLights.PointLights[lightIndex].Position.xyz - position);
 	const vec3 h = normalize(v + l);
 
-	const float distance = length(uLights.PointLights[lightIndex].Position.xyz - iPosition);
+	const float distance = length(uLights.PointLights[lightIndex].Position.xyz - position);
 	const float attenuation = 1.0 / (distance * distance);
-	const vec3 radiance = uLights.PointLights[lightIndex].Color.xyz * attenuation * uLights.PointLights[lightIndex].Intensity;
+	const vec3 radiance = uLights.PointLights[lightIndex].Color.rgb * attenuation * uLights.PointLights[lightIndex].Intensity;
 
 	const float ndf = DistributionGGX(normal, h, roughness);
 	const float g = GeometrySmith(normal, v, l, roughness);
@@ -129,12 +124,13 @@ vec3 GetPointLightColor(uint lightIndex, vec3 albedo, vec3 normal, float metalli
 	const vec3 specular = num / denom;
 
 	const float ndotl = max(dot(normal, l), 0.0);
+	// return position;
 	return (kd * albedo / PI + specular) * radiance * ndotl;
 }
 
-vec3 GetDirectionalLightColor(vec3 albedo, vec3 normal, float metallic, float roughness) {
+vec3 GetDirectionalLightColor(vec3 position, vec3 albedo, vec3 normal, float metallic, float roughness) {
 	const vec3 f0 = mix(vec3(0.04), albedo, metallic);
-	const vec3 v = normalize(uCamera.Position.xyz - iPosition);
+	const vec3 v = normalize(uCamera.Position.xyz - position);
 
 	const vec3 l = normalize(-uLights.DirLight.Direction.xyz);
 	const vec3 h = normalize(v + l);
@@ -152,5 +148,6 @@ vec3 GetDirectionalLightColor(vec3 albedo, vec3 normal, float metallic, float ro
 
 	const float ndotl = max(dot(normal, l), 0.0);
 	const vec3 radiance = uLights.DirLight.Color.xyz * ndotl;
+
 	return (kd * albedo / PI + specular) * radiance * 5.0;
 }

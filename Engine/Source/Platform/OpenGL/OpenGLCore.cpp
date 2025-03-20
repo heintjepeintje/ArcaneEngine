@@ -708,6 +708,21 @@ PFNGLMULTIDRAWARRAYSINDIRECTCOUNTPROC ARGLMultiDrawArraysIndirectCount;
 PFNGLMULTIDRAWELEMENTSINDIRECTCOUNTPROC ARGLMultiDrawElementsIndirectCount;
 PFNGLPOLYGONOFFSETCLAMPPROC ARGLPolygonOffsetClamp;
 
+PFNGLCREATESTATESNVPROC ARGLCreateStatesNV;
+PFNGLGETCOMMANDHEADERNVPROC ARGLGetCommandHeaderNV;
+PFNGLGETSTAGEINDEXNVPROC ARGLGetStageIndexNV;
+PFNGLDRAWCOMMANDSNVPROC ARGLDrawCommandsNV;
+PFNGLDRAWCOMMANDSADDRESSNVPROC ARGLDrawCommandsAddressNV;
+PFNGLDRAWCOMMANDSSTATESNVPROC ARGLDrawCommandsStatesNV;
+PFNGLDRAWCOMMANDSSTATESADDRESSNVPROC ARGLDrawCommandsStatesAddressNV;
+PFNGLCREATECOMMANDLISTSNVPROC ARGLCreateCommandListsNV;
+PFNGLDELETECOMMANDLISTSNVPROC ARGLDeleteCommandListsNV;
+PFNGLISCOMMANDLISTNVPROC ARGLIsCommandListNV;
+PFNGLLISTDRAWCOMMANDSSTATESCLIENTNVPROC ARGLListDrawCommandsStatesClientNV;
+PFNGLCOMMANDLISTSEGMENTSNVPROC ARGLCommandListSegmentsNV;
+PFNGLCOMPILECOMMANDLISTNVPROC ARGLCompileCommandListNV;
+PFNGLCALLCOMMANDLISTNVPROC ARGLCallCommandListNV;
+
 namespace Arcane {
 
 #ifdef _WIN32
@@ -1433,6 +1448,23 @@ namespace Arcane {
 		ARGLMultiDrawArraysIndirectCount = (PFNGLMULTIDRAWARRAYSINDIRECTCOUNTPROC)LoadGLFunction("glMultiDrawArraysIndirectCount");
 		ARGLMultiDrawElementsIndirectCount = (PFNGLMULTIDRAWELEMENTSINDIRECTCOUNTPROC)LoadGLFunction("glMultiDrawElementsIndirectCount");
 		ARGLPolygonOffsetClamp = (PFNGLPOLYGONOFFSETCLAMPPROC)LoadGLFunction("glPolygonOffsetClamp");
+	}
+
+	void LoadGLExtensions() {
+		// ARGLCreateStatesNV = (PFNGLCREATESTATESNVPROC)wglGetProcAddress("glCreateStatesNV");
+		// ARGLGetCommandHeaderNV = (PFNGLGETCOMMANDHEADERNVPROC)wglGetProcAddress("glGetCommandHeaderNV");
+		// ARGLGetStageIndexNV = (PFNGLGETSTAGEINDEXNVPROC)wglGetProcAddress("glGetStageIndexNV");
+		// ARGLDrawCommandsNV = (PFNGLDRAWCOMMANDSNVPROC)wglGetProcAddress("glDrawCommandsNV");
+		// ARGLDrawCommandsAddressNV = (PFNGLDRAWCOMMANDSADDRESSNVPROC)wglGetProcAddress("glDrawCommandsAddressNV");
+		// ARGLDrawCommandsStatesNV = (PFNGLDRAWCOMMANDSSTATESNVPROC)wglGetProcAddress("glDrawCommandsStatesNV");
+		// ARGLDrawCommandsStatesAddressNV = (PFNGLDRAWCOMMANDSSTATESADDRESSNVPROC)wglGetProcAddress("glDrawCommandsStatesAddressNV");
+		// ARGLCreateCommandListsNV = (PFNGLCREATECOMMANDLISTSNVPROC)wglGetProcAddress("glCreateCommandListsNV");
+		// ARGLDeleteCommandListsNV = (PFNGLDELETECOMMANDLISTSNVPROC)wglGetProcAddress("glDeleteCommandListsNV");
+		// ARGLIsCommandListNV = (PFNGLISCOMMANDLISTNVPROC)wglGetProcAddress("glIsCommandListNV");
+		// ARGLListDrawCommandsStatesClientNV = (PFNGLLISTDRAWCOMMANDSSTATESCLIENTNVPROC)wglGetProcAddress("glListDrawCommandsStatesClientNV");
+		// ARGLCommandListSegmentsNV = (PFNGLCOMMANDLISTSEGMENTSNVPROC)wglGetProcAddress("glCommandListSegmentsNV");
+		// ARGLCompileCommandListNV = (PFNGLCOMPILECOMMANDLISTNVPROC)wglGetProcAddress("glCompileCommandListNV");
+		// ARGLCallCommandListNV = (PFNGLCALLCOMMANDLISTNVPROC)wglGetProcAddress("glCallCommandListNV");
 	}
 
 }

@@ -23,6 +23,8 @@ namespace Arcane {
 		virtual void EndRenderPass() override;
 
 		virtual void SetClearColor(float r, float g, float b, float a) override;
+		virtual void SetClearDepth(float depth) override;
+		virtual void SetClearStencil(uint16_t stencil) override;
 		virtual void Clear() override;
 
 		virtual void SetViewport(Rect2D viewport) override;
@@ -31,7 +33,11 @@ namespace Arcane {
 		virtual Rect2D GetScissor() const { return mOutputScissor; }
 
 		virtual void SetMesh(const Ref<NativeMesh> &mesh) override;
+		virtual void SetPipeline(const Ref<NativePipeline> &pipeline) override;
 		virtual void DrawIndexed(uint32_t instances, uint32_t count) override;
+
+	private:
+		void UpdatePipeline();
 
 	private:
 		Ref<OpenGLGraphicsContext> mContext;

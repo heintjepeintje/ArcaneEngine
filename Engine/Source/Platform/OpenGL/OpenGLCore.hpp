@@ -46,6 +46,7 @@ typedef void (*GLDEBUGPROC)(GLenum source, GLenum type, GLuint id, GLenum severi
 namespace Arcane {
 
 	void LoadGL();
+	void LoadGLExtensions();
 
 }
 
@@ -3545,3 +3546,66 @@ GLAPI PFNGLMULTIDRAWELEMENTSINDIRECTCOUNTPROC ARGLMultiDrawElementsIndirectCount
 typedef void (*PFNGLPOLYGONOFFSETCLAMPPROC)(GLfloat factor, GLfloat units, GLfloat clamp);
 GLAPI PFNGLPOLYGONOFFSETCLAMPPROC ARGLPolygonOffsetClamp;
 #define glPolygonOffsetClamp ARGLPolygonOffsetClamp
+
+#define GL_TERMINATE_SEQUENCE_COMMAND_NV 0x0000
+#define GL_NOP_COMMAND_NV 0x0001
+#define GL_DRAW_ELEMENTS_COMMAND_NV 0x0002
+#define GL_DRAW_ARRAYS_COMMAND_NV 0x0003
+#define GL_DRAW_ELEMENTS_STRIP_COMMAND_NV 0x0004
+#define GL_DRAW_ARRAYS_STRIP_COMMAND_NV 0x0005
+#define GL_DRAW_ELEMENTS_INSTANCED_COMMAND_NV 0x0006
+#define GL_DRAW_ARRAYS_INSTANCED_COMMAND_NV 0x0007
+#define GL_ELEMENT_ADDRESS_COMMAND_NV 0x0008
+#define GL_ATTRIBUTE_ADDRESS_COMMAND_NV 0x0009
+#define GL_UNIFORM_ADDRESS_COMMAND_NV 0x000a
+#define GL_BLEND_COLOR_COMMAND_NV 0x000b
+#define GL_STENCIL_REF_COMMAND_NV 0x000c
+#define GL_LINE_WIDTH_COMMAND_NV 0x000d
+#define GL_POLYGON_OFFSET_COMMAND_NV 0x000e
+#define GL_ALPHA_REF_COMMAND_NV 0x000f
+#define GL_VIEWPORT_COMMAND_NV 0x0010
+#define GL_SCISSOR_COMMAND_NV 0x0011
+#define GL_FRONT_FACE_COMMAND_NV 0x0012
+
+typedef void (*PFNGLCREATESTATESNVPROC)(GLsizei n, GLuint *states);
+GLAPI PFNGLCREATESTATESNVPROC ARGLCreateStatesNV;
+#define glCreateStatesNV ARGLCreateStatesNV
+typedef GLuint (*PFNGLGETCOMMANDHEADERNVPROC)(GLenum tokenID, GLuint size);
+GLAPI PFNGLGETCOMMANDHEADERNVPROC ARGLGetCommandHeaderNV;
+#define glGetCommandHeaderNV ARGLGetCommandHeaderNV
+typedef GLushort (*PFNGLGETSTAGEINDEXNVPROC)(GLenum shadertype);
+GLAPI PFNGLGETSTAGEINDEXNVPROC ARGLGetStageIndexNV;
+#define glGetStageIndexNV ARGLGetStageIndexNV
+typedef void (*PFNGLDRAWCOMMANDSNVPROC)(GLenum primitiveMode, GLuint buffer, const GLintptr* indirects, const GLsizei* sizes, GLuint count);
+GLAPI PFNGLDRAWCOMMANDSNVPROC ARGLDrawCommandsNV;
+#define glDrawCommandsNV ARGLDrawCommandsNV
+typedef void (*PFNGLDRAWCOMMANDSADDRESSNVPROC)(GLenum primitiveMode, const GLuint64* indirects, const GLsizei* sizes, GLuint count);
+GLAPI PFNGLDRAWCOMMANDSADDRESSNVPROC ARGLDrawCommandsAddressNV;
+#define glDrawCommandsAddressNV ARGLDrawCommandsAddressNV
+typedef void (*PFNGLDRAWCOMMANDSSTATESNVPROC)(GLuint buffer, const GLintptr* indirects, const GLsizei* sizes, const GLuint* states, const GLuint* fbos, GLuint count);
+GLAPI PFNGLDRAWCOMMANDSSTATESNVPROC ARGLDrawCommandsStatesNV;
+#define glDrawCommandsStatesNV ARGLDrawCommandsStatesNV
+typedef void (*PFNGLDRAWCOMMANDSSTATESADDRESSNVPROC)(const GLuint64* indirects, const GLsizei* sizes, const GLuint* states, const GLuint* fbos, GLuint count);
+GLAPI PFNGLDRAWCOMMANDSSTATESADDRESSNVPROC ARGLDrawCommandsStatesAddressNV;
+#define glDrawCommandsStatesAddressNV ARGLDrawCommandsStatesAddressNV
+typedef void (*PFNGLCREATECOMMANDLISTSNVPROC)(GLsizei n, GLuint *lists);
+GLAPI PFNGLCREATECOMMANDLISTSNVPROC ARGLCreateCommandListsNV;
+#define glCreateCommandListsNV ARGLCreateCommandListsNV
+typedef void (*PFNGLDELETECOMMANDLISTSNVPROC)(GLsizei n, const GLuint *lists);
+GLAPI PFNGLDELETECOMMANDLISTSNVPROC ARGLDeleteCommandListsNV;
+#define glDeleteCommandListsNV ARGLDeleteCommandListsNV
+typedef GLboolean (*PFNGLISCOMMANDLISTNVPROC)(GLuint list);
+GLAPI PFNGLISCOMMANDLISTNVPROC ARGLIsCommandListNV;
+#define glIsCommandListNV ARGLIsCommandListNV
+typedef void (*PFNGLLISTDRAWCOMMANDSSTATESCLIENTNVPROC)(GLuint list, GLuint segment, const void** indirects, const GLsizei* sizes, const GLuint* states, const GLuint* fbos, GLuint count);
+GLAPI PFNGLLISTDRAWCOMMANDSSTATESCLIENTNVPROC ARGLListDrawCommandsStatesClientNV;
+#define glListDrawCommandsStatesClientNV ARGLListDrawCommandsStatesClientNV
+typedef void (*PFNGLCOMMANDLISTSEGMENTSNVPROC)(GLuint list, GLuint segments);
+GLAPI PFNGLCOMMANDLISTSEGMENTSNVPROC ARGLCommandListSegmentsNV;
+#define glCommandListSegmentsNV ARGLCommandListSegmentsNV
+typedef void (*PFNGLCOMPILECOMMANDLISTNVPROC)(GLuint list);
+GLAPI PFNGLCOMPILECOMMANDLISTNVPROC ARGLCompileCommandListNV;
+#define glCompileCommandListNV ARGLCompileCommandListNV
+typedef void (*PFNGLCALLCOMMANDLISTNVPROC)(GLuint list);
+GLAPI PFNGLCALLCOMMANDLISTNVPROC ARGLCallCommandListNV;
+#define glCallCommandListNV ARGLCallCommandListNV

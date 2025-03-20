@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Arcane/Core.hpp>
-#include <Arcane/Physics/AABB.hpp>
+#include <Arcane/Math/Vector3.hpp>
 #include "Image.hpp"
 #include "Color.hpp"
 
@@ -18,7 +18,6 @@ namespace Arcane {
 		GenerateNormals,
 		GenerateUVs,
 		GenerateTangents,
-		GenerateBoundingBox,
 		FlipUVs,
 		RemoveDuplicateVertices,
 		RemoveUnusedVertices,
@@ -38,8 +37,6 @@ namespace Arcane {
 		std::vector<Vector3> Tangents;
 		std::vector<Vector3> Bitangents;
 		std::vector<uint32_t> Indices;
-
-		AABB BoundingBox;
 	};
 
 	struct ImageData {

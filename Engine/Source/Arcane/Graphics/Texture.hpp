@@ -17,10 +17,12 @@ namespace Arcane {
 		~Texture() { }
 
 		inline void SetImage(uint32_t index, const Image &image) { GetNativeTexture()->SetImage(index, image); }
+		inline void GenerateMipmaps() { GetNativeTexture()->GenerateMipmaps(); }
+		inline void Resize(uint32_t width, uint32_t height, uint32_t depth) { GetNativeTexture()->Resize(width, height, depth); }
 
 		inline Ref<NativeTexture> GetNativeTexture() const {
 			AR_ASSERT(mNativeTexture, "Native texture is invalid");
-			return mNativeTexture; 
+			return mNativeTexture;
 		}
 
 	protected:

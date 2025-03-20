@@ -18,8 +18,6 @@
 #include <Arcane/Math/Vector4.hpp>
 #include <Arcane/Math/Matrix4.hpp>
 
-#include <Arcane/Physics/AABB.hpp>
-
 #include <Arcane/Util/StringUtils.hpp>
 #include <Arcane/Util/ByteUtil.hpp>
 

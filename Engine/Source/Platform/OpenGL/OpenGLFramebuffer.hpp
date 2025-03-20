@@ -19,6 +19,7 @@ namespace Arcane {
 		virtual void Resize(uint32_t width, uint32_t height) override;
 
 		virtual Ref<NativeTexture> GetColorBuffer(uint32_t index) override;
+		inline virtual uint32_t GetColorBufferCount() const override { return mColorAttachments.size(); }
 		virtual Ref<NativeTexture> GetDepthBuffer() override;
 		virtual Ref<NativeTexture> GetStencilBuffer() override;
 

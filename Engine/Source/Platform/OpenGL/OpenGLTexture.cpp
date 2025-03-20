@@ -67,8 +67,6 @@ namespace Arcane {
 			case ImageFormat::D16: return GL_DEPTH_COMPONENT16;
 			case ImageFormat::D24: return GL_DEPTH_COMPONENT24;
 			case ImageFormat::D32: return GL_DEPTH_COMPONENT32;
-			case ImageFormat::S1: return GL_STENCIL_INDEX1;
-			case ImageFormat::S4: return GL_STENCIL_INDEX4;
 			case ImageFormat::S8: return GL_STENCIL_INDEX8;
 			case ImageFormat::S16: return GL_STENCIL_INDEX16;
 			case ImageFormat::D24S8: return GL_DEPTH24_STENCIL8;
@@ -128,8 +126,6 @@ namespace Arcane {
 			case ImageFormat::D32:
 			case ImageFormat::D32F: return GL_DEPTH_COMPONENT;
 
-			case ImageFormat::S1:
-			case ImageFormat::S4:
 			case ImageFormat::S8:
 			case ImageFormat::S16: return GL_STENCIL_INDEX;
 			
@@ -140,8 +136,122 @@ namespace Arcane {
 		}
 	}
 
-	void AllocTextureStorage(GLuint texture, ImageType type, uint32_t levels, uint32_t samples, ImageFormat format, uint32_t width, uint32_t height, uint32_t depth) {
-		GLenum openglFormat = ToOpenGLInternalImageFormat(format);
+	GLenum GetOpenGLTexelType(ImageFormat format) {
+		switch (format) {
+			case ImageFormat::R8:
+			case ImageFormat::R8U:
+			case ImageFormat::RG8:
+			case ImageFormat::RG8U:
+			case ImageFormat::RGB8:
+			case ImageFormat::RGB8U:
+			case ImageFormat::RGBA8:
+			case ImageFormat::RGBA8U: return GL_UNSIGNED_BYTE;
+
+			case ImageFormat::R8I:
+			case ImageFormat::RG8I:
+			case ImageFormat::RGB8I:
+			case ImageFormat::RGBA8I: return GL_BYTE;
+
+			case ImageFormat::R16:
+			case ImageFormat::R16U:
+			case ImageFormat::RG16:
+			case ImageFormat::RG16U:
+			case ImageFormat::RGB16:
+			case ImageFormat::RGB16U:
+			case ImageFormat::RGBA16:
+			case ImageFormat::RGBA16U: return GL_UNSIGNED_SHORT;
+
+			case ImageFormat::R16I:
+			case ImageFormat::RG16I:
+			case ImageFormat::RGB16I:
+			case ImageFormat::RGBA16I: return GL_SHORT;
+
+			case ImageFormat::R16F:
+			case ImageFormat::RG16F:
+			case ImageFormat::RGB16F:
+			case ImageFormat::RGBA16F: return GL_FLOAT;
+
+			case ImageFormat::R32U:
+			case ImageFormat::RG32U:
+			case ImageFormat::RGB32U:
+			case ImageFormat::RGBA32U: return GL_UNSIGNED_INT;
+
+			case ImageFormat::R32I:
+			case ImageFormat::RG32I:
+			case ImageFormat::RGB32I:
+			case ImageFormat::RGBA32I: return GL_INT;
+
+			case ImageFormat::R32F:
+			case ImageFormat::RG32F:
+			case ImageFormat::RGB32F:
+			case ImageFormat::RGBA32F: return GL_FLOAT;
+
+			case ImageFormat::D16: return GL_UNSIGNED_SHORT;
+			case ImageFormat::D24: return GL_UNSIGNED_INT;
+			case ImageFormat::D24S8: return GL_UNSIGNED_INT_24_8;
+			case ImageFormat::D32: return GL_UNSIGNED_INT;
+			case ImageFormat::D32F: return GL_FLOAT;
+			case ImageFormat::S8: return GL_UNSIGNED_BYTE;
+			case ImageFormat::S16: return GL_UNSIGNED_SHORT;
+			default: return GL_NONE;
+		}
+	}
+
+	size_t GetFormatTexelSize(ImageFormat format) {
+		switch (format) {
+			case ImageFormat::R8: return sizeof(uint8_t);
+			case ImageFormat::R8I: return sizeof(uint8_t);
+			case ImageFormat::R8U: return sizeof(uint8_t); 
+			case ImageFormat::R16: return sizeof(uint16_t); 
+			case ImageFormat::R16I: return sizeof(uint16_t); 
+			case ImageFormat::R16U: return sizeof(uint16_t); 
+			case ImageFormat::R16F: return sizeof(uint16_t);
+			case ImageFormat::R32I: return sizeof(uint32_t);
+			case ImageFormat::R32U: return sizeof(uint32_t);
+			case ImageFormat::R32F: return sizeof(uint32_t);
+			case ImageFormat::RG8: return 2 * sizeof(uint8_t);
+			case ImageFormat::RG8I: return 2 * sizeof(uint8_t);
+			case ImageFormat::RG8U: return 2 * sizeof(uint8_t); 
+			case ImageFormat::RG16: return 2 * sizeof(uint16_t);
+			case ImageFormat::RG16I: return 2 * sizeof(uint16_t);
+			case ImageFormat::RG16U: return 2 * sizeof(uint16_t);
+			case ImageFormat::RG16F: return 2 * sizeof(uint16_t);
+			case ImageFormat::RG32I: return 2 * sizeof(uint32_t);
+			case ImageFormat::RG32U: return 2 * sizeof(uint32_t);
+			case ImageFormat::RG32F: return 2 * sizeof(uint32_t);
+			case ImageFormat::RGB8: return 3 * sizeof(uint8_t);
+			case ImageFormat::RGB8I: return 3 * sizeof(uint8_t);
+			case ImageFormat::RGB8U: return 3 * sizeof(uint8_t);
+			case ImageFormat::RGB16: return 3 * sizeof(uint16_t);
+			case ImageFormat::RGB16I: return 3 * sizeof(uint16_t);
+			case ImageFormat::RGB16U: return 3 * sizeof(uint16_t);
+			case ImageFormat::RGB16F: return 3 * sizeof(uint16_t);
+			case ImageFormat::RGB32I: return 3 * sizeof(uint32_t);
+			case ImageFormat::RGB32U: return 3 * sizeof(uint32_t);
+			case ImageFormat::RGB32F: return 3 * sizeof(uint32_t);
+			case ImageFormat::RGBA8: return 4 * sizeof(uint8_t);
+			case ImageFormat::RGBA8I: return 4 * sizeof(uint8_t);
+			case ImageFormat::RGBA8U: return 4 * sizeof(uint8_t);
+			case ImageFormat::RGBA16: return 4 * sizeof(uint16_t);
+			case ImageFormat::RGBA16I: return 4 * sizeof(uint16_t);
+			case ImageFormat::RGBA16U: return 4 * sizeof(uint16_t);
+			case ImageFormat::RGBA16F: return 4 * sizeof(uint16_t);
+			case ImageFormat::RGBA32I: return 4 * sizeof(uint32_t);
+			case ImageFormat::RGBA32U: return 4 * sizeof(uint32_t); 
+			case ImageFormat::RGBA32F: return 4 * sizeof(uint32_t);
+			case ImageFormat::D16: return sizeof(uint16_t);
+			case ImageFormat::D24: return 3;
+			case ImageFormat::D32: return sizeof(uint32_t);
+			case ImageFormat::S8: return sizeof(uint8_t);
+			case ImageFormat::S16: return sizeof(uint16_t);
+			case ImageFormat::D24S8: return sizeof(uint32_t);
+			case ImageFormat::D32FS8: return sizeof(uint32_t);
+			default: return 0;
+		}
+	}
+
+	void AllocTextureStorage(GLuint texture, ImageType type, uint32_t levels, uint32_t samples, ImageFormat format, uint32_t width, uint32_t height, uint32_t depth, bool isMutable) {
+		const GLenum openglFormat = ToOpenGLInternalImageFormat(format);
 		
 		if (samples != 1) {
 			switch (type) {
@@ -187,7 +297,7 @@ namespace Arcane {
 		mLevels = info.Levels;
 		mSamples = info.Samples;
 
-		AllocTextureStorage(mTexture, mType, mLevels, mSamples, mFormat, mWidth, mHeight, mDepth);
+		AllocTextureStorage(mTexture, mType, mLevels, mSamples, mFormat, mWidth, mHeight, mDepth, true);
 	}
 
 	OpenGLTexture::~OpenGLTexture() {
@@ -195,31 +305,53 @@ namespace Arcane {
 	}
 
 	void OpenGLTexture::SetImage(uint32_t level, const Image &image) {
+		const GLenum texelType = GetOpenGLTexelType(image.Format);
+
 		switch (mType) {
 			case ImageType::Texture1D:
-				glTextureSubImage1D(mTexture, level, 0, image.Width, ToOpenGLImageFormat(image.Format), GL_UNSIGNED_BYTE, image.Data);
+				glTextureSubImage1D(mTexture, level, 0, image.Width, ToOpenGLImageFormat(image.Format), texelType, image.Data);
 				break;
 			case ImageType::Texture2D:
-				glTextureSubImage2D(mTexture, level, 0, 0, image.Width, image.Height, ToOpenGLImageFormat(image.Format), GL_UNSIGNED_BYTE, image.Data);
+				glTextureSubImage2D(mTexture, level, 0, 0, image.Width, image.Height, ToOpenGLImageFormat(image.Format), texelType, image.Data);
 				break;
 			case ImageType::Texture3D:
-				glTextureSubImage3D(mTexture, level, 0, 0, 0, image.Width, image.Height, image.Depth, ToOpenGLImageFormat(image.Format), GL_UNSIGNED_BYTE, image.Data);
+				glTextureSubImage3D(mTexture, level, 0, 0, 0, image.Width, image.Height, image.Depth, ToOpenGLImageFormat(image.Format), texelType, image.Data);
 				break;
 		}
 	}
 
-	void OpenGLTexture::Resize(uint32_t width, uint32_t height) {
+	void OpenGLTexture::Resize(uint32_t width, uint32_t height, uint32_t depth) {
+		if (width == mWidth && height == mHeight && depth == mDepth) return;
+		
 		mWidth = width;
 		mHeight = height;
+		mDepth = depth;
 
 		glDeleteTextures(1, &mTexture);
 
 		glCreateTextures(ToOpenGLImageType(mType, mSamples), 1, &mTexture);
 
-		AllocTextureStorage(mTexture, mType, mLevels, mSamples, mFormat, mWidth, mHeight, mDepth);
+		AllocTextureStorage(mTexture, mType, mLevels, mSamples, mFormat, mWidth, mHeight, mDepth, true);
 	}
 
-	GLint ToOpenGLSamplerFilter(SamplerFilter filter) {
+	GLenum ToOpenGLSamplerFilterWithMipmapFilter(SamplerFilter filter, SamplerFilter mipmapFilter) {
+		if (filter == SamplerFilter::Nearest) {
+			switch (mipmapFilter) {
+				case SamplerFilter::Nearest: return GL_NEAREST_MIPMAP_NEAREST;
+				case SamplerFilter::Linear: return GL_NEAREST_MIPMAP_LINEAR;
+				default: return GL_NONE;
+			}
+		} else if (filter == SamplerFilter::Linear) {
+			switch (mipmapFilter) {
+				case SamplerFilter::Nearest: return GL_LINEAR_MIPMAP_NEAREST;
+				case SamplerFilter::Linear: return GL_LINEAR_MIPMAP_LINEAR;
+				default: return GL_NONE;
+			}
+		}
+		return GL_NONE;
+	}
+
+	GLenum ToOpenGLSamplerFilter(SamplerFilter filter) {
 		switch (filter) {
 			case SamplerFilter::Nearest: return GL_NEAREST;
 			case SamplerFilter::Linear: return GL_LINEAR;
@@ -227,7 +359,7 @@ namespace Arcane {
 		}
 	}
 
-	GLint ToOpenGLSamplerWrap(SamplerWrap wrap) {
+	GLenum ToOpenGLSamplerWrap(SamplerWrap wrap) {
 		switch (wrap) {
 			case SamplerWrap::Repeat: return GL_REPEAT;
 			case SamplerWrap::MirroredRepeat: return GL_MIRRORED_REPEAT;
@@ -239,7 +371,7 @@ namespace Arcane {
 
 	OpenGLSampler::OpenGLSampler(const Ref<OpenGLGraphicsContext> &context, const SamplerInfo &info) : mContext(context) {
 		glCreateSamplers(1, &mSampler);
-		glSamplerParameteri(mSampler, GL_TEXTURE_MIN_FILTER, ToOpenGLSamplerFilter(info.MinFilter));
+		glSamplerParameteri(mSampler, GL_TEXTURE_MIN_FILTER, ToOpenGLSamplerFilterWithMipmapFilter(info.MinFilter, info.MipmapFilter));
 		glSamplerParameteri(mSampler, GL_TEXTURE_MAG_FILTER, ToOpenGLSamplerFilter(info.MagFilter));
 		glSamplerParameteri(mSampler, GL_TEXTURE_WRAP_S, ToOpenGLSamplerWrap(info.WrapS));
 		glSamplerParameteri(mSampler, GL_TEXTURE_WRAP_T, ToOpenGLSamplerWrap(info.WrapT));
@@ -248,6 +380,10 @@ namespace Arcane {
 
 	OpenGLSampler::~OpenGLSampler() {
 		glDeleteSamplers(1, &mSampler);
+	}
+
+	void OpenGLTexture::GenerateMipmaps() {
+		glGenerateTextureMipmap(mTexture);
 	}
 
 }

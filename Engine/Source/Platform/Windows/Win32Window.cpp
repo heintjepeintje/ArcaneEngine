@@ -63,6 +63,10 @@ namespace Arcane {
 		ShowWindow(mHandle, maximized ? SW_MAXIMIZE : SW_NORMAL);
 	}
 	
+	void Win32Window::SetTitle(const char *title) {
+		SetWindowTextA(mHandle, title);
+	}
+
 	void Win32Window::Update() {
 		MSG message = { };
 		while (PeekMessageA(&message, mHandle, 0, 0, PM_REMOVE)) {

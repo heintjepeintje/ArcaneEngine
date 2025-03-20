@@ -15,6 +15,7 @@ namespace Arcane {
 
 		virtual void SetVisible(bool visible) = 0;
 		virtual void SetMaximized(bool maximized) = 0;
+		virtual void SetTitle(const char *title) = 0;
 
 		virtual void Update() = 0;
 

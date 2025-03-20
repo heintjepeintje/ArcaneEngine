@@ -15,6 +15,7 @@ namespace Arcane {
 
 		inline void SetVisible(bool visible) { mNativeWindow->SetVisible(visible); }
 		inline void SetMaximized(bool maximized) { mNativeWindow->SetMaximized(maximized); }
+		inline void SetTitle(const char *title) { mNativeWindow->SetTitle(title); }
 
 		inline void Update() { mNativeWindow->Update(); }
 		inline void Destroy() { mNativeWindow->Destroy(); }

@@ -29,6 +29,7 @@ namespace Arcane {
 		image.Data = data.Data;
 
 		t.SetImage(0, image);
+		t.GenerateMipmaps();
 
 		return t;
 	}

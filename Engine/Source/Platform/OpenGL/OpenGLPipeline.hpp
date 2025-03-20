@@ -35,6 +35,9 @@ namespace Arcane {
 		inline virtual PrimitiveTopology GetTopology() const override { return mTopology; }
 		inline virtual InputLayout GetLayout() const override { return mLayout; }
 		inline virtual uint32_t GetSampleCount() const override { return mSampleCount; }
+		inline virtual uint8_t GetOutputMask() const override { return mOutputMask; }
+		inline virtual float GetLineWidth() const override { return mLineWidth; }
+		inline virtual float GetPointSize() const override { return mPointSize; }
 
 		virtual void SetUniformBuffer(uint32_t binding, const Ref<NativeBuffer> &uniformBuffer) override;
 		virtual void SetCombinedImageSampler(uint32_t binding, const Ref<NativeTexture> &texture, const Ref<NativeSampler> &sampler) override;
@@ -56,6 +59,9 @@ namespace Arcane {
 
 		Descriptor *mDescriptors;
 		uint32_t mDescriptorCount;
+		uint8_t mOutputMask;
+		float mLineWidth;
+		float mPointSize;
 
 		uint32_t mSampleCount;
 

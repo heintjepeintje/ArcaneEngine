@@ -11,6 +11,7 @@ namespace Arcane {
 		mFillMode = info.FillMode;
 		mTopology = info.Topology;
 		mLayout = info.Layout;
+		mOutputMask = info.OutputMask;
 
 		mViewport = info.Viewport;
 		mScissor = info.Scissor;
@@ -22,6 +23,9 @@ namespace Arcane {
 		}
 
 		mSampleCount = info.SampleCount;
+
+		mLineWidth = info.LineWidth;
+		mPointSize = info.PointSize;
 
 		mProgram = glCreateProgram();
 		

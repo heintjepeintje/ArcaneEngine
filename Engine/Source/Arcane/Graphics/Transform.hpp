@@ -13,10 +13,10 @@ namespace Arcane {
 			Matrix4 modelMatrix = Matrix4::Identity();
 			modelMatrix = Matrix4::Translate(modelMatrix, Position);
 
-			// We invert the rotation here because we transpose the matrix later
-			modelMatrix = Matrix4::RotateX(modelMatrix, -Rotation.X);
-			modelMatrix = Matrix4::RotateY(modelMatrix, -Rotation.Y);
-			modelMatrix = Matrix4::RotateZ(modelMatrix, -Rotation.Z);
+			// We invert the negate here because we transpose the matrix later
+			modelMatrix = Matrix4::RotateX(modelMatrix, -ToRadians(Rotation.X));
+			modelMatrix = Matrix4::RotateY(modelMatrix, -ToRadians(Rotation.Y));
+			modelMatrix = Matrix4::RotateZ(modelMatrix, -ToRadians(Rotation.Z));
 			modelMatrix = Matrix4::Scale(modelMatrix, Scale);
 			return modelMatrix;
 		}

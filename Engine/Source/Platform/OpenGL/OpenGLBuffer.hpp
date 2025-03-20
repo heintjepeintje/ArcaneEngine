@@ -7,7 +7,7 @@ namespace Arcane {
 
 	class OpenGLBuffer : public NativeBuffer {
 	public:
-		OpenGLBuffer(size_t size);
+		OpenGLBuffer(size_t size, uint32_t flags);
 		~OpenGLBuffer();
 
 		virtual void *Map(MapMode mode) override;

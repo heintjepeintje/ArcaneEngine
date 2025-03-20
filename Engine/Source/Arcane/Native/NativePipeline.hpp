@@ -49,9 +49,26 @@ namespace Arcane {
 		DescriptorType Type;
 	};
 
+	namespace OutputComponent {
+		enum _OutputComponent {
+			Red = AR_BIT(0),
+			Green = AR_BIT(1),
+			Blue = AR_BIT(2),
+			Alpha = AR_BIT(3),
+			Color = 0x0f,
+			Depth = AR_BIT(4),
+			Stencil = AR_BIT(5),
+			All = 0x3f
+		};
+	}
+
 	struct PipelineInfo {
+		static PipelineInfo CreateWithDefaultInfo();
+
 		PipelineInfo() { }
 		~PipelineInfo() { }
+
+		uint8_t OutputMask;
 
 		CullMode CullMode;
 		WindingOrder WindingOrder;
@@ -73,6 +90,9 @@ namespace Arcane {
 		uint32_t DescriptorCount;
 
 		uint32_t SampleCount;
+
+		float LineWidth;
+		float PointSize;
 	};
 
 	class NativePipeline {
@@ -92,6 +112,9 @@ namespace Arcane {
 		virtual Rect2D GetScissor() const = 0;
 
 		virtual uint32_t GetSampleCount() const = 0;
+		virtual uint8_t GetOutputMask() const = 0;
+		virtual float GetLineWidth() const = 0;
+		virtual float GetPointSize() const = 0;
 
 		virtual void SetUniformBuffer(uint32_t binding, const Ref<NativeBuffer> &uniformBuffer) = 0;
 		virtual void SetCombinedImageSampler(uint32_t binding, const Ref<NativeTexture> &texture, const Ref<NativeSampler> &sampler) = 0;

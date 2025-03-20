@@ -57,25 +57,28 @@ namespace Arcane {
 
 	void OpenGLFramebuffer::Resize(uint32_t width, uint32_t height) {
 		if (width == mWidth && height == mHeight) return;
+		if (width == 0 || height == 0) return;
+		
 		mWidth = width;
 		mHeight = height;
 		
-		for (Ref<OpenGLTexture> &texture : mColorAttachments) {
-			texture->Resize(width, height);
-			glNamedFramebufferTexture(mFramebuffer, GL_COLOR_ATTACHMENT0, texture->GetOpenGLID(), 0);
+		for (uint32_t i = 0; i < mColorAttachments.size(); i++) {
+			mColorAttachments[i]->Resize(width, height, 1);
+			glNamedFramebufferTexture(mFramebuffer, GL_COLOR_ATTACHMENT0 + i, mColorAttachments[i]->GetOpenGLID(), 0);
+			printf("Color Attachment: %u\n", i);
 		}
 
 		if (mDepthAttachment == mStencilAttachment && (mDepthAttachment || mStencilAttachment)) {
-			mDepthAttachment->Resize(width, height);
+			mDepthAttachment->Resize(width, height, 1);
 			glNamedFramebufferTexture(mFramebuffer, GL_DEPTH_STENCIL_ATTACHMENT, mDepthAttachment->GetOpenGLID(), 0);
 		} else {
 			if (mDepthAttachment) {
-				mDepthAttachment->Resize(width, height);
+				mDepthAttachment->Resize(width, height, 1);
 				glNamedFramebufferTexture(mFramebuffer, GL_DEPTH_ATTACHMENT, mDepthAttachment->GetOpenGLID(), 0);
 			}
 
 			if (mStencilAttachment) {
-				mStencilAttachment->Resize(width, height);
+				mStencilAttachment->Resize(width, height, 1);
 				glNamedFramebufferTexture(mFramebuffer, GL_STENCIL_ATTACHMENT, mStencilAttachment->GetOpenGLID(), 0);
 			}
 		}

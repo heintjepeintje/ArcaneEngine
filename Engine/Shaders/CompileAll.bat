@@ -1,5 +1,13 @@
 @ECHO OFF
 
-PUSHD PBR
+PUSHD Geometry
+CALL Compile.bat
+POPD
+
+PUSHD Light
+CALL Compile.bat
+POPD
+
+PUSHD PostProcess
 CALL Compile.bat
 POPD

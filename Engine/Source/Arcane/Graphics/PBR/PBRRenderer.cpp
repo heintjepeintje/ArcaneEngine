@@ -6,10 +6,17 @@
 #include <Arcane/Graphics/Pipeline.hpp>
 #include <Arcane/Util/FileUtil.hpp>
 
-#define AR_PBR_VERTEX_SHADER_PATH "Engine/Shaders/PBR/Binaries/Output/PBRShader.vert.spv"
-#define AR_PBR_FRAGMENT_SHADER_PATH "Engine/Shaders/PBR/Binaries/Output/PBRShader.frag.spv"
+#define AR_GEOMETRY_VERTEX_SHADER_PATH "Engine/Shaders/Geometry/Binaries/Output/GeometryShader.vert.spv"
+#define AR_GEOMETRY_FRAGMENT_SHADER_PATH "Engine/Shaders/Geometry/Binaries/Output/GeometryShader.frag.spv"
+#define AR_LIGHT_VERTEX_SHADER_PATH "Engine/Shaders/Light/Binaries/Output/LightShader.vert.spv"
+#define AR_LIGHT_FRAGMENT_SHADER_PATH "Engine/Shaders/Light/Binaries/Output/LightShader.frag.spv"
+#define AR_POST_PROCESS_VERTEX_SHADER_PATH "Engine/Shaders/PostProcess/Binaries/Output/PostProcess.vert.spv"
+#define AR_POST_PROCESS_FRAGMENT_SHADER_PATH "Engine/Shaders/PostProcess/Binaries/Output/PostProcess.frag.spv"
 
-#define AR_PBR_SAMPLE_COUNT 16
+#define AR_PBR_SAMPLE_COUNT 1
+
+#define AR_PBR_SHADOW_MAP_WIDTH 1024
+#define AR_PBR_SHADOW_MAP_HEIGHT 1024
 
 namespace Arcane {
 
@@ -40,6 +47,11 @@ namespace Arcane {
 		} DirectionalLight;
 	} sLightData;
 
+	static struct {
+		float Gamma;
+		float Exposure;
+	} sPostProcessSettingsData;
+
 	static Camera3D sCamera;
 
 	static GraphicsContext sContext;
@@ -48,13 +60,24 @@ namespace Arcane {
 	static Buffer sObjectBuffer;
 	static Buffer sLightBuffer;
 	static RendererAPI sRendererAPI;
-	static RenderPass sRenderPass;
-	static Framebuffer sFramebuffer;
-	static Pipeline sPBRPipeline;
 
-	static Sampler sTextureSampler;
+	static RenderPass sGeometryRenderPass;
+	static Framebuffer sGeometryFramebuffer;
+	static Pipeline sGeometryPipeline;
 
-	struct RenderSubmit {
+	static RenderPass sLightRenderPass;
+	static Framebuffer sLightFramebuffer;
+	static Pipeline sLightPipeline;
+	
+	static RenderPass sPostProcessRenderPass;
+	static Framebuffer sPostProcessFramebuffer;
+	static Pipeline sPostProcessPipeline;
+	static Buffer sPostProcessSettingsBuffer;
+	
+	static Mesh sQuadMesh;
+	static Sampler sDefaultSampler;
+
+	struct RenderSubmission {
 		Matrix4 Model;
 		Vector3 Position;
 		Mesh Mesh;
@@ -65,30 +88,76 @@ namespace Arcane {
 		Texture AmbientOcclusionMap;
 	};
 
-	static std::vector<RenderSubmit> sRenderSubmissions;
+	static std::vector<RenderSubmission> sRenderSubmissions;
 
 	void PBRRenderer::Init(const GraphicsContext &context) {
 		sContext = context;
 
 		sRendererAPI = RendererAPI::Create(sContext);
+		sCameraBuffer = Buffer::Create(sContext, sizeof(sCameraData));
+		std::memset(&sCameraData, 0, sizeof(sCameraData));
+		sObjectBuffer = Buffer::Create(sContext, sizeof(sObjectData));
+		std::memset(&sObjectData, 0, sizeof(sObjectData));
+		sLightBuffer = Buffer::Create(sContext, sizeof(sLightData));
+		std::memset(&sLightData, 0, sizeof(sLightData));
 
-		const Attachment attachments[] = {
-			{ AttachmentType::Color, ImageFormat::RGBA8, AR_PBR_SAMPLE_COUNT },
+		sPostProcessSettingsBuffer = Buffer::Create(sContext, sizeof(sPostProcessSettingsData));
+
+		InputLayout quadLayout = {
+			{ InputAttribute::Position, 1, InputElementType::Vector2 },
+			{ InputAttribute::UV, 1, InputElementType::Vector2 },
+		};
+
+		Buffer quadVertexBuffer = Buffer::Create(sContext, 16 * sizeof(float));
+		Buffer quadIndexBuffer = Buffer::Create(sContext, 6 * sizeof(uint32_t));
+
+		float quadVertices[] = {
+			 1.0f,  1.0f, 1.0f, 1.0f,
+			-1.0f,  1.0f, 0.0f, 1.0f,
+			-1.0f, -1.0f, 0.0f, 0.0f,
+			 1.0f, -1.0f, 1.0f, 0.0f 
+		};
+		quadVertexBuffer.SetData((const void*)quadVertices);
+
+		uint32_t quadIndices[] = {
+			0, 1, 2,
+			0, 2, 3
+		};
+		quadIndexBuffer.SetData((const void*)quadIndices);
+
+		sQuadMesh = Mesh::Create(sContext);
+		sQuadMesh.SetVertexBuffer(0, quadLayout, quadVertexBuffer);
+		sQuadMesh.SetIndexBuffer(quadIndexBuffer);
+
+		SamplerInfo samplerInfo{};
+		samplerInfo.MinFilter = SamplerFilter::Linear; 
+		samplerInfo.MagFilter = SamplerFilter::Linear;
+		samplerInfo.MipmapFilter = SamplerFilter::Linear;
+		samplerInfo.WrapS = SamplerWrap::Repeat;
+		samplerInfo.WrapR = SamplerWrap::Repeat;
+		samplerInfo.WrapT = SamplerWrap::Repeat;
+
+		sDefaultSampler = Sampler::Create(sContext, samplerInfo);
+
+		const Attachment geometryAttachments[] = {
+			{ AttachmentType::Color, ImageFormat::RGB32F, AR_PBR_SAMPLE_COUNT },
+			{ AttachmentType::Color, ImageFormat::RGB32F, AR_PBR_SAMPLE_COUNT },
+			{ AttachmentType::Color, ImageFormat::RGB32F, AR_PBR_SAMPLE_COUNT },
+			{ AttachmentType::Color, ImageFormat::RGB32F, AR_PBR_SAMPLE_COUNT },
 			{ AttachmentType::DepthStencil, ImageFormat::D24S8, AR_PBR_SAMPLE_COUNT },
 		};
 
-		FramebufferInfo framebufferInfo{};
-		framebufferInfo.Width = 1920;
-		framebufferInfo.Height = 1080;
-		framebufferInfo.Attachments = attachments;
-		framebufferInfo.AttachmentCount = 2;
+		FramebufferInfo geometryFramebufferInfo{};
+		geometryFramebufferInfo.Width = 1920;
+		geometryFramebufferInfo.Height = 1080;
+		geometryFramebufferInfo.Attachments = geometryAttachments;
+		geometryFramebufferInfo.AttachmentCount = 5;
 
-		sFramebuffer = Framebuffer::Create(sContext, framebufferInfo);
+		sGeometryFramebuffer = Framebuffer::Create(sContext, geometryFramebufferInfo);
 
-		Descriptor descriptors[] = {
+		Descriptor geometryDescriptors[] = {
 			{ 0, DescriptorType::UniformBuffer },
 			{ 1, DescriptorType::UniformBuffer },
-			{ 2, DescriptorType::UniformBuffer },
 			
 			{ 0, DescriptorType::CombinedImageSampler },
 			{ 1, DescriptorType::CombinedImageSampler },
@@ -96,61 +165,130 @@ namespace Arcane {
 			{ 3, DescriptorType::CombinedImageSampler },
 			{ 4, DescriptorType::CombinedImageSampler }
 		};
-
-		PipelineInfo pipelineInfo{};
-		pipelineInfo.CullMode = CullMode::Back;
-		pipelineInfo.WindingOrder = WindingOrder::CounterClockwise;
-		pipelineInfo.Topology = PrimitiveTopology::TriangleList;
-		pipelineInfo.Descriptors = descriptors;
-		pipelineInfo.DescriptorCount = 3;
-		pipelineInfo.FillMode = FillMode::Solid;
-		pipelineInfo.Layout = {
+		
+		InputLayout geometryInputLayout = {
 			{ InputAttribute::Position, 1, InputElementType::Vector3 },
 			{ InputAttribute::Normal, 1, InputElementType::Vector3 },
 			{ InputAttribute::UV, 1, InputElementType::Vector2 },
 			{ InputAttribute::Tangent, 1, InputElementType::Vector3 },
 			{ InputAttribute::Bitangent, 1, InputElementType::Vector3 },
 		};
-
+		
 		size_t vertexBinarySize = 0, fragmentBinarySize = 0;
-		uint8_t *vertexShaderBinary = ReadFileBinary(AR_PBR_VERTEX_SHADER_PATH, &vertexBinarySize);
-		uint8_t *fragmentShaderBinary = ReadFileBinary(AR_PBR_FRAGMENT_SHADER_PATH, &fragmentBinarySize);
+		uint8_t *vertexShaderBinary = ReadFileBinary(AR_GEOMETRY_VERTEX_SHADER_PATH, &vertexBinarySize);
+		uint8_t *fragmentShaderBinary = ReadFileBinary(AR_GEOMETRY_FRAGMENT_SHADER_PATH, &fragmentBinarySize);
+		
+		PipelineInfo geometryPipelineInfo = PipelineInfo::CreateWithDefaultInfo();
+		geometryPipelineInfo.Descriptors = geometryDescriptors;
+		geometryPipelineInfo.DescriptorCount = 7;
+		geometryPipelineInfo.Layout = geometryInputLayout;
+		geometryPipelineInfo.VertexShaderBinary = vertexShaderBinary;
+		geometryPipelineInfo.VertexShaderSize = vertexBinarySize;
+		geometryPipelineInfo.FragmentShaderBinary = fragmentShaderBinary;
+		geometryPipelineInfo.FragmentShaderSize = fragmentBinarySize;
+		geometryPipelineInfo.SampleCount = AR_PBR_SAMPLE_COUNT;
 
-		pipelineInfo.VertexShaderBinary = vertexShaderBinary;
-		pipelineInfo.VertexShaderSize = vertexBinarySize;
+		sGeometryPipeline = Pipeline::Create(sContext, geometryPipelineInfo);
+		sGeometryPipeline.SetUniformBuffer(0, sCameraBuffer);
+		sGeometryPipeline.SetUniformBuffer(1, sObjectBuffer);
 
-		pipelineInfo.FragmentShaderBinary = fragmentShaderBinary;
-		pipelineInfo.FragmentShaderSize = fragmentBinarySize;
+		free(vertexShaderBinary);
+		free(fragmentShaderBinary);
 
-		pipelineInfo.SampleCount = AR_PBR_SAMPLE_COUNT;
-		pipelineInfo.Scissor = { Vector2::Zero(), Vector2::MaxValue() };
-		pipelineInfo.Viewport = { Vector2::Zero(), Vector2::MaxValue() };
+		sGeometryRenderPass = RenderPass::Create(sContext, sGeometryPipeline, geometryAttachments, 5);
 
-		sPBRPipeline = Pipeline::Create(sContext, pipelineInfo);
+		const Attachment lightAttachments[] = {
+			{ AttachmentType::Color, ImageFormat::RGB8, AR_PBR_SAMPLE_COUNT },
+			{ AttachmentType::DepthStencil, ImageFormat::D24S8, AR_PBR_SAMPLE_COUNT }
+		};
 
-		sRenderPass = RenderPass::Create(sContext, sPBRPipeline, attachments, 2);
+		FramebufferInfo lightFramebufferInfo{};
+		lightFramebufferInfo.Width = 1920;
+		lightFramebufferInfo.Height = 1080;
+		lightFramebufferInfo.Attachments = lightAttachments;
+		lightFramebufferInfo.AttachmentCount = 2;
 
-		sCameraBuffer = Buffer::Create(sContext, sizeof(sCameraData));
-		sPBRPipeline.SetUniformBuffer(0, sCameraBuffer);
+		sLightFramebuffer = Framebuffer::Create(sContext, lightFramebufferInfo);
 
-		sObjectBuffer = Buffer::Create(sContext, sizeof(sObjectData));
-		sPBRPipeline.SetUniformBuffer(1, sObjectBuffer);
+		Descriptor lightDescriptors[] = {
+			{ 0, DescriptorType::UniformBuffer },
+			{ 1, DescriptorType::UniformBuffer },
 
-		sLightBuffer = Buffer::Create(sContext, sizeof(sLightData));
-		sPBRPipeline.SetUniformBuffer(2, sLightBuffer);
+			{ 0, DescriptorType::CombinedImageSampler },
+			{ 1, DescriptorType::CombinedImageSampler },
+			{ 2, DescriptorType::CombinedImageSampler },
+			{ 3, DescriptorType::CombinedImageSampler }
+		};
 
-		SamplerInfo samplerInfo{};
-		samplerInfo.MinFilter = SamplerFilter::Linear; 
-		samplerInfo.MagFilter = SamplerFilter::Linear;
-		samplerInfo.WrapS = SamplerWrap::Repeat;
-		samplerInfo.WrapR = SamplerWrap::Repeat;
-		samplerInfo.WrapT = SamplerWrap::Repeat;
+		InputLayout lightInputLayout = {
+			{ InputAttribute::Position, 1, InputElementType::Vector2 },
+			{ InputAttribute::UV, 1, InputElementType::Vector2 },	
+		};
 
-		sTextureSampler = Sampler::Create(sContext, samplerInfo);
+		vertexShaderBinary = ReadFileBinary(AR_LIGHT_VERTEX_SHADER_PATH, &vertexBinarySize);
+		fragmentShaderBinary = ReadFileBinary(AR_LIGHT_FRAGMENT_SHADER_PATH, &fragmentBinarySize);
 
-		std::memset(&sObjectData, 0, sizeof(sObjectData));
-		std::memset(&sCameraData, 0, sizeof(sCameraData));
-		std::memset(&sLightData, 0, sizeof(sLightData));
+		PipelineInfo lightPipelineInfo = PipelineInfo::CreateWithDefaultInfo();
+		lightPipelineInfo.Descriptors = lightDescriptors;
+		lightPipelineInfo.DescriptorCount = 6;
+		lightPipelineInfo.Layout = lightInputLayout;
+		lightPipelineInfo.VertexShaderBinary = vertexShaderBinary;
+		lightPipelineInfo.VertexShaderSize = vertexBinarySize;
+		lightPipelineInfo.FragmentShaderBinary = fragmentShaderBinary;
+		lightPipelineInfo.FragmentShaderSize = fragmentBinarySize;
+		lightPipelineInfo.SampleCount = AR_PBR_SAMPLE_COUNT;
+
+		sLightPipeline = Pipeline::Create(sContext, lightPipelineInfo);
+		sLightPipeline.SetUniformBuffer(0, sCameraBuffer);
+		sLightPipeline.SetUniformBuffer(1, sLightBuffer);
+
+		free(vertexShaderBinary);
+		free(fragmentShaderBinary);
+
+		sLightRenderPass = RenderPass::Create(sContext, sLightPipeline, lightAttachments, 2);
+
+		const Attachment postProcessAttachments[] = {
+			{ AttachmentType::Color, ImageFormat::RGB8, AR_PBR_SAMPLE_COUNT },
+			{ AttachmentType::DepthStencil, ImageFormat::D24S8, AR_PBR_SAMPLE_COUNT }
+		};
+
+		FramebufferInfo postProcessFramebufferInfo{};
+		postProcessFramebufferInfo.Width = 1920;
+		postProcessFramebufferInfo.Height = 1080;
+		postProcessFramebufferInfo.Attachments = postProcessAttachments;
+		postProcessFramebufferInfo.AttachmentCount = 2;
+
+		sPostProcessFramebuffer = Framebuffer::Create(sContext, postProcessFramebufferInfo);
+
+		Descriptor postProcessDescriptors[] = {
+			{ 0, DescriptorType::UniformBuffer },
+			{ 0, DescriptorType::CombinedImageSampler }
+		};
+
+		InputLayout postProcessInputLayout = {
+			{ InputAttribute::Position, 1, InputElementType::Vector3 },
+			{ InputAttribute::UV, 1, InputElementType::Vector2 },	
+		};
+
+		vertexShaderBinary = ReadFileBinary(AR_POST_PROCESS_VERTEX_SHADER_PATH, &vertexBinarySize);
+		fragmentShaderBinary = ReadFileBinary(AR_POST_PROCESS_FRAGMENT_SHADER_PATH, &fragmentBinarySize);
+
+		PipelineInfo postProcessPipelineInfo = PipelineInfo::CreateWithDefaultInfo();
+		postProcessPipelineInfo.Descriptors = postProcessDescriptors;
+		postProcessPipelineInfo.DescriptorCount = 2;
+		postProcessPipelineInfo.Layout = postProcessInputLayout;
+		postProcessPipelineInfo.VertexShaderBinary = vertexShaderBinary;
+		postProcessPipelineInfo.VertexShaderSize = vertexBinarySize;
+		postProcessPipelineInfo.FragmentShaderBinary = fragmentShaderBinary;
+		postProcessPipelineInfo.FragmentShaderSize = fragmentBinarySize;
+		postProcessPipelineInfo.SampleCount = AR_PBR_SAMPLE_COUNT;
+
+		sPostProcessPipeline = Pipeline::Create(sContext, postProcessPipelineInfo);
+		sPostProcessPipeline.SetUniformBuffer(0, sPostProcessSettingsBuffer);
+		free(vertexShaderBinary);
+		free(fragmentShaderBinary);
+
+		sPostProcessRenderPass = RenderPass::Create(sContext, sPostProcessPipeline, postProcessAttachments, 2);
 	}
 
 	void PBRRenderer::Shutdown() {
@@ -158,63 +296,7 @@ namespace Arcane {
 	}
 
 	void PBRRenderer::Reload() {
-		Descriptor descriptors[] = {
-			{ 0, DescriptorType::UniformBuffer },
-			{ 1, DescriptorType::UniformBuffer },
-			{ 2, DescriptorType::UniformBuffer },
-			
-			{ 0, DescriptorType::CombinedImageSampler },
-			{ 1, DescriptorType::CombinedImageSampler },
-			{ 2, DescriptorType::CombinedImageSampler },
-			{ 3, DescriptorType::CombinedImageSampler },
-			{ 4, DescriptorType::CombinedImageSampler }
-		};
-
-		PipelineInfo pipelineInfo{};
-		pipelineInfo.CullMode = CullMode::Back;
-		pipelineInfo.WindingOrder = WindingOrder::CounterClockwise;
-		pipelineInfo.Topology = PrimitiveTopology::TriangleList;
-		pipelineInfo.Descriptors = descriptors;
-		pipelineInfo.DescriptorCount = 3;
-		pipelineInfo.FillMode = FillMode::Solid;
-		pipelineInfo.Layout = {
-			{ InputAttribute::Position, 1, InputElementType::Vector3 },
-			{ InputAttribute::Normal, 1, InputElementType::Vector3 },
-			{ InputAttribute::UV, 1, InputElementType::Vector2 },
-			{ InputAttribute::Tangent, 1, InputElementType::Vector3 },
-			{ InputAttribute::Bitangent, 1, InputElementType::Vector3 },
-		};
-
-		size_t vertexBinarySize = 0, fragmentBinarySize = 0;
-		uint8_t *vertexShaderBinary = ReadFileBinary(AR_PBR_VERTEX_SHADER_PATH, &vertexBinarySize);
-		uint8_t *fragmentShaderBinary = ReadFileBinary(AR_PBR_FRAGMENT_SHADER_PATH, &fragmentBinarySize);
-
-		pipelineInfo.VertexShaderBinary = vertexShaderBinary;
-		pipelineInfo.VertexShaderSize = vertexBinarySize;
-
-		pipelineInfo.FragmentShaderBinary = fragmentShaderBinary;
-		pipelineInfo.FragmentShaderSize = fragmentBinarySize;
-
-		pipelineInfo.SampleCount = AR_PBR_SAMPLE_COUNT;
-		pipelineInfo.Scissor = { Vector2::Zero(), Vector2::MaxValue() };
-		pipelineInfo.Viewport = { Vector2::Zero(), Vector2::MaxValue() };
-
-		sPBRPipeline = Pipeline::Create(sContext, pipelineInfo);
-
-		const Attachment attachments[] = {
-			{ AttachmentType::Color, ImageFormat::RGBA8, AR_PBR_SAMPLE_COUNT },
-			{ AttachmentType::DepthStencil, ImageFormat::D24S8, AR_PBR_SAMPLE_COUNT },
-		};
-
-		sRenderPass = RenderPass::Create(sContext, sPBRPipeline, attachments, 2);
-
-		sPBRPipeline.SetUniformBuffer(0, sCameraBuffer);
-		sPBRPipeline.SetUniformBuffer(1, sObjectBuffer);
-		sPBRPipeline.SetUniformBuffer(2, sLightBuffer);
-
-		std::memset(&sObjectData, 0, sizeof(sObjectData));
-		std::memset(&sCameraData, 0, sizeof(sCameraData));
-		std::memset(&sLightData, 0, sizeof(sLightData));
+		
 	}
 
 	void PBRRenderer::Begin(const Camera3D &camera) {
@@ -253,41 +335,133 @@ namespace Arcane {
 	}
 
 	void PBRRenderer::End() {
-		sRendererAPI.Begin();
-		sRendererAPI.BeginRenderPass(sRenderPass, sFramebuffer);
-		sRendererAPI.Clear();
-		sRendererAPI.SetViewport(sContext.GetWindow().GetClientSize());
-		sRendererAPI.SetScissor(sContext.GetWindow().GetClientSize());
-		sFramebuffer.Resize(sContext.GetWindow().GetClientSize());
-		sRendererAPI.SetClearColor(Color::Black());
+		const Vector2 size = sContext.GetWindow().GetClientSize();
 
-		sLightBuffer.SetData(&sLightData);
-		
-		for (const RenderSubmit &submission : sRenderSubmissions) {
+		sRendererAPI.SetViewport(size);
+		sRendererAPI.SetScissor(size);
+		sGeometryFramebuffer.Resize(size);
+		sLightFramebuffer.Resize(size);
+		sPostProcessFramebuffer.Resize(size);
+	
+		sRendererAPI.Begin();
+
+		sRendererAPI.BeginRenderPass(sGeometryRenderPass, sGeometryFramebuffer);
+		sRendererAPI.Clear();
+		for (const RenderSubmission &submission : sRenderSubmissions) {
 			sObjectData.Model = Matrix4::Transpose(submission.Model);
 			sObjectData.MVP = Matrix4::Transpose(sCamera.GetProjectionMatrix() * sCamera.GetViewMatrix() * submission.Model);
 			sObjectData.Position = Vector4(submission.Position, 1.0);
-
 			sObjectBuffer.SetData((const void*)&sObjectData);
-			sPBRPipeline.SetUniformBuffer(1, sObjectBuffer);
 
-			sPBRPipeline.SetCombinedImageSampler(0, submission.AlbedoMap, sTextureSampler);
-			sPBRPipeline.SetCombinedImageSampler(1, submission.NormalMap, sTextureSampler);
-			sPBRPipeline.SetCombinedImageSampler(2, submission.MetallicMap, sTextureSampler);
-			sPBRPipeline.SetCombinedImageSampler(3, submission.RoughnessMap, sTextureSampler);
-			sPBRPipeline.SetCombinedImageSampler(4, submission.AmbientOcclusionMap, sTextureSampler);
+			sGeometryPipeline.SetCombinedImageSampler(0, submission.AlbedoMap, sDefaultSampler);
+			sGeometryPipeline.SetCombinedImageSampler(1, submission.NormalMap, sDefaultSampler);
+			sGeometryPipeline.SetCombinedImageSampler(2, submission.MetallicMap, sDefaultSampler);
+			sGeometryPipeline.SetCombinedImageSampler(3, submission.RoughnessMap, sDefaultSampler);
+			sGeometryPipeline.SetCombinedImageSampler(4, submission.AmbientOcclusionMap, sDefaultSampler);
 
 			sRendererAPI.SetMesh(submission.Mesh);
 			sRendererAPI.DrawIndexed(1, submission.Mesh.GetIndexCount());
 		}
 		sRendererAPI.EndRenderPass();
+
+		sRendererAPI.BeginRenderPass(sLightRenderPass, sLightFramebuffer);
+		sRendererAPI.Clear();
+
+		sLightBuffer.SetData((const void*)&sLightData);
+		sLightPipeline.SetCombinedImageSampler(0, sGeometryFramebuffer.GetColorBuffer(0), sDefaultSampler);
+		sLightPipeline.SetCombinedImageSampler(1, sGeometryFramebuffer.GetColorBuffer(1), sDefaultSampler);
+		sLightPipeline.SetCombinedImageSampler(2, sGeometryFramebuffer.GetColorBuffer(2), sDefaultSampler);
+		sLightPipeline.SetCombinedImageSampler(3, sGeometryFramebuffer.GetColorBuffer(3), sDefaultSampler);
+
+		sRendererAPI.SetMesh(sQuadMesh);
+		sRendererAPI.DrawIndexed(1, sQuadMesh.GetIndexCount());
+		
+		sRendererAPI.EndRenderPass();
+
+		sRendererAPI.BeginRenderPass(sPostProcessRenderPass, sPostProcessFramebuffer);
+		sRendererAPI.Clear();
+
+		sPostProcessPipeline.SetCombinedImageSampler(0, sLightFramebuffer.GetColorBuffer(0), sDefaultSampler);
+		sPostProcessSettingsBuffer.SetData((const void*)&sPostProcessSettingsData);
+		sRendererAPI.SetMesh(sQuadMesh);
+		sRendererAPI.DrawIndexed(1, sQuadMesh.GetIndexCount());
+
+		sRendererAPI.EndRenderPass();
+
 		sRendererAPI.End();
 
 		sRenderSubmissions.clear();
-
 		std::memset(&sLightData, 0, sizeof(sLightData));
 		std::memset(&sObjectData, 0, sizeof(sObjectData));
 		std::memset(&sCameraData, 0, sizeof(sCameraData));
+
+		// sRendererAPI.SetViewport(sContext.GetWindow().GetClientSize());
+		// sRendererAPI.SetScissor(sContext.GetWindow().GetClientSize());
+		// sFramebuffer.Resize(sContext.GetWindow().GetClientSize());
+		// sPostProcessFramebuffer.Resize(sContext.GetWindow().GetClientSize());
+		// sRendererAPI.SetClearColor(Color::Black());
+
+		// sRendererAPI.Begin();
+		// sRendererAPI.BeginRenderPass(sRenderPass, sFramebuffer);
+		// sRendererAPI.Clear();
+
+		// sLightBuffer.SetData(&sLightData);
+		
+		// for (const RenderSubmit &submission : sRenderSubmissions) {
+		// 	sObjectData.Model = Matrix4::Transpose(submission.Model);
+		// 	sObjectData.MVP = Matrix4::Transpose(sCamera.GetProjectionMatrix() * sCamera.GetViewMatrix() * submission.Model);
+		// 	sObjectData.Position = Vector4(submission.Position, 1.0);
+
+		// 	sObjectBuffer.SetData((const void*)&sObjectData);
+
+		// 	sPBRPipeline.SetCombinedImageSampler(0, submission.AlbedoMap, sTextureSampler);
+		// 	sPBRPipeline.SetCombinedImageSampler(1, submission.NormalMap, sTextureSampler);
+		// 	sPBRPipeline.SetCombinedImageSampler(2, submission.MetallicMap, sTextureSampler);
+		// 	sPBRPipeline.SetCombinedImageSampler(3, submission.RoughnessMap, sTextureSampler);
+		// 	sPBRPipeline.SetCombinedImageSampler(4, submission.AmbientOcclusionMap, sTextureSampler);
+
+		// 	sRendererAPI.SetMesh(submission.Mesh);
+		// 	sRendererAPI.DrawIndexed(1, submission.Mesh.GetIndexCount());
+		// }
+		// sRendererAPI.EndRenderPass();
+
+		// sRendererAPI.SetViewport(sContext.GetWindow().GetClientSize());
+		// sRendererAPI.SetScissor(sContext.GetWindow().GetClientSize());
+
+		// sRendererAPI.BeginRenderPass(sPostProcessRenderPass, sPostProcessFramebuffer);
+		// sRendererAPI.Clear();
+
+		// sPostProcessSettingsBuffer.SetData(&sPostProcessSettingsData);
+
+		// sPostProcessPipeline.SetCombinedImageSampler(0, sFramebuffer.GetColorBuffer(0), sPostProcessSampler);
+
+		// sRendererAPI.SetMesh(sQuadMesh);
+		// sRendererAPI.DrawIndexed(1, sQuadMesh.GetIndexCount());
+
+		// sRendererAPI.End();
+
+		// sRenderSubmissions.clear();
+
+		// std::memset(&sLightData, 0, sizeof(sLightData));
+		// std::memset(&sObjectData, 0, sizeof(sObjectData));
+		// std::memset(&sCameraData, 0, sizeof(sCameraData));
 	}
+
+	void PBRRenderer::SetGamma(float gamma) {
+		sPostProcessSettingsData.Gamma = gamma;
+	}
+
+	float PBRRenderer::GetGamma() {
+		return sPostProcessSettingsData.Gamma;
+	}
+
+	void PBRRenderer::SetExposure(float exposure) {
+		sPostProcessSettingsData.Exposure = exposure;
+	}
+
+	float PBRRenderer::GetExposure() {
+		return sPostProcessSettingsData.Exposure;
+	}
+
 
 }

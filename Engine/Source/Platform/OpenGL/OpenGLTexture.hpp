@@ -12,7 +12,8 @@ namespace Arcane {
 		~OpenGLTexture();
 
 		virtual void SetImage(uint32_t level, const Image &image) override;
-		virtual void Resize(uint32_t width, uint32_t height) override;
+		virtual void GenerateMipmaps() override;
+		virtual void Resize(uint32_t width, uint32_t height, uint32_t depth) override;
 
 		virtual ImageFormat GetFormat() override { return mFormat; }
 		virtual uint32_t GetWidth() override { return mWidth; }

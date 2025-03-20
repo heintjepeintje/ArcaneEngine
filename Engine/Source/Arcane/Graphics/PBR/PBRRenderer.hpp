@@ -15,6 +15,11 @@ namespace Arcane {
 		static void Reload();
 		static void Shutdown();
 
+		static void SetGamma(float gamma);
+		static float GetGamma();
+		static void SetExposure(float exposure);
+		static float GetExposure();
+
 		static void Begin(const Camera3D &camera);
 		static void AddLight(const Vector3 &position, const PointLight &light);
 		static void AddLight(const Vector3 &direction, const DirectionalLight &light);

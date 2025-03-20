@@ -167,8 +167,69 @@ namespace Arcane {
 			20, 22, 23,
 		};
 
-		std::vector<Vector3> tangents(positions.size(), Vector3(0.0f));
-		std::vector<Vector3> bitangents(positions.size(), Vector3(0.0f));
+		const std::vector<Vector3> tangents = {
+			{ 1, 0, 0 },
+			{ 1, 0, 0 },
+			{ 1, 0, 0 },
+			{ 1, 0, 0 },
+
+			{ 0, 0, 1 },
+			{ 0, 0, 1 },
+			{ 0, 0, 1 },
+			{ 0, 0, 1 },
+
+			{ -1, 0, 0 },
+			{ -1, 0, 0 },
+			{ -1, 0, 0 },
+			{ -1, 0, 0 },
+
+			{ 0, 0, -1 },
+			{ 0, 0, -1 },
+			{ 0, 0, -1 },
+			{ 0, 0, -1 },
+
+			{ 1, 0, 0 },
+			{ 1, 0, 0 },
+			{ 1, 0, 0 },
+			{ 1, 0, 0 },
+
+			{ -1, 0, 0 },
+			{ -1, 0, 0 },
+			{ -1, 0, 0 },
+			{ -1, 0, 0 },
+		};
+
+		std::vector<Vector3> bitangents = {
+			{ 0, 1, 0 },
+			{ 0, 1, 0 },
+			{ 0, 1, 0 },
+			{ 0, 1, 0 },
+
+			{ 0, 1, 0 },
+			{ 0, 1, 0 },
+			{ 0, 1, 0 },
+			{ 0, 1, 0 },
+
+			{ 0, 1, 0 },
+			{ 0, 1, 0 },
+			{ 0, 1, 0 },
+			{ 0, 1, 0 },
+
+			{ 0, 1, 0 },
+			{ 0, 1, 0 },
+			{ 0, 1, 0 },
+			{ 0, 1, 0 },
+
+			{ 0, 0, 1 },
+			{ 0, 0, 1 },
+			{ 0, 0, 1 },
+			{ 0, 0, 1 },
+
+			{ 0, 0, -1 },
+			{ 0, 0, -1 },
+			{ 0, 0, -1 },
+			{ 0, 0, -1 },
+		};
 
 		return MeshData(positions, normals, uvs, tangents, bitangents, indices);
 	}
@@ -291,8 +352,6 @@ namespace Arcane {
 		for (Vector3 &position : data.Positions) {
 			position -= origin;
 		}
-		
-		data.BoundingBox.Position = Vector3(0.0f);
 	}
 
 	static void MeshProcessGenerateMeshNormals(MeshData &data) {
@@ -328,8 +387,6 @@ namespace Arcane {
 		for (Vector3 &position : data.Positions) {
 			position = (position - min) / size;
 		}
-
-		data.BoundingBox.Size = max - min;
 	}
 
 	static void MeshProcessGenerateTangents(MeshData &data) {
@@ -375,8 +432,6 @@ namespace Arcane {
 			min = Vector3::Min(min, position);
 			max = Vector3::Max(max, position);
 		}
-
-		data.BoundingBox = AABB(max - min, min + max / 2.0f);
 	}
 
 	void ProcessMesh(MeshData &data, MeshProcess process) {
@@ -395,9 +450,6 @@ namespace Arcane {
 				break;
 			case MeshProcess::GenerateTangents:
 				MeshProcessGenerateTangents(data);
-				break;
-			case MeshProcess::GenerateBoundingBox:
-				MeshProcessGenerateBoundingBox(data);
 				break;
 		}
 	}

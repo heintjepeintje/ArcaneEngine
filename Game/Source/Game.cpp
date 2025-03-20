@@ -15,8 +15,8 @@ int main(int argc, char **argv) {
 	Arcane::PBRRenderer::Init(context);
 
 	Arcane::MeshData floorData = Arcane::LoadCube(Arcane::Vector3(10.0f, 1.0f, 10.0f), false);
-	Arcane::ProcessMesh(floorData, Arcane::MeshProcess::GenerateTangents);
 	Arcane::Mesh floor = Arcane::Mesh::Create(context, floorData);
+	Arcane::ImageData grayImage = Arcane::LoadImage(Arcane::Color::Gray(), Arcane::ImageFormat::RGB8);
 	
 	Arcane::Texture blackTexture = Arcane::Texture::Create(context, Arcane::LoadImage(Arcane::Color::Black(), Arcane::ImageFormat::RGBA8));
 	Arcane::ImageData colorTexture = Arcane::LoadImage("Game/Assets/Materials/Paving Stones/PavingStones_Color.png", Arcane::ImageFormat::RGB8);
@@ -31,7 +31,7 @@ int main(int argc, char **argv) {
 	Arcane::PBRMaterial floorMaterial;
 	floorMaterial.AlbedoMap = Arcane::Texture::Create(context, colorTexture);
 	floorMaterial.NormalMap = Arcane::Texture::Create(context, normalMap);
-	floorMaterial.MetallicMap = Arcane::Texture::Create(context, Arcane::LoadImage(Arcane::Color::Gray(), Arcane::ImageFormat::RGB8));
+	floorMaterial.MetallicMap = Arcane::Texture::Create(context, grayImage);
 	floorMaterial.RoughnessMap = Arcane::Texture::Create(context, roughnessMap);
 	floorMaterial.AmbientOcclusionMap = Arcane::Texture::Create(context, aoTexture);
 
@@ -39,9 +39,8 @@ int main(int argc, char **argv) {
 	floorTransform.Position = Arcane::Vector3(0, -1.0f, 0.0f);
 
 	Arcane::MeshData boxData = Arcane::LoadCube();
-	Arcane::ProcessMesh(boxData, Arcane::MeshProcess::GenerateTangents);
 	Arcane::Mesh box = Arcane::Mesh::Create(context, boxData);
-
+	
 	colorTexture = Arcane::LoadImage("Game/Assets/Materials/Wood Floor/WoodFloor_Color.png", Arcane::ImageFormat::RGB8);
 	Arcane::ProcessImage(colorTexture, Arcane::ImageProcess::FlipVertical);
 	aoTexture = Arcane::LoadImage("Game/Assets/Materials/Wood Floor/WoodFloor_AmbientOcclusion.png", Arcane::ImageFormat::RGB8); 
@@ -50,31 +49,43 @@ int main(int argc, char **argv) {
 	Arcane::ProcessImage(roughnessMap, Arcane::ImageProcess::FlipVertical);
 	normalMap = Arcane::LoadImage("Game/Assets/Materials/Wood Floor/WoodFloor_Normal.png", Arcane::ImageFormat::RGB8);
 	Arcane::ProcessImage(normalMap, Arcane::ImageProcess::FlipVertical);
-
+	
 	Arcane::PBRMaterial boxMaterial;
 	boxMaterial.AlbedoMap = Arcane::Texture::Create(context, colorTexture);
 	boxMaterial.NormalMap = Arcane::Texture::Create(context, normalMap);
-	boxMaterial.MetallicMap = Arcane::Texture::Create(context, Arcane::LoadImage(Arcane::Color::Gray(), Arcane::ImageFormat::RGB8));
+	boxMaterial.MetallicMap = Arcane::Texture::Create(context, grayImage);
 	boxMaterial.RoughnessMap = Arcane::Texture::Create(context, roughnessMap);
 	boxMaterial.AmbientOcclusionMap = Arcane::Texture::Create(context, aoTexture);
-
+	
+	free(colorTexture.Data);
+	free(normalMap.Data);
+	free(grayImage.Data);
+	free(roughnessMap.Data);
+	free(aoTexture.Data);
+	
 	Arcane::Transform boxTransform;
-	boxTransform.Position = { 0.0f, 3.0f, 0.0f };
-	boxTransform.Rotation = { 45.0f, 45.0f, 0.0f };
-
+	boxTransform.Position = { 0.0f, 3.0f, 0.0f  };
+	boxTransform.Scale = { 1.0f, 1.0f, 1.0f };
+	
 	camera = Arcane::Camera3D(90.0f, window.GetClientSize(), 0.0001f, 10000.0f);
-
+	
 	window.SetVisible(true);
-
-	Arcane::PointLight light = Arcane::PointLight(Arcane::Color::White(), 10.0f);
+	
+	Arcane::PointLight light = Arcane::PointLight(Arcane::Color::Red(), 10.0f);
 	Arcane::Transform lightPosition = Arcane::Transform();
-
+	
 	Arcane::DirectionalLight sun = Arcane::DirectionalLight(Arcane::Color::Gray());
 	Arcane::Transform sunTransform = Arcane::Transform();
 	sunTransform.Rotation.Z = 180.0f;
 
+	char buffer[256];
+
 	while (!window.IsClosed()) {
 		lightPosition.Position = camera.Position;
+
+		memset(buffer, 0, sizeof(buffer));
+		sprintf(buffer, "Arcane Engine (%.00f fps)", 1.0f / Arcane::GetDeltaTime());
+		window.SetTitle(buffer);
 
 		if (window.IsFocused()) {
 			Arcane::SetCursorLocked(true);
@@ -113,7 +124,10 @@ int main(int argc, char **argv) {
 			Arcane::SetCursorLocked(false);
 			Arcane::SetCursorVisible(true);
 		}
-			
+
+		Arcane::PBRRenderer::SetExposure(1.0);
+		Arcane::PBRRenderer::SetGamma(1.0);
+	
 		Arcane::PBRRenderer::Begin(camera);
 
 		Arcane::PBRRenderer::AddLight(lightPosition.Position, light);
