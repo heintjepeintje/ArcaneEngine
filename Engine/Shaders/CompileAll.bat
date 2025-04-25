@@ -12,6 +12,6 @@ PUSHD PostProcess
 CALL Compile.bat
 POPD
 
-PUSHD UI
-CALL Compile.bat
-POPD
+@REM PUSHD UI
+@REM CALL Compile.bat
+@REM POPD

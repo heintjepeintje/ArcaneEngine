@@ -13,8 +13,7 @@ project "Engine"
 	includedirs {
 		"Source",
 		"Libraries/stb",
-		"Libraries/glm",
-		"Libraries/ImGui"
+		"Libraries/glm"
 	}
 
 	defines {

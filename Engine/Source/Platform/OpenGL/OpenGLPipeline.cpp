@@ -65,15 +65,26 @@ namespace Arcane {
 	}
 
 	void OpenGLPipeline::SetUniformBuffer(uint32_t binding, const Ref<NativeBuffer> &uniformBuffer) {
-		mUniformBufferDescriptors.push_back({ binding, CastRef<OpenGLBuffer>(uniformBuffer)->GetOpenGLID() });
+		mUniformBufferDescriptors.reserve(binding + 1);
+		OpenGLUniformBufferDescriptor desc{};
+		desc.binding = binding;
+		desc.buffer = CastRef<OpenGLBuffer>(uniformBuffer)->GetOpenGLID();
+		
+		mUniformBufferDescriptors[binding] = desc;
+		
+		printf("Uniform Buffer: %u: {b: %u, b: %u}\n", binding, desc.binding, desc.buffer);
 	}
 
 	void OpenGLPipeline::SetCombinedImageSampler(uint32_t binding, const Ref<NativeTexture> &texture, const Ref<NativeSampler> &sampler) {
-		mCombinedImageSamplerDescriptors.push_back({ 
-			binding, 
-			CastRef<OpenGLTexture>(texture)->GetOpenGLID(), 
-			CastRef<OpenGLSampler>(sampler)->GetOpenGLID() 
-		});
+		mCombinedImageSamplerDescriptors.reserve(binding + 1);
+		OpenGLCombinedImageSamplerDescriptor desc{};
+		desc.binding = binding;
+		desc.texture = CastRef<OpenGLTexture>(texture)->GetOpenGLID();
+		desc.sampler = CastRef<OpenGLSampler>(sampler)->GetOpenGLID(); 
+		
+		mCombinedImageSamplerDescriptors[binding] = desc;
+
+		printf("Combined Image Sampler: %u: {b: %u, t: %u, s: %u}\n", binding, desc.binding, desc.texture, desc.sampler);
 	}
 
 }

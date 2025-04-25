@@ -2,8 +2,13 @@
 
 #include <Arcane/Core.hpp>
 
+#if 0
 #define AR_FUNCTION_TIMER() ::Arcane::ScopedTimer(__FUNCTION__)
 #define AR_NAMED_SCOPED_TIMER(name) ::Arcane::ScopedTimer(name)
+#else
+#define AR_FUNCTION_TIMER()
+#define AR_NAMED_SCOPED_TIMER(name)
+#endif
 
 namespace Arcane {
 
@@ -34,8 +39,6 @@ namespace Arcane {
 
 		~ScopedTimer() {
 			uint64_t elapsed = GetCurrentTimeMillis() - mTime;
-			std::printf("Current Time: %llu\n", GetCurrentTimeMillis());
-			std::printf("Start Time: %llu\n", mTime);
 			std::printf("%s: %llums\n", mName.c_str(), elapsed);
 		}
 

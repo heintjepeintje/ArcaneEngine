@@ -1,7 +1,5 @@
 #include <Arcane/Arcane.hpp>
 
-#include <imgui.h>
-
 float pitch, yaw;
 const float sensitivity = 0.1f;
 const float speed = 1.0f;
@@ -83,6 +81,7 @@ int main(int argc, char **argv) {
 	char buffer[256];
 
 	while (!window.IsClosed()) {
+		AR_NAMED_SCOPED_TIMER("Frame");
 		lightPosition.Position = camera.Position;
 
 		memset(buffer, 0, sizeof(buffer));

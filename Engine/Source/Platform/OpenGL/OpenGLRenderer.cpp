@@ -138,13 +138,17 @@ namespace Arcane {
 	void OpenGLRendererAPI::EndRenderPass() {
 		glBindVertexArray(0);
 		
-		for (OpenGLCombinedImageSamplerDescriptor &combinedImageSamplerDesc : mPipeline->GetCombinedImageSamplerDescriptors()) {
-			glBindTextureUnit(combinedImageSamplerDesc.binding, 0);
-			glBindSampler(combinedImageSamplerDesc.binding, 0);
+		for (size_t i = 0; i < mPipeline->GetCombinedImageSamplerDescriptors().size(); i++) {
+			OpenGLCombinedImageSamplerDescriptor &desc = mPipeline->GetCombinedImageSamplerDescriptors()[i];
+			if (i != desc.binding) continue;
+			glBindTextureUnit(desc.binding, 0);
+			glBindSampler(desc.binding, 0);
 		}
 
-		for (OpenGLUniformBufferDescriptor &uniformBufferDesc : mPipeline->GetUniformBufferDescriptors()) {
-			glBindBufferBase(GL_UNIFORM_BUFFER, uniformBufferDesc.binding, 0);
+		for (size_t i = 0; i < mPipeline->GetUniformBufferDescriptors().size(); i++) {
+			OpenGLUniformBufferDescriptor &desc = mPipeline->GetUniformBufferDescriptors()[i];
+			if (i != desc.binding) continue;
+			glBindBufferBase(GL_UNIFORM_BUFFER, desc.binding, 0);
 		}
 
 	}
@@ -195,13 +199,17 @@ namespace Arcane {
 			default: return;
 		}
 
-		for (OpenGLUniformBufferDescriptor &uniformBufferDesc : mPipeline->GetUniformBufferDescriptors()) {
-			glBindBufferBase(GL_UNIFORM_BUFFER, uniformBufferDesc.binding, uniformBufferDesc.buffer);
+		for (size_t i = 0; i < mPipeline->GetUniformBufferDescriptors().size(); i++) {
+			OpenGLUniformBufferDescriptor &desc = mPipeline->GetUniformBufferDescriptors()[i];
+			if (i != desc.binding) continue;
+			glBindBufferBase(GL_UNIFORM_BUFFER, desc.binding, desc.buffer);
 		}
 
-		for (OpenGLCombinedImageSamplerDescriptor &combinedImageSamplerDesc : mPipeline->GetCombinedImageSamplerDescriptors()) {
-			glBindTextureUnit(combinedImageSamplerDesc.binding, combinedImageSamplerDesc.texture);
-			glBindSampler(combinedImageSamplerDesc.binding, combinedImageSamplerDesc.sampler);
+		for (size_t i = 0; i < mPipeline->GetCombinedImageSamplerDescriptors().size(); i++) {
+			OpenGLCombinedImageSamplerDescriptor &desc = mPipeline->GetCombinedImageSamplerDescriptors()[i];
+			if (i != desc.binding) continue;
+			glBindTextureUnit(desc.binding, desc.texture);
+			glBindSampler(desc.binding, desc.sampler);
 		}
 
 		glDrawElementsInstanced(topology, count, mPipeline->GetElementSize() == 4 ? GL_UNSIGNED_INT : GL_UNSIGNED_BYTE, nullptr, instances);

@@ -13,14 +13,12 @@ project "Game"
 	includedirs {
 		"Source",
 		"../Engine/Source",
-		"../Engine/Libraries/glm",
-		"../Engine/Libraries/ImGui",
+		"../Engine/Libraries/glm"
 	}
 
 	links {
 		"gdi32",
 		"opengl32",
-		"ImGui",
 		"Engine"
 	}
 

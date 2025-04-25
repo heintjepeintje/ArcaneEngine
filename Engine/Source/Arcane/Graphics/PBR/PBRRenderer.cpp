@@ -374,6 +374,7 @@ namespace Arcane {
 			}
 			
 			sRendererAPI.EndRenderPass();
+			sRenderSubmissions.clear();
 		}
 
 		{
@@ -408,7 +409,6 @@ namespace Arcane {
 
 		sRendererAPI.End();
 
-		sRenderSubmissions.clear();
 		std::memset(&sLightData, 0, sizeof(sLightData));
 		std::memset(&sObjectData, 0, sizeof(sObjectData));
 		std::memset(&sCameraData, 0, sizeof(sCameraData));
