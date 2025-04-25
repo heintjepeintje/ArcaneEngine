@@ -18,7 +18,8 @@ namespace Arcane {
 
 		inline void SetVertexBuffer(uint32_t index, const InputLayout &layout, const Buffer &vertexBuffer) { GetNativeMesh()->SetVertexBuffer(index, layout, vertexBuffer.GetNativeBuffer()); }
 		inline void SetIndexBuffer(const Buffer &indexBuffer) { GetNativeMesh()->SetIndexBuffer(indexBuffer.GetNativeBuffer()); }
-		inline uint32_t GetIndexCount() const { return mNativeMesh->GetIndexCount(); }
+		inline Buffer GetVertexBuffer(uint32_t index) const { return GetNativeMesh()->GetVertexBuffer(index); }
+		inline Buffer GetIndexBuffer() const { return GetNativeMesh()->GetIndexBuffer(); }
 
 		inline InputLayout GetLayout() const { return GetNativeMesh()->GetLayout(); }
 

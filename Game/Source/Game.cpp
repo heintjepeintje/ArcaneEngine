@@ -1,5 +1,7 @@
 #include <Arcane/Arcane.hpp>
 
+#include <imgui.h>
+
 float pitch, yaw;
 const float sensitivity = 0.1f;
 const float speed = 1.0f;
@@ -118,7 +120,7 @@ int main(int argc, char **argv) {
 				camera.Position -= camera.Front * speed * Arcane::GetDeltaTime();
 			if (Arcane::IsKeyPressed(Arcane::KeyCode::A))
 				camera.Position -= Arcane::Vector3::Normalize(Arcane::Vector3::Cross(camera.Up, camera.Front)) * speed * Arcane::GetDeltaTime();
-			if (Arcane::IsKeyPressed(Arcane::KeyCode::D))		
+			if (Arcane::IsKeyPressed(Arcane::KeyCode::D))
 				camera.Position += Arcane::Vector3::Normalize(Arcane::Vector3::Cross(camera.Up, camera.Front)) * speed * Arcane::GetDeltaTime();
 		} else {
 			Arcane::SetCursorLocked(false);
@@ -127,15 +129,27 @@ int main(int argc, char **argv) {
 
 		Arcane::PBRRenderer::SetExposure(1.0);
 		Arcane::PBRRenderer::SetGamma(1.0);
-	
-		Arcane::PBRRenderer::Begin(camera);
+		{
+			Arcane::Timer timer;
 
-		Arcane::PBRRenderer::AddLight(lightPosition.Position, light);
-		Arcane::PBRRenderer::AddLight({ -1, -1, -1 }, sun);
-		Arcane::PBRRenderer::Submit(floorTransform, floor, floorMaterial);
-		Arcane::PBRRenderer::Submit(boxTransform, box, boxMaterial);
+			Arcane::PBRRenderer::Begin(camera);
 
-		Arcane::PBRRenderer::End();
+			Arcane::PBRRenderer::AddLight(lightPosition.Position, light);
+			Arcane::PBRRenderer::AddLight({ -1, -1, -1 }, sun);
+			Arcane::PBRRenderer::Submit(floorTransform, floor, floorMaterial);
+			Arcane::PBRRenderer::Submit(boxTransform, box, boxMaterial);
+
+			Arcane::PBRRenderer::End();
+
+			// std::printf("Render Time: %llu\n", timer.GetElapsedTime());
+		}
+		// const Arcane::FrameStatistics &frameStats = Arcane::PBRRenderer::GetRenderer().GetFrameStatistics();
+		// std::printf("Frame:\n");
+		// std::printf("Total Indices: %u\n", frameStats.IndicesDrawn);
+		// std::printf("Draw Commands: %u\n", frameStats.DrawCommands);
+		// std::printf("Total Instances: %u\n", frameStats.InstancesDrawn);
+		// std::printf("CPU Time: %ums\n", frameStats.ElapsedCPUTime);
+
 		context.Present();
 		window.Update();
 

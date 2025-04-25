@@ -5,6 +5,7 @@
 #include <Arcane/Graphics/RenderPass.hpp>
 #include <Arcane/Graphics/Pipeline.hpp>
 #include <Arcane/Util/FileUtil.hpp>
+#include <Arcane/System/Time.hpp>
 
 #define AR_GEOMETRY_VERTEX_SHADER_PATH "Engine/Shaders/Geometry/Binaries/Output/GeometryShader.vert.spv"
 #define AR_GEOMETRY_FRAGMENT_SHADER_PATH "Engine/Shaders/Geometry/Binaries/Output/GeometryShader.frag.spv"
@@ -104,8 +105,8 @@ namespace Arcane {
 		sPostProcessSettingsBuffer = Buffer::Create(sContext, sizeof(sPostProcessSettingsData));
 
 		InputLayout quadLayout = {
-			{ InputAttribute::Position, 1, InputElementType::Vector2 },
-			{ InputAttribute::UV, 1, InputElementType::Vector2 },
+			{ InputAttribute::Position, 1, InputElementType::Vector2f32 },
+			{ InputAttribute::UV, 1, InputElementType::Vector2f32 },
 		};
 
 		Buffer quadVertexBuffer = Buffer::Create(sContext, 16 * sizeof(float));
@@ -167,11 +168,11 @@ namespace Arcane {
 		};
 		
 		InputLayout geometryInputLayout = {
-			{ InputAttribute::Position, 1, InputElementType::Vector3 },
-			{ InputAttribute::Normal, 1, InputElementType::Vector3 },
-			{ InputAttribute::UV, 1, InputElementType::Vector2 },
-			{ InputAttribute::Tangent, 1, InputElementType::Vector3 },
-			{ InputAttribute::Bitangent, 1, InputElementType::Vector3 },
+			{ InputAttribute::Position, 1, InputElementType::Vector3f32 },
+			{ InputAttribute::Normal, 1, InputElementType::Vector3f32 },
+			{ InputAttribute::UV, 1, InputElementType::Vector2f32 },
+			{ InputAttribute::Tangent, 1, InputElementType::Vector3f32 },
+			{ InputAttribute::Bitangent, 1, InputElementType::Vector3f32 },
 		};
 		
 		size_t vertexBinarySize = 0, fragmentBinarySize = 0;
@@ -221,8 +222,8 @@ namespace Arcane {
 		};
 
 		InputLayout lightInputLayout = {
-			{ InputAttribute::Position, 1, InputElementType::Vector2 },
-			{ InputAttribute::UV, 1, InputElementType::Vector2 },	
+			{ InputAttribute::Position, 1, InputElementType::Vector2f32 },
+			{ InputAttribute::UV, 1, InputElementType::Vector2f32 },	
 		};
 
 		vertexShaderBinary = ReadFileBinary(AR_LIGHT_VERTEX_SHADER_PATH, &vertexBinarySize);
@@ -266,8 +267,8 @@ namespace Arcane {
 		};
 
 		InputLayout postProcessInputLayout = {
-			{ InputAttribute::Position, 1, InputElementType::Vector3 },
-			{ InputAttribute::UV, 1, InputElementType::Vector2 },	
+			{ InputAttribute::Position, 1, InputElementType::Vector3f32 },
+			{ InputAttribute::UV, 1, InputElementType::Vector2f32 },
 		};
 
 		vertexShaderBinary = ReadFileBinary(AR_POST_PROCESS_VERTEX_SHADER_PATH, &vertexBinarySize);
@@ -300,6 +301,8 @@ namespace Arcane {
 	}
 
 	void PBRRenderer::Begin(const Camera3D &camera) {
+		AR_FUNCTION_TIMER();
+
 		sCamera = camera;
 
 		sCameraData.Projection = Matrix4::Transpose(camera.GetProjectionMatrix());
@@ -310,6 +313,7 @@ namespace Arcane {
 	}
 
 	void PBRRenderer::AddLight(const Vector3 &position, const PointLight &light) {
+		AR_FUNCTION_TIMER();
 		uint32_t index = sLightData.PointLightCount++;
 		sLightData.PointLights[index].Color = light.Color;
 		sLightData.PointLights[index].Intensity = light.Intensity;
@@ -317,11 +321,13 @@ namespace Arcane {
 	}
 
 	void PBRRenderer::AddLight(const Vector3 &direction, const DirectionalLight &light) {
+		AR_FUNCTION_TIMER();
 		sLightData.DirectionalLight.Color = light.Color;
 		sLightData.DirectionalLight.Direction = Vector4(Vector3::Normalize(direction), 1.0);
 	}
 
 	void PBRRenderer::Submit(const Transform &transform, const Mesh &mesh, const PBRMaterial &material) {
+		AR_FUNCTION_TIMER();
 		sRenderSubmissions.emplace_back(
 			transform.GetModelMatrix(),
 			transform.Position,
@@ -335,6 +341,7 @@ namespace Arcane {
 	}
 
 	void PBRRenderer::End() {
+		AR_FUNCTION_TIMER();
 		const Vector2 size = sContext.GetWindow().GetClientSize();
 
 		sRendererAPI.SetViewport(size);
@@ -345,48 +352,59 @@ namespace Arcane {
 	
 		sRendererAPI.Begin();
 
-		sRendererAPI.BeginRenderPass(sGeometryRenderPass, sGeometryFramebuffer);
-		sRendererAPI.Clear();
-		for (const RenderSubmission &submission : sRenderSubmissions) {
-			sObjectData.Model = Matrix4::Transpose(submission.Model);
-			sObjectData.MVP = Matrix4::Transpose(sCamera.GetProjectionMatrix() * sCamera.GetViewMatrix() * submission.Model);
-			sObjectData.Position = Vector4(submission.Position, 1.0);
-			sObjectBuffer.SetData((const void*)&sObjectData);
+		{
+			AR_NAMED_SCOPED_TIMER("Geometry Pass");
+			sRendererAPI.BeginRenderPass(sGeometryRenderPass, sGeometryFramebuffer);
+			sRendererAPI.Clear();
 
-			sGeometryPipeline.SetCombinedImageSampler(0, submission.AlbedoMap, sDefaultSampler);
-			sGeometryPipeline.SetCombinedImageSampler(1, submission.NormalMap, sDefaultSampler);
-			sGeometryPipeline.SetCombinedImageSampler(2, submission.MetallicMap, sDefaultSampler);
-			sGeometryPipeline.SetCombinedImageSampler(3, submission.RoughnessMap, sDefaultSampler);
-			sGeometryPipeline.SetCombinedImageSampler(4, submission.AmbientOcclusionMap, sDefaultSampler);
-
-			sRendererAPI.SetMesh(submission.Mesh);
-			sRendererAPI.DrawIndexed(1, submission.Mesh.GetIndexCount());
+			for (const RenderSubmission &submission : sRenderSubmissions) {
+				sObjectData.Model = Matrix4::Transpose(submission.Model);
+				sObjectData.MVP = Matrix4::Transpose(sCamera.GetProjectionMatrix() * sCamera.GetViewMatrix() * submission.Model);
+				sObjectData.Position = Vector4(submission.Position, 1.0);
+				sObjectBuffer.SetData((const void*)&sObjectData);
+	
+				sGeometryPipeline.SetCombinedImageSampler(0, submission.AlbedoMap, sDefaultSampler);
+				sGeometryPipeline.SetCombinedImageSampler(1, submission.NormalMap, sDefaultSampler);
+				sGeometryPipeline.SetCombinedImageSampler(2, submission.MetallicMap, sDefaultSampler);
+				sGeometryPipeline.SetCombinedImageSampler(3, submission.RoughnessMap, sDefaultSampler);
+				sGeometryPipeline.SetCombinedImageSampler(4, submission.AmbientOcclusionMap, sDefaultSampler);
+	
+				sRendererAPI.SetMesh(submission.Mesh);
+				sRendererAPI.DrawIndexed(1, submission.Mesh.GetIndexBuffer().GetSize() / sLightPipeline.GetElementSize());
+			}
+			
+			sRendererAPI.EndRenderPass();
 		}
-		sRendererAPI.EndRenderPass();
 
-		sRendererAPI.BeginRenderPass(sLightRenderPass, sLightFramebuffer);
-		sRendererAPI.Clear();
+		{
+			AR_NAMED_SCOPED_TIMER("Light Pass");
+			sRendererAPI.BeginRenderPass(sLightRenderPass, sLightFramebuffer);
+			sRendererAPI.Clear();
 
-		sLightBuffer.SetData((const void*)&sLightData);
-		sLightPipeline.SetCombinedImageSampler(0, sGeometryFramebuffer.GetColorBuffer(0), sDefaultSampler);
-		sLightPipeline.SetCombinedImageSampler(1, sGeometryFramebuffer.GetColorBuffer(1), sDefaultSampler);
-		sLightPipeline.SetCombinedImageSampler(2, sGeometryFramebuffer.GetColorBuffer(2), sDefaultSampler);
-		sLightPipeline.SetCombinedImageSampler(3, sGeometryFramebuffer.GetColorBuffer(3), sDefaultSampler);
+			sLightBuffer.SetData((const void*)&sLightData);
+			sLightPipeline.SetCombinedImageSampler(0, sGeometryFramebuffer.GetColorBuffer(0), sDefaultSampler);
+			sLightPipeline.SetCombinedImageSampler(1, sGeometryFramebuffer.GetColorBuffer(1), sDefaultSampler);
+			sLightPipeline.SetCombinedImageSampler(2, sGeometryFramebuffer.GetColorBuffer(2), sDefaultSampler);
+			sLightPipeline.SetCombinedImageSampler(3, sGeometryFramebuffer.GetColorBuffer(3), sDefaultSampler);
 
-		sRendererAPI.SetMesh(sQuadMesh);
-		sRendererAPI.DrawIndexed(1, sQuadMesh.GetIndexCount());
-		
-		sRendererAPI.EndRenderPass();
+			sRendererAPI.SetMesh(sQuadMesh);
+			sRendererAPI.DrawIndexed(1, sQuadMesh.GetIndexBuffer().GetSize() / sLightPipeline.GetElementSize());
+			
+			sRendererAPI.EndRenderPass();
+		}
 
-		sRendererAPI.BeginRenderPass(sPostProcessRenderPass, sPostProcessFramebuffer);
-		sRendererAPI.Clear();
+		{
+			AR_NAMED_SCOPED_TIMER("Post-Process Pass");
+			sRendererAPI.BeginRenderPass(sPostProcessRenderPass, sPostProcessFramebuffer);
+			sRendererAPI.Clear();
 
-		sPostProcessPipeline.SetCombinedImageSampler(0, sLightFramebuffer.GetColorBuffer(0), sDefaultSampler);
-		sPostProcessSettingsBuffer.SetData((const void*)&sPostProcessSettingsData);
-		sRendererAPI.SetMesh(sQuadMesh);
-		sRendererAPI.DrawIndexed(1, sQuadMesh.GetIndexCount());
+			sPostProcessPipeline.SetCombinedImageSampler(0, sLightFramebuffer.GetColorBuffer(0), sDefaultSampler);
+			sPostProcessSettingsBuffer.SetData((const void*)&sPostProcessSettingsData);
+			sRendererAPI.SetMesh(sQuadMesh);
+			sRendererAPI.DrawIndexed(1, sQuadMesh.GetIndexBuffer().GetSize() / sPostProcessPipeline.GetElementSize());
 
-		sRendererAPI.EndRenderPass();
+			sRendererAPI.EndRenderPass();
+		}
 
 		sRendererAPI.End();
 
@@ -394,57 +412,10 @@ namespace Arcane {
 		std::memset(&sLightData, 0, sizeof(sLightData));
 		std::memset(&sObjectData, 0, sizeof(sObjectData));
 		std::memset(&sCameraData, 0, sizeof(sCameraData));
+	}
 
-		// sRendererAPI.SetViewport(sContext.GetWindow().GetClientSize());
-		// sRendererAPI.SetScissor(sContext.GetWindow().GetClientSize());
-		// sFramebuffer.Resize(sContext.GetWindow().GetClientSize());
-		// sPostProcessFramebuffer.Resize(sContext.GetWindow().GetClientSize());
-		// sRendererAPI.SetClearColor(Color::Black());
-
-		// sRendererAPI.Begin();
-		// sRendererAPI.BeginRenderPass(sRenderPass, sFramebuffer);
-		// sRendererAPI.Clear();
-
-		// sLightBuffer.SetData(&sLightData);
-		
-		// for (const RenderSubmit &submission : sRenderSubmissions) {
-		// 	sObjectData.Model = Matrix4::Transpose(submission.Model);
-		// 	sObjectData.MVP = Matrix4::Transpose(sCamera.GetProjectionMatrix() * sCamera.GetViewMatrix() * submission.Model);
-		// 	sObjectData.Position = Vector4(submission.Position, 1.0);
-
-		// 	sObjectBuffer.SetData((const void*)&sObjectData);
-
-		// 	sPBRPipeline.SetCombinedImageSampler(0, submission.AlbedoMap, sTextureSampler);
-		// 	sPBRPipeline.SetCombinedImageSampler(1, submission.NormalMap, sTextureSampler);
-		// 	sPBRPipeline.SetCombinedImageSampler(2, submission.MetallicMap, sTextureSampler);
-		// 	sPBRPipeline.SetCombinedImageSampler(3, submission.RoughnessMap, sTextureSampler);
-		// 	sPBRPipeline.SetCombinedImageSampler(4, submission.AmbientOcclusionMap, sTextureSampler);
-
-		// 	sRendererAPI.SetMesh(submission.Mesh);
-		// 	sRendererAPI.DrawIndexed(1, submission.Mesh.GetIndexCount());
-		// }
-		// sRendererAPI.EndRenderPass();
-
-		// sRendererAPI.SetViewport(sContext.GetWindow().GetClientSize());
-		// sRendererAPI.SetScissor(sContext.GetWindow().GetClientSize());
-
-		// sRendererAPI.BeginRenderPass(sPostProcessRenderPass, sPostProcessFramebuffer);
-		// sRendererAPI.Clear();
-
-		// sPostProcessSettingsBuffer.SetData(&sPostProcessSettingsData);
-
-		// sPostProcessPipeline.SetCombinedImageSampler(0, sFramebuffer.GetColorBuffer(0), sPostProcessSampler);
-
-		// sRendererAPI.SetMesh(sQuadMesh);
-		// sRendererAPI.DrawIndexed(1, sQuadMesh.GetIndexCount());
-
-		// sRendererAPI.End();
-
-		// sRenderSubmissions.clear();
-
-		// std::memset(&sLightData, 0, sizeof(sLightData));
-		// std::memset(&sObjectData, 0, sizeof(sObjectData));
-		// std::memset(&sCameraData, 0, sizeof(sCameraData));
+	RendererAPI PBRRenderer::GetRenderer() {
+		return sRendererAPI;
 	}
 
 	void PBRRenderer::SetGamma(float gamma) {

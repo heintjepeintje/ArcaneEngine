@@ -22,6 +22,7 @@ namespace Arcane {
 		inline InputLayout GetLayout() const { return GetNativePipeline()->GetLayout(); }
 		inline Rect2D GetViewport() const { return GetNativePipeline()->GetViewport(); }
 		inline Rect2D GetScissor() const { return GetNativePipeline()->GetScissor(); }
+		inline size_t GetElementSize() const { return GetNativePipeline()->GetElementSize(); }
 
 		inline void SetUniformBuffer(uint32_t index, const Buffer &buffer) { GetNativePipeline()->SetUniformBuffer(index, buffer.GetNativeBuffer()); }
 		inline void SetCombinedImageSampler(uint32_t index, const Texture &texture, const Sampler &sampler) { GetNativePipeline()->SetCombinedImageSampler(index, texture.GetNativeTexture(), sampler.GetNativeSampler()); }

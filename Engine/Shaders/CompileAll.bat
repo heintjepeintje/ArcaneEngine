@@ -11,3 +11,7 @@ POPD
 PUSHD PostProcess
 CALL Compile.bat
 POPD
+
+PUSHD UI
+CALL Compile.bat
+POPD

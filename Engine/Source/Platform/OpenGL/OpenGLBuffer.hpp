@@ -13,6 +13,7 @@ namespace Arcane {
 		virtual void *Map(MapMode mode) override;
 		virtual void Unmap() override;
 		virtual void SetData(size_t offset, size_t size, const void *data) override;
+		virtual void Resize(size_t size) override;
 
 		inline size_t GetSize() const { return mSize; }
 

@@ -11,8 +11,9 @@ namespace Arcane {
 		defaultInfo.Viewport = Rect2D(Vector2::Zero(), Vector2::MaxValue());
 		defaultInfo.Topology = PrimitiveTopology::TriangleList;
 		defaultInfo.WindingOrder = WindingOrder::CounterClockwise;
-		defaultInfo.PointSize = 10;
-		defaultInfo.LineWidth = 10;
+		defaultInfo.PointSize = 1;
+		defaultInfo.LineWidth = 1;
+		defaultInfo.ElementSize = sizeof(uint32_t);
 
 		return defaultInfo;
 	}

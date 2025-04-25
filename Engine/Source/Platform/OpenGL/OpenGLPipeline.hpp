@@ -38,6 +38,7 @@ namespace Arcane {
 		inline virtual uint8_t GetOutputMask() const override { return mOutputMask; }
 		inline virtual float GetLineWidth() const override { return mLineWidth; }
 		inline virtual float GetPointSize() const override { return mPointSize; }
+		inline virtual size_t GetElementSize() const override { return mElementSize; }
 
 		virtual void SetUniformBuffer(uint32_t binding, const Ref<NativeBuffer> &uniformBuffer) override;
 		virtual void SetCombinedImageSampler(uint32_t binding, const Ref<NativeTexture> &texture, const Ref<NativeSampler> &sampler) override;
@@ -64,6 +65,8 @@ namespace Arcane {
 		float mPointSize;
 
 		uint32_t mSampleCount;
+
+		size_t mElementSize;
 
 		std::vector<OpenGLUniformBufferDescriptor> mUniformBufferDescriptors;
 		std::vector<OpenGLCombinedImageSamplerDescriptor> mCombinedImageSamplerDescriptors;

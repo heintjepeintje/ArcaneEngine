@@ -7,13 +7,13 @@
 namespace Arcane {
 
 	class Texture {
-	friend class Framebuffer;
 	public:
 		static Texture Create(const GraphicsContext &context, const TextureInfo &info);
 		static Texture Create(const GraphicsContext &context, const ImageData &image);
 	
 	public:
 		Texture() { }
+		Texture(const Ref<NativeTexture> &nativeTexture) : mNativeTexture(nativeTexture) { }
 		~Texture() { }
 
 		inline void SetImage(uint32_t index, const Image &image) { GetNativeTexture()->SetImage(index, image); }
@@ -24,9 +24,6 @@ namespace Arcane {
 			AR_ASSERT(mNativeTexture, "Native texture is invalid");
 			return mNativeTexture;
 		}
-
-	protected:
-		Texture(const Ref<NativeTexture> &nativeTexture) : mNativeTexture(nativeTexture) { }
 
 	private:
 		Ref<NativeTexture> mNativeTexture;

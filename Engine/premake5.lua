@@ -13,7 +13,12 @@ project "Engine"
 	includedirs {
 		"Source",
 		"Libraries/stb",
-		"Libraries/glm"
+		"Libraries/glm",
+		"Libraries/ImGui"
+	}
+
+	defines {
+		
 	}
 	
 	filter "configurations:Debug"

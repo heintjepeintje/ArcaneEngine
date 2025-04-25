@@ -93,6 +93,8 @@ namespace Arcane {
 
 		float LineWidth;
 		float PointSize;
+
+		uint32_t ElementSize;
 	};
 
 	class NativePipeline {
@@ -115,6 +117,8 @@ namespace Arcane {
 		virtual uint8_t GetOutputMask() const = 0;
 		virtual float GetLineWidth() const = 0;
 		virtual float GetPointSize() const = 0;
+
+		virtual size_t GetElementSize() const = 0;
 
 		virtual void SetUniformBuffer(uint32_t binding, const Ref<NativeBuffer> &uniformBuffer) = 0;
 		virtual void SetCombinedImageSampler(uint32_t binding, const Ref<NativeTexture> &texture, const Ref<NativeSampler> &sampler) = 0;

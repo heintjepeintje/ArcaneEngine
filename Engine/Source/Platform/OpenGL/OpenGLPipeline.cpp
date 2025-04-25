@@ -27,6 +27,8 @@ namespace Arcane {
 		mLineWidth = info.LineWidth;
 		mPointSize = info.PointSize;
 
+		mElementSize = info.ElementSize;
+
 		mProgram = glCreateProgram();
 		
 		GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);

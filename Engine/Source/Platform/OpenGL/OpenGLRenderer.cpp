@@ -1,5 +1,7 @@
 #include "OpenGLRenderer.hpp"
 
+#include <Arcane/System/Time.hpp>
+
 namespace Arcane {
 
 	OpenGLRendererAPI::OpenGLRendererAPI(const Ref<OpenGLGraphicsContext> &context) : mContext(context) {
@@ -90,7 +92,11 @@ namespace Arcane {
 		glPointSize(mPipeline->GetPointSize());
 	}
 
-	void OpenGLRendererAPI::Begin() { }
+	void OpenGLRendererAPI::Begin() {
+		std::memset(&mFrameStatistics, 0, sizeof(mFrameStatistics));
+
+		mFrameStatistics.ElapsedCPUTime = GetCurrentTimeMillis();
+	}
 
 	void OpenGLRendererAPI::End() {
 		glBlitNamedFramebuffer(
@@ -101,8 +107,11 @@ namespace Arcane {
 			GL_NEAREST
 		);
 		
-		GLsync sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-		glWaitSync(sync, 0, GL_TIMEOUT_IGNORED);
+		// GLsync sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+		// glWaitSync(sync, 0, GL_TIMEOUT_IGNORED);
+
+		
+		mFrameStatistics.ElapsedCPUTime = GetCurrentTimeMillis() - mFrameStatistics.ElapsedCPUTime;
 	}
 
 	void OpenGLRendererAPI::BeginRenderPass(const Ref<NativeRenderPass> &renderPass, const Ref<NativeFramebuffer> &framebuffer) {
@@ -195,7 +204,15 @@ namespace Arcane {
 			glBindSampler(combinedImageSamplerDesc.binding, combinedImageSamplerDesc.sampler);
 		}
 
-		glDrawElementsInstanced(topology, count, GL_UNSIGNED_INT, nullptr, instances);
+		glDrawElementsInstanced(topology, count, mPipeline->GetElementSize() == 4 ? GL_UNSIGNED_INT : GL_UNSIGNED_BYTE, nullptr, instances);
+
+		mFrameStatistics.DrawCommands++;
+		mFrameStatistics.IndicesDrawn += count * instances;
+		mFrameStatistics.InstancesDrawn += instances;
+	}
+
+	FrameStatistics OpenGLRendererAPI::GetFrameStatistics() const {
+		return mFrameStatistics;
 	}
 
 }

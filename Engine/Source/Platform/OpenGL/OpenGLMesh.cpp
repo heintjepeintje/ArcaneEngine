@@ -2,57 +2,92 @@
 
 namespace Arcane {
 
-	uint32_t GetInputElementTypeCount(const InputElement &element) {
+	static uint32_t GetInputElementTypeCount(const InputElement &element) {
 		uint32_t count = 0;
 		switch (element.Type) {
-			case InputElementType::Vector2: count = 2; break;
-			case InputElementType::Vector3: count = 3; break;
-			case InputElementType::Vector4: count = 4; break;
-			case InputElementType::Vector2i: count = 2; break;
-			case InputElementType::Vector3i: count = 3; break;
-			case InputElementType::Vector4i: count = 4; break;
-			case InputElementType::Vector2u: count = 2; break;
-			case InputElementType::Vector3u: count = 3; break;
-			case InputElementType::Vector4u: count = 4; break;
+			case InputElementType::Vector2f32: count = 2; break;
+			case InputElementType::Vector3f32: count = 3; break;
+			case InputElementType::Vector4f32: count = 4; break;
+			case InputElementType::Vector2i8: count = 2; break;
+			case InputElementType::Vector3i8: count = 3; break;
+			case InputElementType::Vector4i8: count = 4; break;
+			case InputElementType::Vector2i16: count = 2; break;
+			case InputElementType::Vector3i16: count = 3; break;
+			case InputElementType::Vector4i16: count = 4; break;
+			case InputElementType::Vector2i32: count = 2; break;
+			case InputElementType::Vector3i32: count = 3; break;
+			case InputElementType::Vector4i32: count = 4; break;
+			case InputElementType::Vector2u8: count = 2; break;
+			case InputElementType::Vector3u8: count = 3; break;
+			case InputElementType::Vector4u8: count = 4; break;
+			case InputElementType::Vector2u16: count = 2; break;
+			case InputElementType::Vector3u16: count = 3; break;
+			case InputElementType::Vector4u16: count = 4; break;
+			case InputElementType::Vector2u32: count = 2; break;
+			case InputElementType::Vector3u32: count = 3; break;
+			case InputElementType::Vector4u32: count = 4; break;
 			case InputElementType::Float32: count = 1; break;
 			case InputElementType::Int32: count = 1; break;
 			case InputElementType::UInt32: count = 1; break;
-			default: return GL_NONE;
 		}
 		return count * element.Count;
 	}
 
-	uint32_t GetInputElementSize(const InputElement &element) {
+	static uint32_t GetInputElementSize(const InputElement &element) {
 		uint32_t size = 0;
 		switch (element.Type) {
-			case InputElementType::Vector2: size = 2 * sizeof(float); break;
-			case InputElementType::Vector3: size = 3 * sizeof(float); break;
-			case InputElementType::Vector4: size = 4 * sizeof(float); break;
-			case InputElementType::Vector2i: size = 2 * sizeof(int32_t); break;
-			case InputElementType::Vector3i: size = 3 * sizeof(int32_t); break;
-			case InputElementType::Vector4i: size = 4 * sizeof(int32_t); break;
-			case InputElementType::Vector2u: size = 2 * sizeof(uint32_t); break;
-			case InputElementType::Vector3u: size = 3 * sizeof(uint32_t); break;
-			case InputElementType::Vector4u: size = 4 * sizeof(uint32_t); break;
-			case InputElementType::Float32: size = 1 * sizeof(float); break;
-			case InputElementType::Int32: size = 1 * sizeof(int32_t); break;
-			case InputElementType::UInt32: size = 1 * sizeof(uint32_t); break;
+			case InputElementType::Vector2f32: size = 2 * sizeof(float); break;
+			case InputElementType::Vector3f32: size = 3 * sizeof(float); break;
+			case InputElementType::Vector4f32: size = 4 * sizeof(float); break;
+			case InputElementType::Vector2i8: size = 2 * sizeof(int8_t); break;
+			case InputElementType::Vector3i8: size = 3 * sizeof(int8_t); break;
+			case InputElementType::Vector4i8: size = 4 * sizeof(int8_t); break;
+			case InputElementType::Vector2i16: size = 2 * sizeof(int16_t); break;
+			case InputElementType::Vector3i16: size = 3 * sizeof(int16_t); break;
+			case InputElementType::Vector4i16: size = 4 * sizeof(int16_t); break;
+			case InputElementType::Vector2i32: size = 2 * sizeof(int32_t); break;
+			case InputElementType::Vector3i32: size = 3 * sizeof(int32_t); break;
+			case InputElementType::Vector4i32: size = 4 * sizeof(int32_t); break;
+			case InputElementType::Vector2u8: size = 2 * sizeof(uint8_t); break;
+			case InputElementType::Vector3u8: size = 3 * sizeof(uint8_t); break;
+			case InputElementType::Vector4u8: size = 4 * sizeof(uint8_t); break;
+			case InputElementType::Vector2u16: size = 2 * sizeof(uint16_t); break;
+			case InputElementType::Vector3u16: size = 3 * sizeof(uint16_t); break;
+			case InputElementType::Vector4u16: size = 4 * sizeof(uint16_t); break;
+			case InputElementType::Vector2u32: size = 2 * sizeof(uint32_t); break;
+			case InputElementType::Vector3u32: size = 3 * sizeof(uint32_t); break;
+			case InputElementType::Vector4u32: size = 4 * sizeof(uint32_t); break;
+			case InputElementType::Float32: size = sizeof(float); break;
+			case InputElementType::Int32: size = sizeof(int32_t); break;
+			case InputElementType::UInt32: size = sizeof(uint32_t); break;
 			default: size = 0; break;
 		}
 		return size * element.Count;
 	}
 
-	GLenum GetInputElementOpenGLType(const InputElement &element) {
+	static GLenum GetInputElementOpenGLType(const InputElement &element) {
 		switch (element.Type) {
-			case InputElementType::Vector2: return GL_FLOAT;
-			case InputElementType::Vector3: return GL_FLOAT;
-			case InputElementType::Vector4: return GL_FLOAT;
-			case InputElementType::Vector2i: return GL_INT;
-			case InputElementType::Vector3i: return GL_INT;
-			case InputElementType::Vector4i: return GL_INT;
-			case InputElementType::Vector2u: return GL_UNSIGNED_INT;
-			case InputElementType::Vector3u: return GL_UNSIGNED_INT;
-			case InputElementType::Vector4u: return GL_UNSIGNED_INT;
+			case InputElementType::Vector2f32: return GL_FLOAT;
+			case InputElementType::Vector3f32: return GL_FLOAT;
+			case InputElementType::Vector4f32: return GL_FLOAT;
+			case InputElementType::Vector2i8: return GL_BYTE;
+			case InputElementType::Vector3i8: return GL_BYTE;
+			case InputElementType::Vector4i8: return GL_BYTE;
+			case InputElementType::Vector2i16: return GL_SHORT;
+			case InputElementType::Vector3i16: return GL_SHORT;
+			case InputElementType::Vector4i16: return GL_SHORT;
+			case InputElementType::Vector2i32: return GL_INT;
+			case InputElementType::Vector3i32: return GL_INT;
+			case InputElementType::Vector4i32: return GL_INT;
+			case InputElementType::Vector2u8: return GL_UNSIGNED_BYTE;
+			case InputElementType::Vector3u8: return GL_UNSIGNED_BYTE;
+			case InputElementType::Vector4u8: return GL_UNSIGNED_BYTE;
+			case InputElementType::Vector2u16: return GL_UNSIGNED_SHORT;
+			case InputElementType::Vector3u16: return GL_UNSIGNED_SHORT;
+			case InputElementType::Vector4u16: return GL_UNSIGNED_SHORT;
+			case InputElementType::Vector2u32: return GL_UNSIGNED_INT;
+			case InputElementType::Vector3u32: return GL_UNSIGNED_INT;
+			case InputElementType::Vector4u32: return GL_UNSIGNED_INT;
 			case InputElementType::Float32: return GL_FLOAT;
 			case InputElementType::Int32: return GL_INT;
 			case InputElementType::UInt32: return GL_UNSIGNED_INT;
@@ -94,6 +129,15 @@ namespace Arcane {
 
 		glVertexArrayElementBuffer(mVertexArray, buffer->GetOpenGLID());
 	}
+
+	Ref<NativeBuffer> OpenGLMesh::GetVertexBuffer(uint32_t index) {
+		return mVertexBuffers[index];
+	}
+
+	Ref<NativeBuffer> OpenGLMesh::GetIndexBuffer() {
+		return mIndexBuffer;
+	}
+
 	
 
 }

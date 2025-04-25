@@ -7,6 +7,11 @@
 #include <cstdlib>
 #include <cstring>
 
+#ifdef TRACY_ENABLE
+#	define TRACY_ONLY_LOCALHOST 1
+#	include <tracy/Tracy.hpp>
+#endif
+
 #ifdef _DEBUG
 #	define AR_ASSERT(x, ...) if (!(x)) { std::fprintf(stderr, __VA_ARGS__); __debugbreak(); }
 #else

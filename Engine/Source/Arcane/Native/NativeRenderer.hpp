@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Arcane/Core.hpp>
+#include <Arcane/Graphics/FrameStatistics.hpp>
 
 #include "NativeGraphicsContext.hpp"
 #include "NativePipeline.hpp"
@@ -37,6 +38,8 @@ namespace Arcane {
 		virtual void SetMesh(const Ref<NativeMesh> &mesh) = 0;
 		virtual void SetPipeline(const Ref<NativePipeline> &pipeline) = 0;
 		virtual void DrawIndexed(uint32_t instances, uint32_t count) = 0;
+
+		virtual FrameStatistics GetFrameStatistics() const = 0;
 	};
 
 }

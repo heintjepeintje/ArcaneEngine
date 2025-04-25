@@ -36,6 +36,8 @@ namespace Arcane {
 		virtual void SetPipeline(const Ref<NativePipeline> &pipeline) override;
 		virtual void DrawIndexed(uint32_t instances, uint32_t count) override;
 
+		virtual FrameStatistics GetFrameStatistics() const override;
+
 	private:
 		void UpdatePipeline();
 
@@ -51,6 +53,8 @@ namespace Arcane {
 
 		Rect2D mSpecifiedScissor;
 		Rect2D mOutputScissor;
+
+		FrameStatistics mFrameStatistics;
 	};
 
 }

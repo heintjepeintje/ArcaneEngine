@@ -30,9 +30,9 @@ namespace Arcane {
 		));
 	}
 
-	Ref<NativeBuffer> NativeBuffer::Create(const Ref<NativeGraphicsContext> &context, size_t size) {
+	Ref<NativeBuffer> NativeBuffer::Create(const Ref<NativeGraphicsContext> &context, size_t size, uint32_t flags) {
 		return CastRef<NativeBuffer>(CreateRef<OpenGLBuffer>(
-			size
+			size, flags
 		));
 	}
 

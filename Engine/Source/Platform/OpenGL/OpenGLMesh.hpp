@@ -13,7 +13,8 @@ namespace Arcane {
 
 		virtual void SetVertexBuffer(uint32_t index, const InputLayout &layout, const Ref<NativeBuffer> &vertexBuffer) override;
 		virtual void SetIndexBuffer(const Ref<NativeBuffer> &indexBuffer) override;
-		inline virtual uint32_t GetIndexCount() const override { return mIndexBuffer->GetSize() / sizeof(uint32_t); }
+		virtual Ref<NativeBuffer> GetVertexBuffer(uint32_t index) override;
+		virtual Ref<NativeBuffer> GetIndexBuffer() override;
 
 		inline virtual InputLayout GetLayout() const override { return mLayout; }	
 
