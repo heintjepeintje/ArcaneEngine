@@ -22,6 +22,8 @@
 
 #define AR_PTR_ADD(ptr, offset) ((void*)((uintptr_t)ptr + offset))
 
+#define AR_STRCAT(a, b) a##b
+
 namespace Arcane {
 
 	template<typename _Type>

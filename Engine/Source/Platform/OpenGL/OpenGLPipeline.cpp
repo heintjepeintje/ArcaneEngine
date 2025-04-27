@@ -16,11 +16,22 @@ namespace Arcane {
 		mViewport = info.Viewport;
 		mScissor = info.Scissor;
 
+		mUniformBufferDescriptorCount = 0;
+		mCombinedImageSamplerDescriptorCount = 0;
+
 		mDescriptorCount = info.DescriptorCount;
 		mDescriptors = new Descriptor[mDescriptorCount];
 		for (uint32_t i = 0; i < mDescriptorCount; i++) {
 			mDescriptors[i] = info.Descriptors[i];
+			switch (info.Descriptors[i].Type) {
+				case DescriptorType::UniformBuffer: mUniformBufferDescriptorCount++; break;
+				case DescriptorType::CombinedImageSampler: mCombinedImageSamplerDescriptorCount++; break;
+				default: continue; // TODO: Throw error when descriptor type is unkown
+			}
 		}
+
+		mUniformBufferDescriptors = new OpenGLUniformBufferDescriptor[mUniformBufferDescriptorCount];
+		mCombinedImageSamplerDescriptors = new OpenGLCombinedImageSamplerDescriptor[mCombinedImageSamplerDescriptorCount];
 
 		mSampleCount = info.SampleCount;
 
@@ -65,26 +76,14 @@ namespace Arcane {
 	}
 
 	void OpenGLPipeline::SetUniformBuffer(uint32_t binding, const Ref<NativeBuffer> &uniformBuffer) {
-		mUniformBufferDescriptors.reserve(binding + 1);
-		OpenGLUniformBufferDescriptor desc{};
-		desc.binding = binding;
-		desc.buffer = CastRef<OpenGLBuffer>(uniformBuffer)->GetOpenGLID();
-		
-		mUniformBufferDescriptors[binding] = desc;
-		
-		printf("Uniform Buffer: %u: {b: %u, b: %u}\n", binding, desc.binding, desc.buffer);
+		mUniformBufferDescriptors[binding].binding = binding;
+		mUniformBufferDescriptors[binding].buffer = CastRef<OpenGLBuffer>(uniformBuffer)->GetOpenGLID();
 	}
 
 	void OpenGLPipeline::SetCombinedImageSampler(uint32_t binding, const Ref<NativeTexture> &texture, const Ref<NativeSampler> &sampler) {
-		mCombinedImageSamplerDescriptors.reserve(binding + 1);
-		OpenGLCombinedImageSamplerDescriptor desc{};
-		desc.binding = binding;
-		desc.texture = CastRef<OpenGLTexture>(texture)->GetOpenGLID();
-		desc.sampler = CastRef<OpenGLSampler>(sampler)->GetOpenGLID(); 
-		
-		mCombinedImageSamplerDescriptors[binding] = desc;
-
-		printf("Combined Image Sampler: %u: {b: %u, t: %u, s: %u}\n", binding, desc.binding, desc.texture, desc.sampler);
+		mCombinedImageSamplerDescriptors[binding].binding = binding;
+		mCombinedImageSamplerDescriptors[binding].texture = CastRef<OpenGLTexture>(texture)->GetOpenGLID();
+		mCombinedImageSamplerDescriptors[binding].sampler = CastRef<OpenGLSampler>(sampler)->GetOpenGLID();
 	}
 
 }

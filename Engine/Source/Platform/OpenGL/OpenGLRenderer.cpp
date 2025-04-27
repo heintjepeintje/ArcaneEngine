@@ -103,12 +103,12 @@ namespace Arcane {
 			mFramebuffer->GetOpenGLID(), 0,
 			0, 0, mFramebuffer->GetWidth(), mFramebuffer->GetHeight(), 
 			0, 0, mOutputViewport.Size.X, mOutputViewport.Size.Y, 
-			GL_COLOR_BUFFER_BIT, 
-			GL_NEAREST
+			GL_COLOR_BUFFER_BIT,
+			GL_LINEAR
 		);
 		
-		// GLsync sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-		// glWaitSync(sync, 0, GL_TIMEOUT_IGNORED);
+		GLsync sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+		glWaitSync(sync, 0, GL_TIMEOUT_IGNORED);
 
 		
 		mFrameStatistics.ElapsedCPUTime = GetCurrentTimeMillis() - mFrameStatistics.ElapsedCPUTime;
@@ -138,14 +138,14 @@ namespace Arcane {
 	void OpenGLRendererAPI::EndRenderPass() {
 		glBindVertexArray(0);
 		
-		for (size_t i = 0; i < mPipeline->GetCombinedImageSamplerDescriptors().size(); i++) {
+		for (size_t i = 0; i < mPipeline->GetCombinedImageSamplerDescriptorCount(); i++) {
 			OpenGLCombinedImageSamplerDescriptor &desc = mPipeline->GetCombinedImageSamplerDescriptors()[i];
 			if (i != desc.binding) continue;
 			glBindTextureUnit(desc.binding, 0);
 			glBindSampler(desc.binding, 0);
 		}
 
-		for (size_t i = 0; i < mPipeline->GetUniformBufferDescriptors().size(); i++) {
+		for (size_t i = 0; i < mPipeline->GetUniformBufferDescriptorCount(); i++) {
 			OpenGLUniformBufferDescriptor &desc = mPipeline->GetUniformBufferDescriptors()[i];
 			if (i != desc.binding) continue;
 			glBindBufferBase(GL_UNIFORM_BUFFER, desc.binding, 0);
@@ -199,15 +199,13 @@ namespace Arcane {
 			default: return;
 		}
 
-		for (size_t i = 0; i < mPipeline->GetUniformBufferDescriptors().size(); i++) {
+		for (size_t i = 0; i < mPipeline->GetUniformBufferDescriptorCount(); i++) {
 			OpenGLUniformBufferDescriptor &desc = mPipeline->GetUniformBufferDescriptors()[i];
-			if (i != desc.binding) continue;
 			glBindBufferBase(GL_UNIFORM_BUFFER, desc.binding, desc.buffer);
 		}
 
-		for (size_t i = 0; i < mPipeline->GetCombinedImageSamplerDescriptors().size(); i++) {
+		for (size_t i = 0; i < mPipeline->GetCombinedImageSamplerDescriptorCount(); i++) {
 			OpenGLCombinedImageSamplerDescriptor &desc = mPipeline->GetCombinedImageSamplerDescriptors()[i];
-			if (i != desc.binding) continue;
 			glBindTextureUnit(desc.binding, desc.texture);
 			glBindSampler(desc.binding, desc.sampler);
 		}

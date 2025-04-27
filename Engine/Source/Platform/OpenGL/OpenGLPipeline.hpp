@@ -43,8 +43,10 @@ namespace Arcane {
 		virtual void SetUniformBuffer(uint32_t binding, const Ref<NativeBuffer> &uniformBuffer) override;
 		virtual void SetCombinedImageSampler(uint32_t binding, const Ref<NativeTexture> &texture, const Ref<NativeSampler> &sampler) override;
 		
-		inline std::vector<OpenGLUniformBufferDescriptor> GetUniformBufferDescriptors() const { return mUniformBufferDescriptors; }
-		inline std::vector<OpenGLCombinedImageSamplerDescriptor> GetCombinedImageSamplerDescriptors() const { return mCombinedImageSamplerDescriptors; }
+		inline size_t GetUniformBufferDescriptorCount() const { return mUniformBufferDescriptorCount; }
+		inline OpenGLUniformBufferDescriptor *GetUniformBufferDescriptors() const { return mUniformBufferDescriptors; }
+		inline size_t GetCombinedImageSamplerDescriptorCount() const { return mCombinedImageSamplerDescriptorCount; }
+		inline OpenGLCombinedImageSamplerDescriptor *GetCombinedImageSamplerDescriptors() const { return mCombinedImageSamplerDescriptors; }
 
 	private:
 		Ref<OpenGLGraphicsContext> mContext;
@@ -68,8 +70,10 @@ namespace Arcane {
 
 		size_t mElementSize;
 
-		std::vector<OpenGLUniformBufferDescriptor> mUniformBufferDescriptors;
-		std::vector<OpenGLCombinedImageSamplerDescriptor> mCombinedImageSamplerDescriptors;
+		size_t mUniformBufferDescriptorCount;
+		OpenGLUniformBufferDescriptor *mUniformBufferDescriptors;
+		size_t mCombinedImageSamplerDescriptorCount;
+		OpenGLCombinedImageSamplerDescriptor *mCombinedImageSamplerDescriptors;
 	};
 
 }

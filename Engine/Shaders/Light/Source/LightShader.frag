@@ -59,9 +59,7 @@ void main() {
 	result += GetDirectionalLightColor(position, albedo, normal, metallic, roughness);
 
 	const vec3 ambient = vec3(0.003) * albedo * ao;
-	vec3 color = ambient + result;
-
-	oColor = vec3(1.0, 0.0, 0.0);
+	oColor = ambient + result;
 }
 
 vec3 FresnelSchlick(float cosTheta, vec3 f0) {

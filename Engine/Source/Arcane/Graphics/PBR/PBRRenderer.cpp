@@ -7,12 +7,15 @@
 #include <Arcane/Util/FileUtil.hpp>
 #include <Arcane/System/Time.hpp>
 
-#define AR_GEOMETRY_VERTEX_SHADER_PATH "Engine/Shaders/Geometry/Binaries/Output/GeometryShader.vert.spv"
-#define AR_GEOMETRY_FRAGMENT_SHADER_PATH "Engine/Shaders/Geometry/Binaries/Output/GeometryShader.frag.spv"
-#define AR_LIGHT_VERTEX_SHADER_PATH "Engine/Shaders/Light/Binaries/Output/LightShader.vert.spv"
-#define AR_LIGHT_FRAGMENT_SHADER_PATH "Engine/Shaders/Light/Binaries/Output/LightShader.frag.spv"
-#define AR_POST_PROCESS_VERTEX_SHADER_PATH "Engine/Shaders/PostProcess/Binaries/Output/PostProcess.vert.spv"
-#define AR_POST_PROCESS_FRAGMENT_SHADER_PATH "Engine/Shaders/PostProcess/Binaries/Output/PostProcess.frag.spv"
+#define AR_VERT_SHADER_PATH(folder, name) "Engine/Shaders/"#folder"/Binaries/Output/"#name".vert.spv"
+#define AR_FRAG_SHADER_PATH(folder, name) "Engine/Shaders/"#folder"/Binaries/Output/"#name".frag.spv"
+
+#define AR_GEOMETRY_VERTEX_SHADER_PATH 			AR_VERT_SHADER_PATH(Geometry, 		GeometryShader)
+#define AR_GEOMETRY_FRAGMENT_SHADER_PATH 		AR_FRAG_SHADER_PATH(Geometry, 		GeometryShader)
+#define AR_LIGHT_VERTEX_SHADER_PATH 			AR_VERT_SHADER_PATH(Light, 			LightShader)
+#define AR_LIGHT_FRAGMENT_SHADER_PATH 			AR_FRAG_SHADER_PATH(Light, 			LightShader)
+#define AR_POST_PROCESS_VERTEX_SHADER_PATH 		AR_VERT_SHADER_PATH(PostProcess, 	PostProcess)
+#define AR_POST_PROCESS_FRAGMENT_SHADER_PATH 	AR_FRAG_SHADER_PATH(PostProcess, 	PostProcess)
 
 #define AR_PBR_SAMPLE_COUNT 1
 
@@ -353,7 +356,6 @@ namespace Arcane {
 		sRendererAPI.Begin();
 
 		{
-			AR_NAMED_SCOPED_TIMER("Geometry Pass");
 			sRendererAPI.BeginRenderPass(sGeometryRenderPass, sGeometryFramebuffer);
 			sRendererAPI.Clear();
 
@@ -361,6 +363,7 @@ namespace Arcane {
 				sObjectData.Model = Matrix4::Transpose(submission.Model);
 				sObjectData.MVP = Matrix4::Transpose(sCamera.GetProjectionMatrix() * sCamera.GetViewMatrix() * submission.Model);
 				sObjectData.Position = Vector4(submission.Position, 1.0);
+
 				sObjectBuffer.SetData((const void*)&sObjectData);
 	
 				sGeometryPipeline.SetCombinedImageSampler(0, submission.AlbedoMap, sDefaultSampler);
@@ -370,11 +373,10 @@ namespace Arcane {
 				sGeometryPipeline.SetCombinedImageSampler(4, submission.AmbientOcclusionMap, sDefaultSampler);
 	
 				sRendererAPI.SetMesh(submission.Mesh);
-				sRendererAPI.DrawIndexed(1, submission.Mesh.GetIndexBuffer().GetSize() / sLightPipeline.GetElementSize());
+				sRendererAPI.DrawIndexed(1, submission.Mesh.GetIndexBuffer().GetSize() / sGeometryPipeline.GetElementSize());
 			}
 			
 			sRendererAPI.EndRenderPass();
-			sRenderSubmissions.clear();
 		}
 
 		{
@@ -408,6 +410,8 @@ namespace Arcane {
 		}
 
 		sRendererAPI.End();
+		
+		sRenderSubmissions.clear();
 
 		std::memset(&sLightData, 0, sizeof(sLightData));
 		std::memset(&sObjectData, 0, sizeof(sObjectData));

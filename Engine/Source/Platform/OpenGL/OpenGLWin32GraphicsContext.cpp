@@ -114,9 +114,9 @@ namespace Arcane {
 			}
 		}
 
-		if (wglSwapIntervalEXT) {
-			wglSwapIntervalEXT(0);
-		}
+		// if (wglSwapIntervalEXT) {
+		// 	wglSwapIntervalEXT(0);
+		// }
 
 		glEnable(GL_DEBUG_OUTPUT);
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);

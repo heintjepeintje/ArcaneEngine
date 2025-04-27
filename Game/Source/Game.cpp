@@ -113,7 +113,7 @@ int main(int argc, char **argv) {
 			if (Arcane::IsKeyPressed(Arcane::KeyCode::LeftShift) || Arcane::IsKeyPressed(Arcane::KeyCode::RightShift))
 				camera.Position -= camera.Up * speed * Arcane::GetDeltaTime();
 
-			if (Arcane::IsKeyPressed(Arcane::KeyCode::W)) 
+			if (Arcane::IsKeyPressed(Arcane::KeyCode::W))
 				camera.Position += camera.Front * speed * Arcane::GetDeltaTime();
 			if (Arcane::IsKeyPressed(Arcane::KeyCode::S))
 				camera.Position -= camera.Front * speed * Arcane::GetDeltaTime();
@@ -127,7 +127,7 @@ int main(int argc, char **argv) {
 		}
 
 		Arcane::PBRRenderer::SetExposure(1.0);
-		Arcane::PBRRenderer::SetGamma(1.0);
+		Arcane::PBRRenderer::SetGamma(2.2);
 		{
 			Arcane::Timer timer;
 
@@ -142,12 +142,7 @@ int main(int argc, char **argv) {
 
 			// std::printf("Render Time: %llu\n", timer.GetElapsedTime());
 		}
-		// const Arcane::FrameStatistics &frameStats = Arcane::PBRRenderer::GetRenderer().GetFrameStatistics();
-		// std::printf("Frame:\n");
-		// std::printf("Total Indices: %u\n", frameStats.IndicesDrawn);
-		// std::printf("Draw Commands: %u\n", frameStats.DrawCommands);
-		// std::printf("Total Instances: %u\n", frameStats.InstancesDrawn);
-		// std::printf("CPU Time: %ums\n", frameStats.ElapsedCPUTime);
+		const Arcane::FrameStatistics &frameStats = Arcane::PBRRenderer::GetRenderer().GetFrameStatistics();
 
 		context.Present();
 		window.Update();
