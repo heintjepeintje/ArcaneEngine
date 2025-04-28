@@ -68,6 +68,7 @@ namespace Arcane {
 	}
 
 	void Win32Window::Update() {
+		AR_PROFILE_FUNCTION();
 		MSG message = { };
 		while (PeekMessageA(&message, mHandle, 0, 0, PM_REMOVE)) {
 			TranslateMessage(&message);

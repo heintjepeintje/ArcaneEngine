@@ -81,7 +81,7 @@ int main(int argc, char **argv) {
 	char buffer[256];
 
 	while (!window.IsClosed()) {
-		AR_NAMED_SCOPED_TIMER("Frame");
+		AR_PROFILE_FRAME_START();
 		lightPosition.Position = camera.Position;
 
 		memset(buffer, 0, sizeof(buffer));
@@ -126,11 +126,10 @@ int main(int argc, char **argv) {
 			Arcane::SetCursorVisible(true);
 		}
 
-		Arcane::PBRRenderer::SetExposure(1.0);
-		Arcane::PBRRenderer::SetGamma(2.2);
 		{
-			Arcane::Timer timer;
-
+			AR_PROFILE_SCOPE("Rendering");
+			Arcane::PBRRenderer::SetExposure(1.0);
+			Arcane::PBRRenderer::SetGamma(2.2);
 			Arcane::PBRRenderer::Begin(camera);
 
 			Arcane::PBRRenderer::AddLight(lightPosition.Position, light);
@@ -139,8 +138,6 @@ int main(int argc, char **argv) {
 			Arcane::PBRRenderer::Submit(boxTransform, box, boxMaterial);
 
 			Arcane::PBRRenderer::End();
-
-			// std::printf("Render Time: %llu\n", timer.GetElapsedTime());
 		}
 		const Arcane::FrameStatistics &frameStats = Arcane::PBRRenderer::GetRenderer().GetFrameStatistics();
 
@@ -149,6 +146,8 @@ int main(int argc, char **argv) {
 
 		Arcane::UpdateInput();
 		Arcane::UpdateTime();
+
+		AR_PROFILE_FRAME_END();
 	}
 
 	Arcane::PBRRenderer::Shutdown();

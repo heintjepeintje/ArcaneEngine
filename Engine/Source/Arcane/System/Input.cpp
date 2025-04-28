@@ -17,6 +17,7 @@ namespace Arcane {
 	static const Vector2 sCenter = { 1920.0f / 2.0f, 1080.0f / 2.0f };
 
 	void UpdateInput() {
+		AR_PROFILE_FUNCTION();
 		for (uint32_t i = 0; i < AR_MAX_KEYS; i++) {
 			sLastKeyStates[i] = sKeyStates[i];
 			sKeyStates[i] = _IsKeyPressed(_ToNativeKeyCode((KeyCode)i));

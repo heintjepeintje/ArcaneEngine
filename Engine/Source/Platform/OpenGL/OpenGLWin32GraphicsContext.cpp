@@ -79,6 +79,7 @@ namespace Arcane {
 	}
 
 	OpenGLGraphicsContext::OpenGLGraphicsContext(const Ref<NativeWindow> &window) : mWindow(window) {
+		AR_PROFILE_FUNCTION();
 		Ref<Win32Window> win32Window = CastRef<Win32Window>(window);
 
 		PIXELFORMATDESCRIPTOR pfd = {};
@@ -126,6 +127,7 @@ namespace Arcane {
 	}
 
 	OpenGLGraphicsContext::~OpenGLGraphicsContext() {
+		AR_PROFILE_FUNCTION();
 		if (wglGetCurrentContext() == mRenderContext) {
 			wglMakeCurrent(mDeviceContext, NULL);
 		}
@@ -133,6 +135,7 @@ namespace Arcane {
 	}
 
 	void OpenGLGraphicsContext::Present() {
+		AR_PROFILE_FUNCTION();
 		wglSwapLayerBuffers(mDeviceContext, WGL_SWAP_MAIN_PLANE);
 	}
 

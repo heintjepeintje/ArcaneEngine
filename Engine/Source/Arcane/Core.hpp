@@ -10,6 +10,14 @@
 #ifdef TRACY_ENABLE
 #	define TRACY_ONLY_LOCALHOST 1
 #	include <tracy/Tracy.hpp>
+#	define AR_PROFILE_FUNCTION() ZoneScopedN(__PRETTY_FUNCTION__)
+#	define AR_PROFILE_SCOPE(name) ZoneScopedN(name)
+#	define AR_PROFILE_FRAME_START() FrameMarkStart(nullptr)
+#	define AR_PROFILE_FRAME_END() FrameMarkEnd(nullptr)
+#else 
+#	define AR_PROFILE_FUNCTION()
+#	define AR_PROFILE_SCOPE(name)
+#	define AR_PROFILE_FRAME()
 #endif
 
 #ifdef _DEBUG

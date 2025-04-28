@@ -13,23 +13,26 @@ project "Game"
 	includedirs {
 		"Source",
 		"../Engine/Source",
-		"../Engine/Libraries/glm"
+		"../Engine/Libraries/glm",
+		"../Engine/Libraries/tracy/public"
 	}
 
 	links {
 		"gdi32",
 		"opengl32",
-		"Engine"
-	}
-
-	defines {
-		
+		"Engine",
+		"tracy",
+		"ws2_32",
+		"winmm",
+		"dbghelp",
+		"shlwapi"
 	}
 
 	filter "configurations:Debug"
 		symbols "On"
 		defines {
-			"_DEBUG"
+			"_DEBUG",
+			"TRACY_ENABLE"
 		}
 
 	filter "configurations:Release"

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Arcane/Core.hpp>
+#include <Arcane/System/Time.hpp>
 
 #include <cstdint>
 

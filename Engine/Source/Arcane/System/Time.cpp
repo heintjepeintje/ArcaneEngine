@@ -8,6 +8,7 @@ namespace Arcane {
 	float sDeltaTime = 0.0f;
 
 	void UpdateTime() {
+		AR_PROFILE_FUNCTION();
 		if (sLastTime == 0) {
 			sLastTime = _GetCurrentTimeMillis();
 		}

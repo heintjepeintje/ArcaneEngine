@@ -13,17 +13,15 @@ project "Engine"
 	includedirs {
 		"Source",
 		"Libraries/stb",
-		"Libraries/glm"
-	}
-
-	defines {
-		
+		"Libraries/glm",
+		"Libraries/tracy/public"
 	}
 	
 	filter "configurations:Debug"
 		symbols "On"
 		defines {
-			"_DEBUG"
+			"_DEBUG",
+			"TRACY_ENABLE"
 		}
 
 	filter "configurations:Release"

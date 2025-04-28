@@ -743,6 +743,7 @@ namespace Arcane {
 	}
 
 	void LoadGL() {
+		AR_PROFILE_FUNCTION();
 #ifdef _WIN32
 		OpenGLModule = LoadLibraryW(L"opengl32.dll");
 		wglGetProcAddress = (PROCWGLGETPROCADDRESS)GetProcAddress(OpenGLModule, "wglGetProcAddress");

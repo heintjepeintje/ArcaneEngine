@@ -6,6 +6,7 @@
 namespace Arcane {
 
 	OpenGLPipeline::OpenGLPipeline(const Ref<OpenGLGraphicsContext> &context, const PipelineInfo &info) : mContext(context) {
+		AR_PROFILE_FUNCTION();
 		mCullMode = info.CullMode;
 		mWindingOrder = info.WindingOrder;
 		mFillMode = info.FillMode;
@@ -76,11 +77,13 @@ namespace Arcane {
 	}
 
 	void OpenGLPipeline::SetUniformBuffer(uint32_t binding, const Ref<NativeBuffer> &uniformBuffer) {
+		AR_PROFILE_FUNCTION();
 		mUniformBufferDescriptors[binding].binding = binding;
 		mUniformBufferDescriptors[binding].buffer = CastRef<OpenGLBuffer>(uniformBuffer)->GetOpenGLID();
 	}
 
 	void OpenGLPipeline::SetCombinedImageSampler(uint32_t binding, const Ref<NativeTexture> &texture, const Ref<NativeSampler> &sampler) {
+		AR_PROFILE_FUNCTION();
 		mCombinedImageSamplerDescriptors[binding].binding = binding;
 		mCombinedImageSamplerDescriptors[binding].texture = CastRef<OpenGLTexture>(texture)->GetOpenGLID();
 		mCombinedImageSamplerDescriptors[binding].sampler = CastRef<OpenGLSampler>(sampler)->GetOpenGLID();

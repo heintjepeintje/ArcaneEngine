@@ -95,6 +95,7 @@ namespace Arcane {
 	static std::vector<RenderSubmission> sRenderSubmissions;
 
 	void PBRRenderer::Init(const GraphicsContext &context) {
+		AR_PROFILE_FUNCTION();
 		sContext = context;
 
 		sRendererAPI = RendererAPI::Create(sContext);
@@ -296,15 +297,15 @@ namespace Arcane {
 	}
 
 	void PBRRenderer::Shutdown() {
-
+		AR_PROFILE_FUNCTION();
 	}
 
 	void PBRRenderer::Reload() {
-		
+		AR_PROFILE_FUNCTION();
 	}
 
 	void PBRRenderer::Begin(const Camera3D &camera) {
-		AR_FUNCTION_TIMER();
+		AR_PROFILE_FUNCTION();
 
 		sCamera = camera;
 
@@ -316,7 +317,7 @@ namespace Arcane {
 	}
 
 	void PBRRenderer::AddLight(const Vector3 &position, const PointLight &light) {
-		AR_FUNCTION_TIMER();
+		AR_PROFILE_FUNCTION();
 		uint32_t index = sLightData.PointLightCount++;
 		sLightData.PointLights[index].Color = light.Color;
 		sLightData.PointLights[index].Intensity = light.Intensity;
@@ -324,13 +325,13 @@ namespace Arcane {
 	}
 
 	void PBRRenderer::AddLight(const Vector3 &direction, const DirectionalLight &light) {
-		AR_FUNCTION_TIMER();
+		AR_PROFILE_FUNCTION();
 		sLightData.DirectionalLight.Color = light.Color;
 		sLightData.DirectionalLight.Direction = Vector4(Vector3::Normalize(direction), 1.0);
 	}
 
 	void PBRRenderer::Submit(const Transform &transform, const Mesh &mesh, const PBRMaterial &material) {
-		AR_FUNCTION_TIMER();
+		AR_PROFILE_FUNCTION();
 		sRenderSubmissions.emplace_back(
 			transform.GetModelMatrix(),
 			transform.Position,
@@ -344,7 +345,7 @@ namespace Arcane {
 	}
 
 	void PBRRenderer::End() {
-		AR_FUNCTION_TIMER();
+		AR_PROFILE_FUNCTION();
 		const Vector2 size = sContext.GetWindow().GetClientSize();
 
 		sRendererAPI.SetViewport(size);
@@ -356,6 +357,7 @@ namespace Arcane {
 		sRendererAPI.Begin();
 
 		{
+			AR_PROFILE_SCOPE("Geometry Pass");
 			sRendererAPI.BeginRenderPass(sGeometryRenderPass, sGeometryFramebuffer);
 			sRendererAPI.Clear();
 
@@ -380,7 +382,7 @@ namespace Arcane {
 		}
 
 		{
-			AR_NAMED_SCOPED_TIMER("Light Pass");
+			AR_PROFILE_SCOPE("Light Pass");
 			sRendererAPI.BeginRenderPass(sLightRenderPass, sLightFramebuffer);
 			sRendererAPI.Clear();
 
@@ -397,7 +399,7 @@ namespace Arcane {
 		}
 
 		{
-			AR_NAMED_SCOPED_TIMER("Post-Process Pass");
+			AR_PROFILE_SCOPE("Post-Process Pass");
 			sRendererAPI.BeginRenderPass(sPostProcessRenderPass, sPostProcessFramebuffer);
 			sRendererAPI.Clear();
 

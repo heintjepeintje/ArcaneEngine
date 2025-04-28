@@ -5,14 +5,18 @@
 namespace Arcane {
 
 	OpenGLRendererAPI::OpenGLRendererAPI(const Ref<OpenGLGraphicsContext> &context) : mContext(context) {
+		AR_PROFILE_FUNCTION();
 		glEnable(GL_SCISSOR_TEST);
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_STENCIL_TEST);
 	}
 
-	OpenGLRendererAPI::~OpenGLRendererAPI() { }
+	OpenGLRendererAPI::~OpenGLRendererAPI() {
+		AR_PROFILE_FUNCTION();
+	}
 
 	void OpenGLRendererAPI::UpdatePipeline() {
+		AR_PROFILE_FUNCTION();
 		glEnable(GL_CULL_FACE);
 
 		switch (mPipeline->GetCullMode()) {
@@ -93,12 +97,14 @@ namespace Arcane {
 	}
 
 	void OpenGLRendererAPI::Begin() {
+		AR_PROFILE_FUNCTION();
 		std::memset(&mFrameStatistics, 0, sizeof(mFrameStatistics));
 
 		mFrameStatistics.ElapsedCPUTime = GetCurrentTimeMillis();
 	}
 
 	void OpenGLRendererAPI::End() {
+		AR_PROFILE_FUNCTION();
 		glBlitNamedFramebuffer(
 			mFramebuffer->GetOpenGLID(), 0,
 			0, 0, mFramebuffer->GetWidth(), mFramebuffer->GetHeight(), 
@@ -115,6 +121,7 @@ namespace Arcane {
 	}
 
 	void OpenGLRendererAPI::BeginRenderPass(const Ref<NativeRenderPass> &renderPass, const Ref<NativeFramebuffer> &framebuffer) {
+		AR_PROFILE_FUNCTION();
 		AR_ASSERT(renderPass->GetAttachmentCount() == framebuffer->GetAttachmentCount(), "RenderPass and Framebuffer attachments are not compatible");
 
 		const Attachment *renderPassAttachments = renderPass->GetAttachments();
@@ -136,6 +143,7 @@ namespace Arcane {
 	}
 
 	void OpenGLRendererAPI::EndRenderPass() {
+		AR_PROFILE_FUNCTION();
 		glBindVertexArray(0);
 		
 		for (size_t i = 0; i < mPipeline->GetCombinedImageSamplerDescriptorCount(); i++) {
@@ -154,41 +162,50 @@ namespace Arcane {
 	}
 
 	void OpenGLRendererAPI::SetClearColor(float r, float g, float b, float a) {
+		AR_PROFILE_FUNCTION();
 		glClearColor(r, g, b, a);
 	}
 
 	void OpenGLRendererAPI::SetClearDepth(float depth) {
+		AR_PROFILE_FUNCTION();
 		glClearDepthf(depth);
 	}
 
 	void OpenGLRendererAPI::SetClearStencil(uint16_t stencil) {
+		AR_PROFILE_FUNCTION();
 		glClearStencil(stencil);
 	}
 
 	void OpenGLRendererAPI::Clear() {
+		AR_PROFILE_FUNCTION();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	}
 
 	void OpenGLRendererAPI::SetViewport(Rect2D viewport) {
+		AR_PROFILE_FUNCTION();
 		mSpecifiedViewport = viewport;
 	}
 
 	void OpenGLRendererAPI::SetScissor(Rect2D scissor) {
+		AR_PROFILE_FUNCTION();
 		mSpecifiedScissor = scissor;
 	}
 
 	void OpenGLRendererAPI::SetMesh(const Ref<NativeMesh> &mesh) {
+		AR_PROFILE_FUNCTION();
 		mMesh = CastRef<OpenGLMesh>(mesh);
 		glBindVertexArray(mMesh->GetVertexArray());
 	}
 
 	void OpenGLRendererAPI::SetPipeline(const Ref<NativePipeline> &pipeline) {
+		AR_PROFILE_FUNCTION();
 		mPipeline = CastRef<OpenGLPipeline>(pipeline);
 
 		UpdatePipeline();
 	}
 
 	void OpenGLRendererAPI::DrawIndexed(uint32_t instances, uint32_t count) {
+		AR_PROFILE_FUNCTION();
 		GLenum topology = GL_NONE;
 		switch (mPipeline->GetTopology()) {
 			case PrimitiveTopology::TriangleList: topology = GL_TRIANGLES; break;

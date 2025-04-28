@@ -280,6 +280,7 @@ namespace Arcane {
 	}
 
 	OpenGLTexture::OpenGLTexture(const Ref<OpenGLGraphicsContext> &context, const TextureInfo &info) : mContext(context), mType(info.Type), mFormat(info.Format) {
+		AR_PROFILE_FUNCTION();
 		AR_ASSERT(info.Width != 0, "Texture width cannot be 0");
 		AR_ASSERT(info.Height != 0, "Texture height cannot be 0");
 		AR_ASSERT(info.Levels != 0, "Texture levels cannot be 0");
@@ -301,10 +302,12 @@ namespace Arcane {
 	}
 
 	OpenGLTexture::~OpenGLTexture() {
+		AR_PROFILE_FUNCTION();
 		glDeleteTextures(1, &mTexture);
 	}
 
 	void OpenGLTexture::SetImage(uint32_t level, const Image &image) {
+		AR_PROFILE_FUNCTION();
 		const GLenum texelType = GetOpenGLTexelType(image.Format);
 
 		switch (mType) {
@@ -321,6 +324,7 @@ namespace Arcane {
 	}
 
 	void OpenGLTexture::Resize(uint32_t width, uint32_t height, uint32_t depth) {
+		AR_PROFILE_FUNCTION();
 		if (width == mWidth && height == mHeight && depth == mDepth) return;
 		
 		mWidth = width;
@@ -370,6 +374,7 @@ namespace Arcane {
 	}
 
 	OpenGLSampler::OpenGLSampler(const Ref<OpenGLGraphicsContext> &context, const SamplerInfo &info) : mContext(context) {
+		AR_PROFILE_FUNCTION();
 		glCreateSamplers(1, &mSampler);
 		glSamplerParameteri(mSampler, GL_TEXTURE_MIN_FILTER, ToOpenGLSamplerFilterWithMipmapFilter(info.MinFilter, info.MipmapFilter));
 		glSamplerParameteri(mSampler, GL_TEXTURE_MAG_FILTER, ToOpenGLSamplerFilter(info.MagFilter));
@@ -379,10 +384,12 @@ namespace Arcane {
 	}
 
 	OpenGLSampler::~OpenGLSampler() {
+		AR_PROFILE_FUNCTION();
 		glDeleteSamplers(1, &mSampler);
 	}
 
 	void OpenGLTexture::GenerateMipmaps() {
+		AR_PROFILE_FUNCTION();
 		glGenerateTextureMipmap(mTexture);
 	}
 

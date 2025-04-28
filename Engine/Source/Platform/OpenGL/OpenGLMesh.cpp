@@ -96,14 +96,17 @@ namespace Arcane {
 	}
 
 	OpenGLMesh::OpenGLMesh(const Ref<OpenGLGraphicsContext> &context) : mContext(context) {
+		AR_PROFILE_FUNCTION();
 		glCreateVertexArrays(1, &mVertexArray);
 	}
 
 	OpenGLMesh::~OpenGLMesh() {
+		AR_PROFILE_FUNCTION();
 		glDeleteVertexArrays(1, &mVertexArray);
 	}
 
 	void OpenGLMesh::SetVertexBuffer(uint32_t index, const InputLayout &layout, const Ref<NativeBuffer> &vertexBuffer) {
+		AR_PROFILE_FUNCTION();
 		Ref<OpenGLBuffer> buffer = CastRef<OpenGLBuffer>(vertexBuffer);
 
 		mVertexBuffers.emplace(mVertexBuffers.begin() + index, vertexBuffer);
@@ -123,6 +126,7 @@ namespace Arcane {
 	}
 
 	void OpenGLMesh::SetIndexBuffer(const Ref<NativeBuffer> &indexBuffer) {
+		AR_PROFILE_FUNCTION();
 		Ref<OpenGLBuffer> buffer = CastRef<OpenGLBuffer>(indexBuffer);
 
 		mIndexBuffer = indexBuffer;

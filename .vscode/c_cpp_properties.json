@@ -9,10 +9,11 @@
 				]
 			},
 			"cppStandard": "c++20",
-			"defines": [ "_DEBUG" ],
+			"defines": [ "_DEBUG", "TRACY_ENABLE" ],
 			"includePath": [
 				"Engine/Libraries/stb",
 				"Engine/Libraries/ImGui",
+				"Engine/Libraries/tracy/public",
 				"Engine/Source",
 				"Game/Source"
 			],

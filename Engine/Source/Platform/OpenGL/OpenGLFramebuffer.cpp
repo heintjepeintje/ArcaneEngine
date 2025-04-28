@@ -3,6 +3,7 @@
 namespace Arcane {
 
 	OpenGLFramebuffer::OpenGLFramebuffer(const Ref<OpenGLGraphicsContext> &context, const FramebufferInfo &info) : mContext(context) {
+		AR_PROFILE_FUNCTION();
 		mWidth = info.Width;
 		mHeight = info.Height;
 
@@ -52,10 +53,12 @@ namespace Arcane {
 	}
 
 	OpenGLFramebuffer::~OpenGLFramebuffer() {
+		AR_PROFILE_FUNCTION();
 		glDeleteFramebuffers(1, &mFramebuffer);
 	}
 
 	void OpenGLFramebuffer::Resize(uint32_t width, uint32_t height) {
+		AR_PROFILE_FUNCTION();
 		if (width == mWidth && height == mHeight) return;
 		if (width == 0 || height == 0) return;
 		
