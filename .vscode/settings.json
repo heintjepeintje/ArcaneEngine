@@ -59,19 +59,15 @@
 		"filesystem": "cpp",
 		"*.vsh": "glsl",
 		"*.fsh": "glsl",
-		"fstream": "cpp",
-		"sstream": "cpp",
-		"cinttypes": "cpp",
-		"cstring": "cpp",
+		"bitset": "cpp",
+		"thread": "cpp",
 		"chrono": "cpp",
-		"mutex": "cpp",
-		"condition_variable": "cpp",
+		"cstring": "cpp",
 		"ratio": "cpp",
+		"fstream": "cpp",
 		"iomanip": "cpp",
 		"semaphore": "cpp",
-		"stop_token": "cpp",
-		"thread": "cpp"
-	},
-	"makefile.configureOnOpen": false,
-	"cmake.sourceDirectory": "C:/dev/ArcaneEngine/Engine/Libraries/tracy"
+		"sstream": "cpp",
+		"stop_token": "cpp"
+	}
 }

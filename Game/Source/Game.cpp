@@ -6,9 +6,24 @@ const float speed = 1.0f;
 
 Arcane::Camera3D camera;
 
+struct Tag {
+	Tag() { }
+	Tag(const std::string &tag) : Name(tag) { }
+
+	std::string Name;
+};
+
+
 int main(int argc, char **argv) {
 	Arcane::Window window = Arcane::Window::Create(1920 / 2, 1080 / 2, "Arcane Engine");
 	window.SetMaximized(true);
+
+	Arcane::Entity firstEntity;
+	firstEntity.Add<Arcane::Transform>(Arcane::Vector3(1.0f, 3.0f, 5.0f));
+
+	Arcane::Transform &t = firstEntity.Get<Arcane::Transform>();
+
+	std::printf("Transform: %f, %f, %f\n", t.Position.X, t.Position.Y, t.Position.Z);
 
 	Arcane::GraphicsContext context = Arcane::GraphicsContext::Create(window);
 

@@ -28,3 +28,6 @@
 // PBR
 #include <Arcane/Graphics/PBR/PBRMaterial.hpp>
 #include <Arcane/Graphics/PBR/PBRRenderer.hpp>
+
+#include <Arcane/Entity/Scene.hpp>
+#include <Arcane/Entity/Entity.hpp>
