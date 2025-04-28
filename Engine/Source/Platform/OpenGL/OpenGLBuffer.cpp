@@ -3,7 +3,7 @@
 namespace Arcane {
 
 	OpenGLBuffer::OpenGLBuffer(size_t size, uint32_t flags) : mSize(size) {
-		AR_PROFILE_FUNCTION();
+		AR_PROFILE_FUNCTION_GPU_CPU();
 		glCreateBuffers(1, &mBuffer);
 		if (flags & BufferFlag_Mutable) {
 			glNamedBufferData(mBuffer, mSize, nullptr, GL_DYNAMIC_DRAW);
@@ -13,12 +13,12 @@ namespace Arcane {
 	}
 
 	OpenGLBuffer::~OpenGLBuffer() {
-		AR_PROFILE_FUNCTION();
+		AR_PROFILE_FUNCTION_GPU_CPU();
 		glDeleteBuffers(1, &mBuffer);
 	}
 
 	void *OpenGLBuffer::Map(MapMode mode) {
-		AR_PROFILE_FUNCTION();
+		AR_PROFILE_FUNCTION_GPU_CPU();
 		GLenum access = 0;
 		switch (mode) {
 			case MapMode::Read: access = GL_READ_ONLY; break;
@@ -30,19 +30,19 @@ namespace Arcane {
 	}
 
 	void OpenGLBuffer::Resize(size_t size) {
-		AR_PROFILE_FUNCTION();
+		AR_PROFILE_FUNCTION_GPU_CPU();
 		if (mSize == size) return;
 		mSize = size;
 		glNamedBufferData(mBuffer, mSize, nullptr, GL_DYNAMIC_DRAW);
 	}
 
 	void OpenGLBuffer::Unmap() {
-		AR_PROFILE_FUNCTION();
+		AR_PROFILE_FUNCTION_GPU_CPU();
 		glUnmapNamedBuffer(mBuffer);
 	}
 
 	void OpenGLBuffer::SetData(size_t offset, size_t size, const void *data) {
-		AR_PROFILE_FUNCTION();
+		AR_PROFILE_FUNCTION_GPU_CPU();
 		glNamedBufferSubData(mBuffer, offset, size, data);
 	}
 

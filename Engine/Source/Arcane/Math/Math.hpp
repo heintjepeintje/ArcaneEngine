@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cstdint>
+#include <Arcane/Core.hpp>
 
 namespace Arcane {
 

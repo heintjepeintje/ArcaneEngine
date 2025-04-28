@@ -1,6 +1,6 @@
 #pragma once
 
-#include "OpenGLCore.hpp"
+#include "OpenGL.hpp"
 #include <Arcane/Native/NativeBuffer.hpp>
 
 namespace Arcane {

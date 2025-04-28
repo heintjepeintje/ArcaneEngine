@@ -4,7 +4,7 @@
 #include <utility>
 #include <vector>
 #include <Arcane/Native/NativeFramebuffer.hpp>
-#include "OpenGLCore.hpp"
+#include "OpenGL.hpp"
 #include "OpenGLGraphicsContext.hpp"
 
 #include "OpenGLTexture.hpp"

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "OpenGLCore.hpp"
+#include "OpenGL.hpp"
 #include "OpenGLGraphicsContext.hpp"
 #include <Arcane/Native/NativeTexture.hpp>
 

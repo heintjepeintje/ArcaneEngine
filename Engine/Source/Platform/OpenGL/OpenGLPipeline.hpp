@@ -2,7 +2,7 @@
 
 #include <Arcane/Core.hpp>
 #include <Arcane/Native/NativePipeline.hpp>
-#include "OpenGLCore.hpp"
+#include "OpenGL.hpp"
 #include "OpenGLGraphicsContext.hpp"
 
 #include <vector>

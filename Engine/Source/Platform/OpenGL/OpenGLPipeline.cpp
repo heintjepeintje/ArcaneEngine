@@ -6,7 +6,7 @@
 namespace Arcane {
 
 	OpenGLPipeline::OpenGLPipeline(const Ref<OpenGLGraphicsContext> &context, const PipelineInfo &info) : mContext(context) {
-		AR_PROFILE_FUNCTION();
+		AR_PROFILE_FUNCTION_GPU_CPU();
 		mCullMode = info.CullMode;
 		mWindingOrder = info.WindingOrder;
 		mFillMode = info.FillMode;
@@ -72,6 +72,7 @@ namespace Arcane {
 	}
 
 	OpenGLPipeline::~OpenGLPipeline() {
+		AR_PROFILE_FUNCTION_GPU_CPU();
 		glDeleteProgram(mProgram);
 		delete[] mDescriptors;
 	}

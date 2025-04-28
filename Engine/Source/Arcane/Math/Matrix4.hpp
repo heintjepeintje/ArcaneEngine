@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Arcane/Core.hpp>
 #include "Vector4.hpp"
 
 namespace Arcane {

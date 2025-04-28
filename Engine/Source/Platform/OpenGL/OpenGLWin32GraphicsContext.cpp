@@ -2,7 +2,7 @@
 
 #include <Platform/Windows/Win32Window.hpp>
 #include "OpenGLGraphicsContext.hpp"
-#include "OpenGLCore.hpp"
+#include "OpenGL.hpp"
 
 #include <Arcane/Util/StringUtils.hpp>
 
@@ -115,15 +115,17 @@ namespace Arcane {
 			}
 		}
 
-		// if (wglSwapIntervalEXT) {
-		// 	wglSwapIntervalEXT(0);
-		// }
+		if (wglSwapIntervalEXT) {
+			wglSwapIntervalEXT(0);
+		}
 
 		glEnable(GL_DEBUG_OUTPUT);
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 		glDebugMessageCallback(OnOpenGLDebugMessage, nullptr);
 
 		LoadGLExtensions();
+		
+		AR_PROFILE_GPU_CONTEXT("Main OpenGL Context");
 	}
 
 	OpenGLGraphicsContext::~OpenGLGraphicsContext() {
@@ -137,6 +139,7 @@ namespace Arcane {
 	void OpenGLGraphicsContext::Present() {
 		AR_PROFILE_FUNCTION();
 		wglSwapLayerBuffers(mDeviceContext, WGL_SWAP_MAIN_PLANE);
+		AR_PROFILE_GPU_COLLECT();
 	}
 
 	uint32_t OpenGLGraphicsContext::GetVersionMajor() const {

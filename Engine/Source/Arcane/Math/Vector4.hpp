@@ -1,6 +1,8 @@
 #pragma once
 
+#include <Arcane/Core.hpp>
 #include "Math.hpp"
+#include "Vector3.hpp"
 
 namespace Arcane {
 

@@ -5,18 +5,18 @@
 namespace Arcane {
 
 	OpenGLRendererAPI::OpenGLRendererAPI(const Ref<OpenGLGraphicsContext> &context) : mContext(context) {
-		AR_PROFILE_FUNCTION();
+		AR_PROFILE_FUNCTION_GPU_CPU();
 		glEnable(GL_SCISSOR_TEST);
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_STENCIL_TEST);
 	}
 
 	OpenGLRendererAPI::~OpenGLRendererAPI() {
-		AR_PROFILE_FUNCTION();
+		AR_PROFILE_FUNCTION_GPU_CPU();
 	}
 
 	void OpenGLRendererAPI::UpdatePipeline() {
-		AR_PROFILE_FUNCTION();
+		AR_PROFILE_FUNCTION_GPU_CPU();
 		glEnable(GL_CULL_FACE);
 
 		switch (mPipeline->GetCullMode()) {
@@ -97,14 +97,14 @@ namespace Arcane {
 	}
 
 	void OpenGLRendererAPI::Begin() {
-		AR_PROFILE_FUNCTION();
+		AR_PROFILE_FUNCTION_GPU_CPU();
 		std::memset(&mFrameStatistics, 0, sizeof(mFrameStatistics));
 
 		mFrameStatistics.ElapsedCPUTime = GetCurrentTimeMillis();
 	}
 
 	void OpenGLRendererAPI::End() {
-		AR_PROFILE_FUNCTION();
+		AR_PROFILE_FUNCTION_GPU_CPU();
 		glBlitNamedFramebuffer(
 			mFramebuffer->GetOpenGLID(), 0,
 			0, 0, mFramebuffer->GetWidth(), mFramebuffer->GetHeight(), 
@@ -113,15 +113,16 @@ namespace Arcane {
 			GL_LINEAR
 		);
 		
-		GLsync sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-		glWaitSync(sync, 0, GL_TIMEOUT_IGNORED);
+		// GLsync sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+		// glWaitSync(sync, 0, GL_TIMEOUT_IGNORED);
+		// glClientWaitSync(sync, GL_SYNC_FLUSH_COMMANDS_BIT, 0);
 
 		
 		mFrameStatistics.ElapsedCPUTime = GetCurrentTimeMillis() - mFrameStatistics.ElapsedCPUTime;
 	}
 
 	void OpenGLRendererAPI::BeginRenderPass(const Ref<NativeRenderPass> &renderPass, const Ref<NativeFramebuffer> &framebuffer) {
-		AR_PROFILE_FUNCTION();
+		AR_PROFILE_FUNCTION_GPU_CPU();
 		AR_ASSERT(renderPass->GetAttachmentCount() == framebuffer->GetAttachmentCount(), "RenderPass and Framebuffer attachments are not compatible");
 
 		const Attachment *renderPassAttachments = renderPass->GetAttachments();
@@ -143,7 +144,7 @@ namespace Arcane {
 	}
 
 	void OpenGLRendererAPI::EndRenderPass() {
-		AR_PROFILE_FUNCTION();
+		AR_PROFILE_FUNCTION_GPU_CPU();
 		glBindVertexArray(0);
 		
 		for (size_t i = 0; i < mPipeline->GetCombinedImageSamplerDescriptorCount(); i++) {
@@ -162,50 +163,50 @@ namespace Arcane {
 	}
 
 	void OpenGLRendererAPI::SetClearColor(float r, float g, float b, float a) {
-		AR_PROFILE_FUNCTION();
+		AR_PROFILE_FUNCTION_GPU_CPU();
 		glClearColor(r, g, b, a);
 	}
 
 	void OpenGLRendererAPI::SetClearDepth(float depth) {
-		AR_PROFILE_FUNCTION();
+		AR_PROFILE_FUNCTION_GPU_CPU();
 		glClearDepthf(depth);
 	}
 
 	void OpenGLRendererAPI::SetClearStencil(uint16_t stencil) {
-		AR_PROFILE_FUNCTION();
+		AR_PROFILE_FUNCTION_GPU_CPU();
 		glClearStencil(stencil);
 	}
 
 	void OpenGLRendererAPI::Clear() {
-		AR_PROFILE_FUNCTION();
+		AR_PROFILE_FUNCTION_GPU_CPU();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	}
 
 	void OpenGLRendererAPI::SetViewport(Rect2D viewport) {
-		AR_PROFILE_FUNCTION();
+		AR_PROFILE_FUNCTION_GPU_CPU();
 		mSpecifiedViewport = viewport;
 	}
 
 	void OpenGLRendererAPI::SetScissor(Rect2D scissor) {
-		AR_PROFILE_FUNCTION();
+		AR_PROFILE_FUNCTION_GPU_CPU();
 		mSpecifiedScissor = scissor;
 	}
 
 	void OpenGLRendererAPI::SetMesh(const Ref<NativeMesh> &mesh) {
-		AR_PROFILE_FUNCTION();
+		AR_PROFILE_FUNCTION_GPU_CPU();
 		mMesh = CastRef<OpenGLMesh>(mesh);
 		glBindVertexArray(mMesh->GetVertexArray());
 	}
 
 	void OpenGLRendererAPI::SetPipeline(const Ref<NativePipeline> &pipeline) {
-		AR_PROFILE_FUNCTION();
+		AR_PROFILE_FUNCTION_GPU_CPU();
 		mPipeline = CastRef<OpenGLPipeline>(pipeline);
 
 		UpdatePipeline();
 	}
 
 	void OpenGLRendererAPI::DrawIndexed(uint32_t instances, uint32_t count) {
-		AR_PROFILE_FUNCTION();
+		AR_PROFILE_FUNCTION_GPU_CPU();
 		GLenum topology = GL_NONE;
 		switch (mPipeline->GetTopology()) {
 			case PrimitiveTopology::TriangleList: topology = GL_TRIANGLES; break;
@@ -216,18 +217,27 @@ namespace Arcane {
 			default: return;
 		}
 
-		for (size_t i = 0; i < mPipeline->GetUniformBufferDescriptorCount(); i++) {
-			OpenGLUniformBufferDescriptor &desc = mPipeline->GetUniformBufferDescriptors()[i];
-			glBindBufferBase(GL_UNIFORM_BUFFER, desc.binding, desc.buffer);
+		{
+			AR_PROFILE_SCOPE_GPU("Pipeline Buffer Binding");
+			for (size_t i = 0; i < mPipeline->GetUniformBufferDescriptorCount(); i++) {
+				OpenGLUniformBufferDescriptor &desc = mPipeline->GetUniformBufferDescriptors()[i];
+				glBindBufferBase(GL_UNIFORM_BUFFER, desc.binding, desc.buffer);
+			}
 		}
 
-		for (size_t i = 0; i < mPipeline->GetCombinedImageSamplerDescriptorCount(); i++) {
-			OpenGLCombinedImageSamplerDescriptor &desc = mPipeline->GetCombinedImageSamplerDescriptors()[i];
-			glBindTextureUnit(desc.binding, desc.texture);
-			glBindSampler(desc.binding, desc.sampler);
+		{
+			AR_PROFILE_SCOPE_GPU("Pipeline Combined Image Sampler Binding");
+			for (size_t i = 0; i < mPipeline->GetCombinedImageSamplerDescriptorCount(); i++) {
+				OpenGLCombinedImageSamplerDescriptor &desc = mPipeline->GetCombinedImageSamplerDescriptors()[i];
+				glBindTextureUnit(desc.binding, desc.texture);
+				glBindSampler(desc.binding, desc.sampler);
+			}
 		}
 
-		glDrawElementsInstanced(topology, count, mPipeline->GetElementSize() == 4 ? GL_UNSIGNED_INT : GL_UNSIGNED_BYTE, nullptr, instances);
+		{
+			AR_PROFILE_SCOPE_GPU("Draw Call");
+			glDrawElementsInstanced(topology, count, mPipeline->GetElementSize() == 4 ? GL_UNSIGNED_INT : GL_UNSIGNED_BYTE, nullptr, instances);
+		}
 
 		mFrameStatistics.DrawCommands++;
 		mFrameStatistics.IndicesDrawn += count * instances;
