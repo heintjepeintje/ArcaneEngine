@@ -2,14 +2,16 @@
 
 namespace Arcane {
 
-	static Scene *sCurrentScene = new Scene();
+	static Scene *sCurrentScene;
 
-	void SetCurrentScene(Scene &scene) {
-		sCurrentScene = &scene;
+	ComponentID sNextID = 0;
+
+	void SetCurrentScene(Scene *scene) {
+		sCurrentScene = scene;
 	}
 
-	Scene &GetCurrentScene() {
-		return *sCurrentScene;
+	Scene *GetCurrentScene() {
+		return sCurrentScene;
 	}
 
 }

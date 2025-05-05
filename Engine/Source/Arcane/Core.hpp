@@ -6,6 +6,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <cmath>
 
 #ifdef TRACY_ENABLE
 #	define TRACY_ONLY_LOCALHOST 1

@@ -13,10 +13,10 @@ namespace Arcane {
 	typedef uint32_t EntityID;
 	typedef uint32_t ComponentID;
 
-	static ComponentID sNextID = 0;
+	extern ComponentID sNextID;
 
 	template<typename _Type>
-	static ComponentID GetComponentID() {
+	ComponentID GetComponentID() {
 		static ComponentID id = sNextID++;
 		return id;
 	}
@@ -25,7 +25,6 @@ namespace Arcane {
 	public:
 		ComponentPool() : mData(nullptr), mElementSize(0) { }
 		ComponentPool(size_t componentSize) : mElementSize(componentSize) {
-			printf("Creating component pool!\n");
 			mData = malloc(componentSize * AR_MAX_ENTITIES);
 			std::memset(mData, 0, componentSize * AR_MAX_ENTITIES);
 		}
@@ -55,17 +54,17 @@ namespace Arcane {
 		Scene() {
 			mPools.reserve(AR_MAX_COMPONENTS);
 			mAvailableEntities.flip();
+			mMainEntity = AR_INVALID_ENTITY_ID;
 		}
 
-		~Scene() {
-
-		}
+		~Scene() { }
 
 		EntityID CreateEntity() {
 			const EntityID entity = (EntityID)mAvailableEntities._Find_first();
 			if (entity >= AR_MAX_ENTITIES) return -1;
 
 			mAvailableEntities.set(entity, false);
+			mMaxEntityID = std::max(mMaxEntityID, entity);
 			return entity;
 		}
 
@@ -82,6 +81,35 @@ namespace Arcane {
 			mAvailableEntities.set(entity);
 		}
 
+		bool IsEntity(EntityID entity) const {
+			if (entity == AR_INVALID_ENTITY_ID) return false;
+			return !mAvailableEntities.test(entity);
+		}
+
+		template<typename ..._Types>
+		EntityID FindEntity(EntityID start = 0) const {
+			const uint32_t componentCount = sizeof...(_Types);
+			const ComponentID componentIDs[] = { GetComponentID<_Types>()... };
+			std::bitset<AR_MAX_COMPONENTS> mask;
+			for (uint32_t i = 1; i < componentCount; i++) {
+				mask.set(componentIDs[i]);
+			}
+
+			bool found = false;
+			EntityID entity = start;
+
+			while (entity <= mMaxEntityID) {
+				if (!IsEntity(entity)) continue;
+				if (mask == (mask & mEntities[entity])) {
+					found = true;
+					break;
+				}
+				entity++;
+			}
+
+			return found ? entity : AR_INVALID_ENTITY_ID;
+		}
+
 		template<typename _Type, typename ..._Args>
 		_Type &AddComponent(EntityID entity, _Args &&...args) {
 			AR_ASSERT(entity != AR_INVALID_ENTITY_ID, "Entity is invalid");
@@ -95,6 +123,24 @@ namespace Arcane {
 			}
 
 			_Type *component = new (mPools[componentId].GetComponent(entity)) _Type(std::forward<_Args>(args)...);
+			mEntities[entity].set(componentId);
+
+			return *component;
+		}
+
+		template<typename _Type>
+		_Type &AddComponent(EntityID entity, _Type &&data) {
+			AR_ASSERT(entity != AR_INVALID_ENTITY_ID, "Entity is invalid");
+			AR_ASSERT(!mAvailableEntities.test(entity), "Entity %u does not exist", entity);
+			
+			const ComponentID componentId = GetComponentID<_Type>();
+			AR_ASSERT(componentId < AR_MAX_COMPONENTS, "ComponentID %u is invalid", componentId);
+
+			if (mPools.size() <= componentId) {
+				mPools.emplace_back(sizeof(_Type));
+			}
+
+			_Type *component = new (mPools[componentId].GetComponent(entity)) _Type(std::forward<_Type>(data));
 			mEntities[entity].set(componentId);
 
 			return *component;
@@ -125,6 +171,21 @@ namespace Arcane {
 			return mEntities[entity].test(componentId);
 		}
 
+		template<typename ..._Types>
+		bool HasComponents(EntityID entity) const {
+			AR_ASSERT(entity != AR_INVALID_ENTITY_ID, "Entity is invalid");
+			AR_ASSERT(!mAvailableEntities.test(entity), "Entity %u does not exist", entity);
+
+			const uint32_t componentCount = sizeof...(_Types);
+			const ComponentID componentIDs[] = { GetComponentID<_Types>()... };
+			std::bitset<AR_MAX_COMPONENTS> mask;
+			for (uint32_t i = 0; i < componentCount; i++) {
+				mask.set(componentIDs[i]);
+			}
+
+			return mask == (mask & mEntities[entity]);
+		}
+
 		template<typename _Type>
 		void RemoveComponent(EntityID entity) {
 			AR_ASSERT(entity != AR_INVALID_ENTITY_ID, "Entity is invalid");
@@ -134,19 +195,36 @@ namespace Arcane {
 			AR_ASSERT(componentId < AR_MAX_COMPONENTS, "ComponentID %u is invalid", componentId);
 
 			if (!mEntities[entity].test(componentId)) return;
+			_Type *component = (_Type*)mPools[componentId].GetComponent(entity);
+			std::destroy_at(component);
 			mPools[componentId].ResetComponent(entity);
 
 			mEntities[entity].reset(componentId);
 		}
 
+		inline std::bitset<AR_MAX_COMPONENTS> &GetEntityComponentMask(EntityID entity) {
+			AR_ASSERT(entity != AR_INVALID_ENTITY_ID, "Entity is invalid");
+			AR_ASSERT(!mAvailableEntities.test(entity), "Entity %u does not exist", entity);
+			return mEntities[entity];
+		}
+		
+		inline uint32_t GetMaxEntityID() const { return mMaxEntityID; }
+		inline uint32_t GetEntityCount() const { return AR_MAX_ENTITIES - mAvailableEntities.count(); }
+
+		inline EntityID GetMainEntity() const { return mMainEntity; }
+		inline void SetMainEntity(EntityID entity) { mMainEntity = entity; }
+
 	private:
 		std::vector<ComponentPool> mPools;
 		std::array<std::bitset<AR_MAX_COMPONENTS>, AR_MAX_ENTITIES> mEntities;
 		std::bitset<AR_MAX_ENTITIES> mAvailableEntities;
+		uint32_t mMaxEntityID;
+
+		EntityID mMainEntity;
 	};
 
-	void SetCurrentScene(Scene &scene);
-	Scene &GetCurrentScene();
+	void SetCurrentScene(Scene *scene);
+	Scene *GetCurrentScene();
 
 
 }

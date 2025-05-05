@@ -8,6 +8,7 @@ namespace Arcane {
 	public:
 		Transform() : Position(0.0f), Rotation(0.0f), Scale(1.0f) { }
 		Transform(const Vector3 &position) : Position(position), Rotation(0), Scale(1) { }
+		Transform(const Vector3 &position, const Vector3 &rotation) : Position(position), Rotation(rotation), Scale(1) { }
 		~Transform() { }
 
 		inline Matrix4 GetModelMatrix() const {

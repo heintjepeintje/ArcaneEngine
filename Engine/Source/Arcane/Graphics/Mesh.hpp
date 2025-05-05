@@ -14,7 +14,12 @@ namespace Arcane {
 
 	public:
 		Mesh() { }
+		Mesh(const Mesh &other) { mNativeMesh = other.mNativeMesh; }
+		Mesh(Mesh &&other) { mNativeMesh = other.mNativeMesh; }
 		~Mesh() { }
+
+		inline void operator=(const Mesh &other) { mNativeMesh = other.mNativeMesh; }
+		inline void operator=(Mesh &&other) { mNativeMesh = other.mNativeMesh; }
 
 		inline void SetVertexBuffer(uint32_t index, const InputLayout &layout, const Buffer &vertexBuffer) { GetNativeMesh()->SetVertexBuffer(index, layout, vertexBuffer.GetNativeBuffer()); }
 		inline void SetIndexBuffer(const Buffer &indexBuffer) { GetNativeMesh()->SetIndexBuffer(indexBuffer.GetNativeBuffer()); }

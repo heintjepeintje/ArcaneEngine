@@ -68,7 +68,6 @@ namespace Arcane {
 		for (uint32_t i = 0; i < mColorAttachments.size(); i++) {
 			mColorAttachments[i]->Resize(width, height, 1);
 			glNamedFramebufferTexture(mFramebuffer, GL_COLOR_ATTACHMENT0 + i, mColorAttachments[i]->GetOpenGLID(), 0);
-			printf("Color Attachment: %u\n", i);
 		}
 
 		if (mDepthAttachment == mStencilAttachment && (mDepthAttachment || mStencilAttachment)) {

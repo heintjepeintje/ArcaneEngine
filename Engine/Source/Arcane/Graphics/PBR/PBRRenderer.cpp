@@ -77,6 +77,8 @@ namespace Arcane {
 	static Framebuffer sPostProcessFramebuffer;
 	static Pipeline sPostProcessPipeline;
 	static Buffer sPostProcessSettingsBuffer;
+
+	static Color sClearColor;
 	
 	static Mesh sQuadMesh;
 	static Sampler sDefaultSampler;
@@ -304,16 +306,21 @@ namespace Arcane {
 		AR_PROFILE_FUNCTION();
 	}
 
-	void PBRRenderer::Begin(const Camera3D &camera) {
+	void PBRRenderer::Begin(const RenderCamera &camera) {
 		AR_PROFILE_FUNCTION();
 
-		sCamera = camera;
+		sCamera = camera.GetCamera();
 
-		sCameraData.Projection = Matrix4::Transpose(camera.GetProjectionMatrix());
-		sCameraData.View = Matrix4::Transpose(camera.GetViewMatrix());
-		sCameraData.Position = Vector4(camera.Position, 1.0);
+		sCameraData.Projection = Matrix4::Transpose(camera.GetCamera().GetProjectionMatrix());
+		sCameraData.View = Matrix4::Transpose(camera.GetCamera().GetViewMatrix());
+		sCameraData.Position = Vector4(camera.GetCamera().Position, 1.0);
 
 		sCameraBuffer.SetData((const void*)&sCameraData);
+
+		sPostProcessSettingsData.Exposure = camera.GetExposure();
+		sPostProcessSettingsData.Gamma = camera.GetGamma();
+
+		sClearColor = camera.GetBackgroundColor();
 	}
 
 	void PBRRenderer::AddLight(const Vector3 &position, const PointLight &light) {
@@ -353,8 +360,11 @@ namespace Arcane {
 		sGeometryFramebuffer.Resize(size);
 		sLightFramebuffer.Resize(size);
 		sPostProcessFramebuffer.Resize(size);
-	
+
+		
 		sRendererAPI.Begin();
+
+		sRendererAPI.SetClearColor(sClearColor);
 
 		{
 			AR_PROFILE_SCOPE("Geometry Pass");
@@ -422,22 +432,6 @@ namespace Arcane {
 
 	RendererAPI PBRRenderer::GetRenderer() {
 		return sRendererAPI;
-	}
-
-	void PBRRenderer::SetGamma(float gamma) {
-		sPostProcessSettingsData.Gamma = gamma;
-	}
-
-	float PBRRenderer::GetGamma() {
-		return sPostProcessSettingsData.Gamma;
-	}
-
-	void PBRRenderer::SetExposure(float exposure) {
-		sPostProcessSettingsData.Exposure = exposure;
-	}
-
-	float PBRRenderer::GetExposure() {
-		return sPostProcessSettingsData.Exposure;
 	}
 
 

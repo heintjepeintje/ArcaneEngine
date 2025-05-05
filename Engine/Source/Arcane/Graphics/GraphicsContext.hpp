@@ -9,6 +9,8 @@ namespace Arcane {
 	class GraphicsContext {
 	public:
 		static GraphicsContext Create(const Window &window);
+		static GraphicsContext &GetCurrent();
+		static void SetCurrent(const GraphicsContext &context);
 
 	public:
 		GraphicsContext() { }

@@ -28,6 +28,9 @@
 // PBR
 #include <Arcane/Graphics/PBR/PBRMaterial.hpp>
 #include <Arcane/Graphics/PBR/PBRRenderer.hpp>
+#include <Arcane/Graphics/PBR/Environment.hpp>
 
 #include <Arcane/Entity/Scene.hpp>
 #include <Arcane/Entity/Entity.hpp>
+#include <Arcane/Entity/SceneView.hpp>
+#include <Arcane/Entity/SceneRenderer.hpp>
