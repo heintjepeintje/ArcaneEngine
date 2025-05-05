@@ -32,7 +32,6 @@ int main(int argc, char **argv) {
 
 	Entity floor;
 	floor.Add<Tag>("Floor");
-	printf("Floor: %u\n", floor.GetID());
 
 	MeshData floorData = LoadCube(Vector3(10.0f, 1.0f, 10.0f), false);
 	floor.Add<Mesh>(Mesh::Create(context, floorData));
@@ -88,7 +87,7 @@ int main(int argc, char **argv) {
 	free(aoTexture.Data);
 	
 	Transform &boxTransform = box.Add<Transform>();
-	boxTransform.Position = { 0.0f, 3.0f, 0.0f  };
+	boxTransform.Position = { 0.0f, 2.0f, 0.0f  };
 	boxTransform.Scale = { 1.0f, 1.0f, 1.0f };
 
 	Entity camera;
@@ -104,10 +103,16 @@ int main(int argc, char **argv) {
 	Entity dirLight;
 	dirLight.Add<Tag>(Tag("DirLight"));
 	dirLight.Add<DirectionalLight>(Color::Gray());
-	dirLight.Add<Transform>(Vector3::Zero(), Vector3(-45.0f, 0.0f, 0.0f));
+	dirLight.Add<Transform>(Vector3::Zero(), Vector3(-90.0f, 0.0f, 0.0f));
+
+	float x = 0.0f;
 
 	while (!window.IsClosed()) {
 		AR_PROFILE_FRAME_START();
+
+		Transform &bt = box.Get<Transform>();
+		bt.Rotation.X += 90.0f * GetDeltaTime();
+		bt.Rotation.Y += 90.0f * GetDeltaTime();
 
 		if (window.IsFocused()) {
 			SetCursorLocked(true);

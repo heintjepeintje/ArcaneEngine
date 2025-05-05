@@ -23,7 +23,6 @@ namespace Arcane {
 		FILE *f = fopen(path.c_str(), "rb");
 		AR_ASSERT(f, "Could not open file: %s", path.c_str());
 
-
 		long begin = ftell(f);
 		fseek(f, 0, SEEK_END);
 		long end = ftell(f);

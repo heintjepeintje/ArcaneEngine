@@ -96,6 +96,8 @@ namespace Arcane {
 		inline Vector3 &operator*=(float scalar) { X *= scalar; Y *= scalar; Z *= scalar; return *this; }
 		inline Vector3 &operator/=(float scalar) { X /= scalar; Y /= scalar; Z /= scalar; return *this; }
 
+		inline Vector3 operator-() const { return Vector3(-X, -Y, -Z); }
+
 		inline bool operator==(const Vector3 &other) { return X == other.X && Y == other.Y && Z == other.Z; }
 		inline bool operator!=(const Vector3 &other) { return X != other.X || Y != other.Y || Z != other.Z; }
 

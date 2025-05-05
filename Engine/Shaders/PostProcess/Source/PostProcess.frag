@@ -21,5 +21,5 @@ void main() {
 	if (uSettings.Gamma != 0.0) {
 		mapped = pow(mapped, vec3(1.0 / uSettings.Gamma));
 	}
-	oColor = mapped;
+	oColor = color;
 }

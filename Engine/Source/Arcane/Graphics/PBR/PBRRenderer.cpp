@@ -16,6 +16,8 @@
 #define AR_LIGHT_FRAGMENT_SHADER_PATH 			AR_FRAG_SHADER_PATH(Light, 			LightShader)
 #define AR_POST_PROCESS_VERTEX_SHADER_PATH 		AR_VERT_SHADER_PATH(PostProcess, 	PostProcess)
 #define AR_POST_PROCESS_FRAGMENT_SHADER_PATH 	AR_FRAG_SHADER_PATH(PostProcess, 	PostProcess)
+#define AR_SHADOW_VERTEX_SHADER_PATH			AR_VERT_SHADER_PATH(Shadow, 		Shadow)
+#define AR_SHADOW_FRAGMENT_SHADER_PATH			AR_FRAG_SHADER_PATH(Shadow, 		Shadow)
 
 #define AR_PBR_SAMPLE_COUNT 1
 
@@ -56,6 +58,11 @@ namespace Arcane {
 		float Exposure;
 	} sPostProcessSettingsData;
 
+	static struct {
+		Matrix4 LightProjection;
+		Matrix4 LightView;
+	} sShadowPassData;
+
 	static Camera3D sCamera;
 
 	static GraphicsContext sContext;
@@ -77,6 +84,11 @@ namespace Arcane {
 	static Framebuffer sPostProcessFramebuffer;
 	static Pipeline sPostProcessPipeline;
 	static Buffer sPostProcessSettingsBuffer;
+
+	static RenderPass sShadowPass;
+	static Pipeline sShadowPipeline;
+	static Framebuffer sShadowMap;
+	static Buffer sShadowPassBuffer;
 
 	static Color sClearColor;
 	
@@ -105,10 +117,12 @@ namespace Arcane {
 		std::memset(&sCameraData, 0, sizeof(sCameraData));
 		sObjectBuffer = Buffer::Create(sContext, sizeof(sObjectData));
 		std::memset(&sObjectData, 0, sizeof(sObjectData));
+		sShadowPassBuffer = Buffer::Create(sContext, sizeof(sShadowPassData));
+		std::memset(&sShadowPassData, 0, sizeof(sShadowPassData));
 		sLightBuffer = Buffer::Create(sContext, sizeof(sLightData));
 		std::memset(&sLightData, 0, sizeof(sLightData));
-
 		sPostProcessSettingsBuffer = Buffer::Create(sContext, sizeof(sPostProcessSettingsData));
+		std::memset(&sPostProcessSettingsData, 0, sizeof(sPostProcessSettingsData));
 
 		InputLayout quadLayout = {
 			{ InputAttribute::Position, 1, InputElementType::Vector2f32 },
@@ -151,6 +165,7 @@ namespace Arcane {
 			{ AttachmentType::Color, ImageFormat::RGB32F, AR_PBR_SAMPLE_COUNT },
 			{ AttachmentType::Color, ImageFormat::RGB32F, AR_PBR_SAMPLE_COUNT },
 			{ AttachmentType::Color, ImageFormat::RGB32F, AR_PBR_SAMPLE_COUNT },
+			{ AttachmentType::Color, ImageFormat::RGB32F, AR_PBR_SAMPLE_COUNT },
 			{ AttachmentType::DepthStencil, ImageFormat::D24S8, AR_PBR_SAMPLE_COUNT },
 		};
 
@@ -158,13 +173,14 @@ namespace Arcane {
 		geometryFramebufferInfo.Width = 1920;
 		geometryFramebufferInfo.Height = 1080;
 		geometryFramebufferInfo.Attachments = geometryAttachments;
-		geometryFramebufferInfo.AttachmentCount = 5;
+		geometryFramebufferInfo.AttachmentCount = 6;
 
 		sGeometryFramebuffer = Framebuffer::Create(sContext, geometryFramebufferInfo);
 
 		Descriptor geometryDescriptors[] = {
 			{ 0, DescriptorType::UniformBuffer },
 			{ 1, DescriptorType::UniformBuffer },
+			{ 2, DescriptorType::UniformBuffer },
 			
 			{ 0, DescriptorType::CombinedImageSampler },
 			{ 1, DescriptorType::CombinedImageSampler },
@@ -198,11 +214,60 @@ namespace Arcane {
 		sGeometryPipeline = Pipeline::Create(sContext, geometryPipelineInfo);
 		sGeometryPipeline.SetUniformBuffer(0, sCameraBuffer);
 		sGeometryPipeline.SetUniformBuffer(1, sObjectBuffer);
+		sGeometryPipeline.SetUniformBuffer(2, sShadowPassBuffer);
 
 		free(vertexShaderBinary);
 		free(fragmentShaderBinary);
 
-		sGeometryRenderPass = RenderPass::Create(sContext, sGeometryPipeline, geometryAttachments, 5);
+		sGeometryRenderPass = RenderPass::Create(sContext, sGeometryPipeline, geometryAttachments, 6);
+
+		const Attachment shadowAttachments[] = {
+			{ AttachmentType::Depth, ImageFormat::D32, AR_PBR_SAMPLE_COUNT }
+		};
+
+		FramebufferInfo shadowFramebufferInfo{};
+		shadowFramebufferInfo.Width = AR_PBR_SHADOW_MAP_WIDTH;
+		shadowFramebufferInfo.Height = AR_PBR_SHADOW_MAP_HEIGHT;
+		shadowFramebufferInfo.Attachments = shadowAttachments;
+		shadowFramebufferInfo.AttachmentCount = 1;
+
+		sShadowMap = Framebuffer::Create(sContext, shadowFramebufferInfo);
+
+		Descriptor shadowDescriptors[] = {
+			{ 0, DescriptorType::UniformBuffer },
+			{ 1, DescriptorType::UniformBuffer },
+		};
+
+		InputLayout shadowInputLayout = {
+			{ InputAttribute::Position, 1, InputElementType::Vector3f32 },
+			{ InputAttribute::Normal, 1, InputElementType::Vector3f32 },
+			{ InputAttribute::UV, 1, InputElementType::Vector2f32 },
+			{ InputAttribute::Tangent, 1, InputElementType::Vector3f32 },
+			{ InputAttribute::Bitangent, 1, InputElementType::Vector3f32 },
+		};
+
+		vertexShaderBinary = ReadFileBinary(AR_SHADOW_VERTEX_SHADER_PATH, &vertexBinarySize);
+		fragmentShaderBinary = ReadFileBinary(AR_SHADOW_FRAGMENT_SHADER_PATH, &fragmentBinarySize);
+
+		PipelineInfo shadowPipelineInfo = PipelineInfo::CreateWithDefaultInfo();
+		shadowPipelineInfo.Descriptors = shadowDescriptors;
+		shadowPipelineInfo.DescriptorCount = 3;
+		shadowPipelineInfo.Layout = shadowInputLayout;
+		shadowPipelineInfo.VertexShaderBinary = vertexShaderBinary;
+		shadowPipelineInfo.VertexShaderSize = vertexBinarySize;
+		shadowPipelineInfo.FragmentShaderBinary = fragmentShaderBinary;
+		shadowPipelineInfo.FragmentShaderSize = fragmentBinarySize;
+		shadowPipelineInfo.Viewport.Size = Vector2(AR_PBR_SHADOW_MAP_WIDTH, AR_PBR_SHADOW_MAP_HEIGHT);
+		shadowPipelineInfo.SampleCount = AR_PBR_SAMPLE_COUNT;
+
+		sShadowPipeline = Pipeline::Create(sContext, shadowPipelineInfo);
+		sShadowPipeline.SetUniformBuffer(0, sObjectBuffer);
+		sShadowPipeline.SetUniformBuffer(1, sShadowPassBuffer);
+
+		free(vertexShaderBinary);
+		free(fragmentShaderBinary);
+
+		sShadowPass = RenderPass::Create(sContext, sShadowPipeline, shadowAttachments, 1);
 
 		const Attachment lightAttachments[] = {
 			{ AttachmentType::Color, ImageFormat::RGB8, AR_PBR_SAMPLE_COUNT },
@@ -224,7 +289,9 @@ namespace Arcane {
 			{ 0, DescriptorType::CombinedImageSampler },
 			{ 1, DescriptorType::CombinedImageSampler },
 			{ 2, DescriptorType::CombinedImageSampler },
-			{ 3, DescriptorType::CombinedImageSampler }
+			{ 3, DescriptorType::CombinedImageSampler },
+			{ 4, DescriptorType::CombinedImageSampler },
+			{ 5, DescriptorType::CombinedImageSampler }
 		};
 
 		InputLayout lightInputLayout = {
@@ -237,7 +304,7 @@ namespace Arcane {
 
 		PipelineInfo lightPipelineInfo = PipelineInfo::CreateWithDefaultInfo();
 		lightPipelineInfo.Descriptors = lightDescriptors;
-		lightPipelineInfo.DescriptorCount = 6;
+		lightPipelineInfo.DescriptorCount = 7;
 		lightPipelineInfo.Layout = lightInputLayout;
 		lightPipelineInfo.VertexShaderBinary = vertexShaderBinary;
 		lightPipelineInfo.VertexShaderSize = vertexBinarySize;
@@ -335,6 +402,15 @@ namespace Arcane {
 		AR_PROFILE_FUNCTION();
 		sLightData.DirectionalLight.Color = light.Color;
 		sLightData.DirectionalLight.Direction = Vector4(Vector3::Normalize(direction), 1.0);
+
+		sShadowPassData.LightProjection = Matrix4::Transpose(
+			Matrix4::OrthoLH_ZO(-10.0f, 10.0f, -10.0f, 10.0f, 0.0f, 10.0f)
+		);
+		sShadowPassData.LightView = Matrix4::Transpose(
+			Matrix4::LookAtLH(Vector3::Normalize(-direction) * 5.0f, Vector3::Normalize(direction), Vector3(0.0f, 1.0f, 0.0f))	
+		);
+
+		sShadowPassBuffer.SetData(&sShadowPassData);
 	}
 
 	void PBRRenderer::Submit(const Transform &transform, const Mesh &mesh, const PBRMaterial &material) {
@@ -360,7 +436,6 @@ namespace Arcane {
 		sGeometryFramebuffer.Resize(size);
 		sLightFramebuffer.Resize(size);
 		sPostProcessFramebuffer.Resize(size);
-
 		
 		sRendererAPI.Begin();
 
@@ -392,6 +467,24 @@ namespace Arcane {
 		}
 
 		{
+			AR_PROFILE_SCOPE("Shadow Pass");
+			sRendererAPI.BeginRenderPass(sShadowPass, sShadowMap);
+			sRendererAPI.Clear();
+
+			for (const RenderSubmission &submission : sRenderSubmissions) {
+				sObjectData.Model = Matrix4::Transpose(submission.Model);
+				sObjectData.MVP = Matrix4::Transpose(sCamera.GetProjectionMatrix() * sCamera.GetViewMatrix() * submission.Model);
+				sObjectData.Position = Vector4(submission.Position, 1.0);
+
+				sObjectBuffer.SetData((const void*)&sObjectData);
+				sRendererAPI.SetMesh(submission.Mesh);
+				sRendererAPI.DrawIndexed(1, submission.Mesh.GetIndexBuffer().GetSize() / sShadowPipeline.GetElementSize());
+			}
+			
+			sRendererAPI.EndRenderPass();
+		}
+
+		{
 			AR_PROFILE_SCOPE("Light Pass");
 			sRendererAPI.BeginRenderPass(sLightRenderPass, sLightFramebuffer);
 			sRendererAPI.Clear();
@@ -401,6 +494,8 @@ namespace Arcane {
 			sLightPipeline.SetCombinedImageSampler(1, sGeometryFramebuffer.GetColorBuffer(1), sDefaultSampler);
 			sLightPipeline.SetCombinedImageSampler(2, sGeometryFramebuffer.GetColorBuffer(2), sDefaultSampler);
 			sLightPipeline.SetCombinedImageSampler(3, sGeometryFramebuffer.GetColorBuffer(3), sDefaultSampler);
+			sLightPipeline.SetCombinedImageSampler(4, sGeometryFramebuffer.GetColorBuffer(4), sDefaultSampler);
+			sLightPipeline.SetCombinedImageSampler(5, sShadowMap.GetDepthBuffer(), sDefaultSampler);
 
 			sRendererAPI.SetMesh(sQuadMesh);
 			sRendererAPI.DrawIndexed(1, sQuadMesh.GetIndexBuffer().GetSize() / sLightPipeline.GetElementSize());
@@ -413,8 +508,8 @@ namespace Arcane {
 			sRendererAPI.BeginRenderPass(sPostProcessRenderPass, sPostProcessFramebuffer);
 			sRendererAPI.Clear();
 
-			sPostProcessPipeline.SetCombinedImageSampler(0, sLightFramebuffer.GetColorBuffer(0), sDefaultSampler);
 			sPostProcessSettingsBuffer.SetData((const void*)&sPostProcessSettingsData);
+			sPostProcessPipeline.SetCombinedImageSampler(0, sLightFramebuffer.GetColorBuffer(0), sDefaultSampler);
 			sRendererAPI.SetMesh(sQuadMesh);
 			sRendererAPI.DrawIndexed(1, sQuadMesh.GetIndexBuffer().GetSize() / sPostProcessPipeline.GetElementSize());
 

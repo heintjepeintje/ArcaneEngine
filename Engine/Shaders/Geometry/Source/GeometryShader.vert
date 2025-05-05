@@ -7,11 +7,12 @@ layout (location = 3) in vec3 aTangent;
 layout (location = 4) in vec3 aBitangent;
 
 layout (location = 0) out vec3 oPosition;
-layout (location = 1) out vec3 oNormal;
-layout (location = 2) out vec2 oUV;
-layout (location = 3) out vec3 oTangent;
-layout (location = 4) out vec3 oBitangent;
-layout (location = 5) out mat3 oTBN;
+layout (location = 1) out vec3 oLightSpacePos;
+layout (location = 2) out vec3 oNormal;
+layout (location = 3) out vec2 oUV;
+layout (location = 4) out vec3 oTangent;
+layout (location = 5) out vec3 oBitangent;
+layout (location = 6) out mat3 oTBN;
 
 layout (std140, binding = 0) uniform CameraData {
 	mat4 Projection;
@@ -25,13 +26,23 @@ layout (std140, binding = 1) uniform ObjectData {
 	vec4 Position;
 } uObject;
 
+layout (std140, binding = 2) uniform ShadowData {
+	mat4 Projection;
+	mat4 View;
+} uShadow;
+
 void main() {
 	const mat3 modelNoScale = mat3(transpose(inverse(uObject.Model))); 
 	oPosition = (uObject.Model * vec4(aPosition, 1.0)).xyz;
+	
+	const vec4 lightSpacePos = uShadow.Projection * uShadow.View * vec4(oPosition, 1.0);
+	oLightSpacePos = lightSpacePos.xyz / lightSpacePos.w;
+
 	oNormal = modelNoScale * aNormal.xyz;
 	oUV = aUV;
 	oTangent = modelNoScale * aTangent.xyz;
 	oBitangent = modelNoScale * aBitangent.xyz;
+
 
 	const vec3 t = normalize(modelNoScale * aTangent);
 	const vec3 b = normalize(modelNoScale * aBitangent);

@@ -51,11 +51,31 @@ namespace Arcane {
 		}
 
 		static Matrix4 RotateY(const Matrix4 &m, float angle) {
-			return m;
+			const float s = Sin(angle);
+			const float c = Cos(angle);
+
+			const Matrix4 rotate = {
+				{ c, 0, s, 0 },
+				{ 0, 1, 0, 0 },
+				{ -s, 0, c, 0 },
+				{ 0, 0, 0, 1}
+			};
+
+			return m * rotate;
 		}
 
 		static Matrix4 RotateZ(const Matrix4 &m, float angle) {
-			return m;
+			const float s = Sin(angle);
+			const float c = Cos(angle);
+
+			const Matrix4 rotate = {
+				{ c, -s, 0, 0 },
+				{ s, c, 0, 0 },
+				{ 0, 0, 1, 0 },
+				{ 0, 0, 0, 1 }
+			};
+
+			return m * rotate;
 		}
 
 		static Matrix4 Scale(const Matrix4 &m, const Vector3 &scale) {

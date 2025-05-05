@@ -1,14 +1,18 @@
 @ECHO OFF
 
-PUSHD Geometry
+PUSHD "Geometry"
 CALL Compile.bat
 POPD
 
-PUSHD Light
+PUSHD "Light"
 CALL Compile.bat
 POPD
 
-PUSHD PostProcess
+PUSHD "PostProcess" 
+CALL Compile.bat
+POPD
+
+PUSHD "Shadow"
 CALL Compile.bat
 POPD
 
