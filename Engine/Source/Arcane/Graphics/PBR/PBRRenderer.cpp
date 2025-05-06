@@ -21,8 +21,8 @@
 
 #define AR_PBR_SAMPLE_COUNT 1
 
-#define AR_PBR_SHADOW_MAP_WIDTH 1024
-#define AR_PBR_SHADOW_MAP_HEIGHT 1024
+#define AR_PBR_SHADOW_MAP_WIDTH 2048
+#define AR_PBR_SHADOW_MAP_HEIGHT 2048
 
 namespace Arcane {
 
@@ -203,7 +203,7 @@ namespace Arcane {
 		
 		PipelineInfo geometryPipelineInfo = PipelineInfo::CreateWithDefaultInfo();
 		geometryPipelineInfo.Descriptors = geometryDescriptors;
-		geometryPipelineInfo.DescriptorCount = 7;
+		geometryPipelineInfo.DescriptorCount = 8;
 		geometryPipelineInfo.Layout = geometryInputLayout;
 		geometryPipelineInfo.VertexShaderBinary = vertexShaderBinary;
 		geometryPipelineInfo.VertexShaderSize = vertexBinarySize;
@@ -250,8 +250,9 @@ namespace Arcane {
 		fragmentShaderBinary = ReadFileBinary(AR_SHADOW_FRAGMENT_SHADER_PATH, &fragmentBinarySize);
 
 		PipelineInfo shadowPipelineInfo = PipelineInfo::CreateWithDefaultInfo();
+		// shadowPipelineInfo.CullMode = CullMode::Front;
 		shadowPipelineInfo.Descriptors = shadowDescriptors;
-		shadowPipelineInfo.DescriptorCount = 3;
+		shadowPipelineInfo.DescriptorCount = 2;
 		shadowPipelineInfo.Layout = shadowInputLayout;
 		shadowPipelineInfo.VertexShaderBinary = vertexShaderBinary;
 		shadowPipelineInfo.VertexShaderSize = vertexBinarySize;
@@ -304,7 +305,7 @@ namespace Arcane {
 
 		PipelineInfo lightPipelineInfo = PipelineInfo::CreateWithDefaultInfo();
 		lightPipelineInfo.Descriptors = lightDescriptors;
-		lightPipelineInfo.DescriptorCount = 7;
+		lightPipelineInfo.DescriptorCount = 8;
 		lightPipelineInfo.Layout = lightInputLayout;
 		lightPipelineInfo.VertexShaderBinary = vertexShaderBinary;
 		lightPipelineInfo.VertexShaderSize = vertexBinarySize;
@@ -359,6 +360,7 @@ namespace Arcane {
 
 		sPostProcessPipeline = Pipeline::Create(sContext, postProcessPipelineInfo);
 		sPostProcessPipeline.SetUniformBuffer(0, sPostProcessSettingsBuffer);
+
 		free(vertexShaderBinary);
 		free(fragmentShaderBinary);
 
@@ -404,7 +406,7 @@ namespace Arcane {
 		sLightData.DirectionalLight.Direction = Vector4(Vector3::Normalize(direction), 1.0);
 
 		sShadowPassData.LightProjection = Matrix4::Transpose(
-			Matrix4::OrthoLH_ZO(-10.0f, 10.0f, -10.0f, 10.0f, 0.0f, 10.0f)
+			Matrix4::OrthoLH_ZO(-10.0f, 10.0f, -10.0f, 10.0f, 0.0f, 30.0f)
 		);
 		sShadowPassData.LightView = Matrix4::Transpose(
 			Matrix4::LookAtLH(Vector3::Normalize(-direction) * 5.0f, Vector3::Normalize(direction), Vector3(0.0f, 1.0f, 0.0f))	
@@ -509,7 +511,7 @@ namespace Arcane {
 			sRendererAPI.Clear();
 
 			sPostProcessSettingsBuffer.SetData((const void*)&sPostProcessSettingsData);
-			sPostProcessPipeline.SetCombinedImageSampler(0, sLightFramebuffer.GetColorBuffer(0), sDefaultSampler);
+			sPostProcessPipeline.SetCombinedImageSampler(0, sShadowMap.GetDepthBuffer(), sDefaultSampler);
 			sRendererAPI.SetMesh(sQuadMesh);
 			sRendererAPI.DrawIndexed(1, sQuadMesh.GetIndexBuffer().GetSize() / sPostProcessPipeline.GetElementSize());
 

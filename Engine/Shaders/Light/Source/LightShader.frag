@@ -24,6 +24,8 @@ layout (std140, binding = 1) uniform LightData {
 } uLights;
 
 const float PI = 3.1415926535;
+const float MIN_SHADOW_BIAS = 0.05;
+const float MAX_SHADOW_BIAS = 0.005;
 
 layout (location = 0) in vec2 iUV;
 
@@ -41,7 +43,7 @@ vec3 FresnelSchlick(float cosTheta, vec3 f0);
 float DistributionGGX(vec3 n, vec3 h, float roughness);
 float GeometrySchlickGGX(float ndotv, float roughness);
 float GeometrySmith(vec3 n, vec3 v, vec3 l, float roughness);
-float GetShadow(vec3 posLightSpace);
+float GetShadow(float bias, vec3 posLightSpace);
 
 vec3 GetPointLightColor(uint lightIndex, vec3 position, vec3 albedo, vec3 normal, float metallic, float roughness);
 vec3 GetDirectionalLightColor(vec3 position, vec3 albedo, vec3 normal, float metallic, float roughness);
@@ -61,12 +63,14 @@ void main() {
 		result += GetPointLightColor(i, position, albedo, normal, metallic, roughness);
 	}
 
-	result += GetDirectionalLightColor(position, albedo, normal, metallic, roughness);
+	const float shadowBias = max(0.05 * (1.0 - dot(normal, -uLights.DirLight.Direction.xyz)), 0.005);
+	vec3 lightSpacePos = shadowMapPos * 0.5 + 0.5;
+	const float shadow = GetShadow(shadowBias, lightSpacePos);
 
-	const float shadow = GetShadow(shadowMapPos);
+	result += (1.0 - shadow) * GetDirectionalLightColor(position, albedo, normal, metallic, roughness);
 
-	const vec3 ambient = vec3(0.003) * albedo * ao;
-	oColor = (ambient + (1.0 - shadow)) + result;
+	const vec3 ambient = vec3(0.03) * albedo * ao;
+	oColor = ambient + result;
 }
 
 vec3 FresnelSchlick(float cosTheta, vec3 f0) {
@@ -106,16 +110,20 @@ float GeometrySmith(vec3 n, vec3 v, vec3 l, float roughness) {
 	return ggx1 * ggx2;
 }
 
-float GetShadow(vec3 lightSpacePos) {
-	const vec3 projCoords = lightSpacePos * 0.5 + 0.5;
+float GetShadow(float bias, vec3 lightSpacePos) {
+	const float currentDepth = lightSpacePos.z;
 
-	const float closestDepth = texture(uShadowMap, projCoords.xy).r;
+	float shadow = 0.0;
+	vec2 texelSize = 1.0 / textureSize(uShadowMap, 0);
 
-	const float currentDepth = projCoords.z;
+	for (int x = -1; x <= 1; ++x) {
+		for (int y = -1; y <= 1; y++) {
+			float pcfDepth = texture(uShadowMap, lightSpacePos.xy + vec2(x, y) * texelSize).r;
+			shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
+		}
+	}
 
-	const float shadow = currentDepth > closestDepth ? 1.0 : 0.0;
-
-	return shadow; 
+	return shadow / 9.0;
 }
 
 vec3 GetPointLightColor(uint lightIndex, vec3 position, vec3 albedo, vec3 normal, float metallic, float roughness) {

@@ -55,6 +55,7 @@ namespace Arcane {
 			mPools.reserve(AR_MAX_COMPONENTS);
 			mAvailableEntities.flip();
 			mMainEntity = AR_INVALID_ENTITY_ID;
+			mMaxEntityID = 0;
 		}
 
 		~Scene() { }

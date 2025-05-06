@@ -35,7 +35,7 @@ void main() {
 	const mat3 modelNoScale = mat3(transpose(inverse(uObject.Model))); 
 	oPosition = (uObject.Model * vec4(aPosition, 1.0)).xyz;
 	
-	const vec4 lightSpacePos = uShadow.Projection * uShadow.View * vec4(oPosition, 1.0);
+	vec4 lightSpacePos = uShadow.Projection * uShadow.View * vec4(oPosition, 1.0);
 	oLightSpacePos = lightSpacePos.xyz / lightSpacePos.w;
 
 	oNormal = modelNoScale * aNormal.xyz;

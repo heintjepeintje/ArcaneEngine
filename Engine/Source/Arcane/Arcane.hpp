@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Arcane/Application.hpp>
+
 #include <Arcane/Graphics/Buffer.hpp>
 #include <Arcane/Graphics/Texture.hpp>
 #include <Arcane/Graphics/GraphicsContext.hpp>
@@ -34,3 +36,4 @@
 #include <Arcane/Entity/Entity.hpp>
 #include <Arcane/Entity/SceneView.hpp>
 #include <Arcane/Entity/SceneRenderer.hpp>
+#include <Arcane/Entity/Components/Tag.hpp>

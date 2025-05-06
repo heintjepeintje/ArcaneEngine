@@ -50,6 +50,7 @@ namespace Arcane {
 
 		inline Scene &GetScene() const { return *mScene; }
 		inline EntityID GetID() const { return mID; }
+		inline bool IsValid() const { return mScene && mScene->IsEntity(mID); }
 
 	private:
 		Scene *mScene;
