@@ -14,6 +14,7 @@
 				"Engine/Libraries/stb",
 				"Engine/Libraries/ImGui",
 				"Engine/Libraries/tracy/public",
+				"Engine/Libraries/rapidjson/include",
 				"Engine/Source",
 				"Game/Source"
 			],
@@ -33,6 +34,7 @@
 			"includePath": [
 				"Engine/Libraries/stb",
 				"Engine/Libraries/ImGui",
+				"Engine/Libraries/rapidjson/include",
 				"Engine/Source",
 				"Game/Source"
 			],

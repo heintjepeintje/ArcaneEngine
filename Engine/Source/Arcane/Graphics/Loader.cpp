@@ -11,7 +11,128 @@
 
 #include <Arcane/Util/ByteUtil.hpp>
 
+#include <Arcane/File/Json.hpp>
+
 namespace Arcane {
+
+	enum class GltfAttributeType {
+		POSITION, NORMAL, TANGENT,
+		COLOR_0, COLOR_1, COLOR_2,
+		TEXCOORD_0, TEXCOORD_1, TEXCOORD_2
+	};
+
+	enum class GltfAccessorElementType {
+		SCALAR, VEC2, VEC3, VEC4, MAT2, MAT3, MAT4
+	};
+
+	enum class GltfComponentType {
+		BYTE, UNSIGNED_BYTE, SHORT, UNSIGNED_SHORT, UNSIGNED_INT, FLOAT
+	};
+
+	enum class GltfBufferTarget {
+		ARRAY_BUFFER, ELEMENT_ARRAY_BUFFER
+	};
+
+	GltfComponentType GetComponentType(const uint32_t type) {
+		switch (type) {
+			case 5120: return GltfComponentType::BYTE;
+			case 5121: return GltfComponentType::UNSIGNED_BYTE;
+			case 5122: return GltfComponentType::SHORT;
+			case 5123: return GltfComponentType::UNSIGNED_SHORT;
+			case 5125: return GltfComponentType::UNSIGNED_INT;
+			case 5126: return GltfComponentType::FLOAT;
+			default: return ((GltfComponentType)UINT32_MAX);
+		}
+	}
+
+	GltfAccessorElementType GetAccessorElementType(const std::string &element) {
+		if (element == "SCALAR") return GltfAccessorElementType::SCALAR;
+		else if (element == "VEC2") return GltfAccessorElementType::VEC2;
+		else if (element == "VEC3") return GltfAccessorElementType::VEC3;
+		else if (element == "VEC4") return GltfAccessorElementType::VEC4;
+		else if (element == "MAT2") return GltfAccessorElementType::MAT2;
+		else if (element == "MAT3") return GltfAccessorElementType::MAT3;
+		else if (element == "MAT4") return GltfAccessorElementType::MAT4;
+		return ((GltfAccessorElementType)UINT32_MAX);
+	}
+
+	GltfBufferTarget GetBufferTarget(uint32_t target) {
+		switch (target) {
+			case 34962: return GltfBufferTarget::ARRAY_BUFFER;
+			case 34963: return GltfBufferTarget::ELEMENT_ARRAY_BUFFER;
+			default: return ((GltfBufferTarget)UINT32_MAX);
+		}
+	}
+
+	size_t GetComponentSize(GltfComponentType component) {
+		switch (component) {
+			case GltfComponentType::BYTE: return sizeof(int8_t);
+			case GltfComponentType::UNSIGNED_BYTE: return sizeof(uint8_t);
+			case GltfComponentType::SHORT: return sizeof(int16_t);
+			case GltfComponentType::UNSIGNED_SHORT: return sizeof(uint16_t);
+			case GltfComponentType::UNSIGNED_INT: return sizeof(uint32_t);
+			case GltfComponentType::FLOAT: return sizeof(float);
+			default: return SIZE_MAX;
+		}
+	}
+
+	uint32_t GetElementTypeCount(GltfAccessorElementType element) {
+		switch (element) {
+			case GltfAccessorElementType::SCALAR: return 1;
+			case GltfAccessorElementType::VEC2: return 2;
+			case GltfAccessorElementType::VEC3: return 3;
+			case GltfAccessorElementType::VEC4: return 4;
+			case GltfAccessorElementType::MAT2: return 4;
+			case GltfAccessorElementType::MAT3: return 9;
+			case GltfAccessorElementType::MAT4: return 16;
+			default: return UINT32_MAX;
+		}
+	}
+
+	struct GltfAttribute {
+		GltfAttributeType Type;
+		uint32_t AccessorIndex;
+	};
+
+	struct GltfPrimitiveDesc {
+		GltfAttribute Attributes[8];
+		uint32_t AttributeCount;
+		uint32_t IndexBufferAccessor;
+		uint32_t MaterialAccessor;
+		uint32_t ModeIndex;
+	};
+
+	struct GltfMeshDesc {
+		GltfPrimitiveDesc Primitives[8];
+		uint32_t PrimitiveCount;
+	};
+
+	struct GltfNodeDesc {
+		uint32_t MeshIndex;
+		uint32_t MaterialIndex;
+	};
+
+	struct GltfAccessorDesc {
+		uint32_t BufferViewIndex;
+		uint32_t ByteOffset;
+		GltfComponentType ComponentType;
+		bool Normalized;
+		uint32_t Count;
+		GltfAccessorElementType Type;
+	};
+
+	struct GltfBufferViewDesc {
+		uint32_t BufferIndex;
+		uint32_t ByteOffset;
+		uint32_t ByteLength;
+		uint32_t ByteStride;
+		GltfBufferTarget Target;
+	};
+
+	struct GltfBufferDesc {
+		std::string URI;
+		uint32_t ByteLength;
+	};
 
 	MeshData LoadCube(const Vector3 &size, bool scaleUVs) {
 		const Vector3 halfSize = size / 2.0f;
@@ -235,109 +356,166 @@ namespace Arcane {
 	}
 
 	MeshData LoadMesh(const std::string &path) {
-		std::fstream file = std::fstream(path, std::ios::in);
-		AR_ASSERT(file.is_open(), "Failed to open file: %s\n", path.c_str());
+		FILE *f = fopen(path.c_str(), "rb");
+		AR_ASSERT(f, "Could not open file: %s\n", path.c_str());
 
-		uint32_t positionCount = 0;
-		uint32_t normalCount = 0;
-		uint32_t uvCount = 0;
+		uint32_t header[3];
+		fread(header, 4, 3, f);
+		AR_ASSERT(header[0] == 0x46546C67, "%s is not a glTF file\n", path.c_str());
 
-		uint32_t vertexCount = 0;
-		uint32_t indexCount = 0;
+		uint32_t chunkHeader[2];
+		void *chunkData;
 
-		std::string line;
-		while (std::getline(file, line)) {
-			if (line.starts_with("#")) {
-				continue;
-			} else if (line.starts_with("v ")) {
-				positionCount++;
-			} else if (line.starts_with("vn ")) {
-				normalCount++;
-			} else if (line.starts_with("vt ")) {
-				uvCount++;
-			} else if (line.starts_with("f")) {
-				uint32_t count = SplitString(line, ' ').size() - 1;
-				vertexCount += count;
+		GltfNodeDesc *nodeDescs;
+		uint32_t nodeCount;
 
-				if (count == 3) {
-					indexCount += 3;
-				} else if (count == 4) {
-					indexCount += 6;
+		GltfMeshDesc *meshDescs;
+		uint32_t meshCount;
+
+		GltfAccessorDesc *accessorDescs;
+		uint32_t accessorCount;
+
+		GltfBufferViewDesc *bufferViewDescs;
+		uint32_t bufferViewCount;
+
+		GltfBufferDesc *bufferDescs;
+		uint32_t bufferCount;
+
+		uint8_t *binaryData;
+
+		fread(chunkHeader, 4, 2, f);
+		if (chunkHeader[1] == 0x4E4F534A) {
+			chunkData = malloc(chunkHeader[0] + 1);
+			memset(chunkData, 0, chunkHeader[0] + 1);
+			fread(chunkData, 1, chunkHeader[0], f);
+
+			JsonDocument doc = ParseJson((char*)chunkData);
+
+			const JsonValue &allNodes = doc["nodes"];
+			const JsonValue &allMeshes = doc["meshes"];
+			const JsonValue &allAccessors = doc["accessors"];
+			const JsonValue &allBufferViews = doc["bufferViews"];
+			const JsonValue &allBuffers = doc["buffers"];
+
+			uint32_t sceneIndex = doc["scene"].GetUint();
+			const JsonValue &scene = doc["scenes"][sceneIndex];
+
+			nodeCount = allNodes.Size();
+			nodeDescs = new GltfNodeDesc[nodeCount];
+			std::memset(nodeDescs, 0, nodeCount* sizeof(GltfNodeDesc));
+
+			for (uint32_t i = 0; i < nodeCount; i++) {
+				const JsonValue &node = allNodes[i];
+				GltfNodeDesc &nodeDesc = nodeDescs[i];
+
+				nodeDesc.MeshIndex = node.HasMember("mesh") ? node["mesh"].GetUint() : UINT32_MAX;
+				nodeDesc.MaterialIndex = node.HasMember("material") ? node["material"].GetUint() : UINT32_MAX;
+			}
+
+			meshCount = allMeshes.Size();
+			meshDescs = new GltfMeshDesc[meshCount];
+			std::memset(meshDescs, 0, meshCount * sizeof(GltfMeshDesc));
+
+			for (uint32_t i = 0; i < meshCount; i++) {
+				const JsonValue &mesh = allMeshes[i];
+				GltfMeshDesc &meshDesc = meshDescs[i];
+
+				const JsonValue &primitives = mesh["primitives"];
+				meshDesc.PrimitiveCount = primitives.Size();
+
+				for (uint32_t j = 0; j < meshDesc.PrimitiveCount; j++) {
+					const JsonValue &primitive = primitives[j];
+					GltfPrimitiveDesc &primitiveDesc = meshDesc.Primitives[j]; 
+					
+					const JsonValue &attributes = primitive["attributes"];
+
+					if (attributes.HasMember("POSITION")) {
+						uint32_t attributeIndex = primitiveDesc.AttributeCount++;
+						primitiveDesc.Attributes[attributeIndex].Type = GltfAttributeType::POSITION;
+						primitiveDesc.Attributes[attributeIndex].AccessorIndex = attributes["POSITION"].GetUint();
+					}
+					if (attributes.HasMember("NORMAL")) {
+						uint32_t attributeIndex = primitiveDesc.AttributeCount++;
+						primitiveDesc.Attributes[attributeIndex].Type = GltfAttributeType::NORMAL;
+						primitiveDesc.Attributes[attributeIndex].AccessorIndex = attributes["NORMAL"].GetUint();
+					}
+					if (attributes.HasMember("TEXCOORD_0")) {
+						uint32_t attributeIndex = primitiveDesc.AttributeCount++;
+						primitiveDesc.Attributes[attributeIndex].Type = GltfAttributeType::TEXCOORD_0;
+						primitiveDesc.Attributes[attributeIndex].AccessorIndex = attributes["TEXCOORD_0"].GetUint();
+					}
+					if (attributes.HasMember("TANGENT")) {
+						uint32_t attributeIndex = primitiveDesc.AttributeCount++;
+						primitiveDesc.Attributes[attributeIndex].Type = GltfAttributeType::TANGENT;
+						primitiveDesc.Attributes[attributeIndex].AccessorIndex = attributes["TANGENT"].GetUint();
+					}
+					if (attributes.HasMember("COLOR_0")) {
+						uint32_t attributeIndex = primitiveDesc.AttributeCount++;
+						primitiveDesc.Attributes[attributeIndex].Type = GltfAttributeType::COLOR_0;
+						primitiveDesc.Attributes[attributeIndex].AccessorIndex = attributes["COLOR_0"].GetUint();
+					}
+					primitiveDesc.IndexBufferAccessor = primitive["indices"].GetUint();
+					primitiveDesc.MaterialAccessor = primitive.HasMember("material") ? primitive["material"].GetUint() : UINT32_MAX;
+					primitiveDesc.ModeIndex = primitive.HasMember("mode") ? primitive["mode"].GetUint() : UINT32_MAX;
 				}
 
 			}
-		}
 
-		std::vector<Vector3> uniquePositions;
-		uniquePositions.resize(positionCount);
-		std::vector<Vector3> uniqueNormals;
-		uniqueNormals.resize(normalCount);
-		std::vector<Vector2> uniqueUVs;
-		uniqueUVs.resize(uvCount);
-		std::vector<uint32_t> indices;
-		indices.resize(indexCount);
+			accessorCount = allAccessors.Size();
+			accessorDescs = new GltfAccessorDesc[accessorCount];
+			std::memset(accessorDescs, 0, accessorCount * sizeof(GltfAccessorDesc));
 
-		std::vector<Vector3> positions;
-		positions.resize(vertexCount);
-		std::vector<Vector3> normals;
-		normals.resize(vertexCount);
-		std::vector<Vector2> uvs;
-		uvs.resize(vertexCount);
-		std::vector<Vector3> tangents;
-		tangents.resize(vertexCount);
-		std::vector<Vector3> bitangents;
-		bitangents.resize(vertexCount);
+			for (uint32_t i = 0; i < accessorCount; i++) {
+				const JsonValue &accessor = allAccessors[i];
+				GltfAccessorDesc &accessorDesc = accessorDescs[i];
 
-		uint32_t index = 0;
-
-		while (std::getline(file, line)) {
-			if (line.starts_with("#")) {
-				continue;
-			} else if (line.starts_with("v ")) {
-				float x, y, z;
-				sscanf(line.c_str(), "v %f %f %f", &x, &y, &z);
-				uniquePositions.emplace_back(x, y, z);
-			} else if (line.starts_with("vn ")) {
-				float x, y, z;
-				sscanf(line.c_str(), "vn %f %f %f", &x, &y, &z);
-				uniqueNormals.emplace_back(x, y, z);
-			} else if (line.starts_with("vt ")) {
-				float x, y;
-				sscanf(line.c_str(), "vt %f %f", &x, &y);
-				uniqueUVs.emplace_back(x, y);
-			} else if (line.starts_with("f")) {
-				std::vector<std::string> tokens = SplitString(line, ' ');
-				uint32_t vertexCount = tokens.size() - 1;
-				
-				if (vertexCount == 3) {
-					indices.push_back(index + 0);
-					indices.push_back(index + 1);
-					indices.push_back(index + 2);
-				} else if (vertexCount == 4) {
-					indices.push_back(index + 0);
-					indices.push_back(index + 1);
-					indices.push_back(index + 2);
-					indices.push_back(index + 0);
-					indices.push_back(index + 2);
-					indices.push_back(index + 3);
-				}
-				
-				for (uint32_t i = 0; i < vertexCount; i++) {
-					std::vector<std::string> indices = SplitString(tokens[i + 1], '/');
-					uint32_t positionIndex = std::stoul(indices[0]) - 1;
-					uint32_t uvIndex = std::stoul(indices[1]) - 1;
-					uint32_t normalIndex = std::stoul(indices[2]) - 1;
-
-					positions.emplace_back(uniquePositions[positionIndex]);
-					normals.emplace_back(uniqueNormals[normalIndex]);
-					uvs.emplace_back(uniqueUVs[uvIndex]);
-				}
-
-				index += vertexCount;
+				accessorDesc.BufferViewIndex = accessor.HasMember("bufferView") ? accessor["bufferView"].GetUint() : UINT32_MAX;
+				accessorDesc.ByteOffset = accessor.HasMember("byteOffset") ? accessor["byteOffset"].GetUint() : 0;
+				accessorDesc.ComponentType = GetGltfComponentType(accessor["componentType"].GetUint());
+				accessorDesc.Normalized = accessor.HasMember("normalized") ? accessor["normalized"].GetBool() : false;
+				accessorDesc.Count = accessor["count"].GetUint();
+				accessorDesc.Type = GetAccessorElementType(accessor["type"].GetString());
 			}
+
+			bufferViewCount = allBufferViews.Size();
+			bufferViewDescs = new GltfBufferViewDesc[bufferViewCount];
+			std::memset(bufferViewDescs, 0, bufferViewCount * sizeof(GltfBufferViewDesc));
+
+			for (uint32_t i = 0; i < bufferViewCount; i++) {
+				const JsonValue &bufferView = allBufferViews[i];
+				GltfBufferViewDesc &bufferViewDesc = bufferViewDescs[i];
+
+				bufferViewDesc.BufferIndex = bufferView["buffer"].GetUint();
+				bufferViewDesc.ByteOffset = bufferView.HasMember("byteOffset") ? bufferView["byteOffset"].GetUint() : 0;
+				bufferViewDesc.ByteLength = bufferView["byteLength"].GetUint();
+				bufferViewDesc.ByteStride = bufferView.HasMember("byteStride") ? bufferView["byteStride"].GetUint() : UINT32_MAX;
+				bufferViewDesc.Target = bufferView.HasMember("target") ? GetBufferTarget(bufferView["target"].GetUint()) : ((GltfBufferTarget)UINT32_MAX);
+			}
+
+			bufferCount = allBuffers.Size();
+			bufferDescs = new GltfBufferDesc[bufferCount];
+			std::memset(bufferDescs, 0, bufferCount * sizeof(GltfBufferDesc));
+
+			for (uint32_t i = 0; i < bufferCount; i++) {
+				const JsonValue &buffer = allBuffers[i];
+				GltfBufferDesc &bufferDesc = bufferDescs[i];
+
+				bufferDesc.URI = buffer.HasMember("uri") ? buffer["uri"].GetString() : "";
+				bufferDesc.ByteLength = buffer["byteLength"].GetUint();
+			}
+
+			free(chunkData);
 		}
 
-		return MeshData(positions, normals, uvs, tangents, bitangents, indices);
+		fread(chunkHeader, 4, 2, f);
+		binaryData = (uint8_t*)malloc(chunkHeader[0]);
+		fread(binaryData, 1, chunkHeader[0], f);
+
+		fclose(f);
+
+		MeshData data;
+
+		return data;
 	}
 
 	static void MeshProcessMoveOriginToCenter(MeshData &data) {

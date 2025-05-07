@@ -17,6 +17,8 @@ Game::~Game() {
 }
 
 void Game::Start() {
+	MeshData monkeyData = LoadMesh("Game/Assets/Models/monkey.glb");
+
 	mFloor = Entity();
 	mFloor.Add<Tag>("Floor");
 	
