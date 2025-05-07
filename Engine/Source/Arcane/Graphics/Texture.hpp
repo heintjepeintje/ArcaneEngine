@@ -25,6 +25,8 @@ namespace Arcane {
 			return mNativeTexture;
 		}
 
+		inline bool IsValid() const { return mNativeTexture.IsValid(); }
+
 	private:
 		Ref<NativeTexture> mNativeTexture;
 	};

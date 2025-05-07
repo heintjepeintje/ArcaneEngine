@@ -61,6 +61,7 @@ namespace Arcane {
 		}
 
 		Ref(const Ref<_Type> &other) {
+			if (other.mBlock == nullptr) return;
 			mBlock = other.mBlock;
 			mBlock->Count++;
 		}
@@ -106,7 +107,9 @@ namespace Arcane {
 			return *this;
 		}
 
-		operator bool() const { return mBlock != nullptr && mBlock->Pointer != nullptr; }
+		inline bool IsValid() const { return mBlock != nullptr && mBlock->Pointer != nullptr; }
+		operator bool() const { return IsValid(); }
+
 
 	private:
 		RefBlock<_Type> *mBlock = nullptr; 

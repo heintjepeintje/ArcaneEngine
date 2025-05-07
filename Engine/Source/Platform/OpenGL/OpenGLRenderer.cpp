@@ -230,7 +230,7 @@ namespace Arcane {
 			for (size_t i = 0; i < mPipeline->GetCombinedImageSamplerDescriptorCount(); i++) {
 				OpenGLCombinedImageSamplerDescriptor &desc = mPipeline->GetCombinedImageSamplerDescriptors()[i];
 				glBindTextureUnit(desc.binding, desc.texture);
-				glBindSampler(desc.binding, desc.sampler);
+				glBindSampler(desc.binding, desc.sampler);	
 			}
 		}
 

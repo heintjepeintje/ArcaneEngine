@@ -17,8 +17,6 @@ Game::~Game() {
 }
 
 void Game::Start() {
-	MeshData monkeyData = LoadMesh("Game/Assets/Models/monkey.glb");
-
 	mFloor = Entity();
 	mFloor.Add<Tag>("Floor");
 	
@@ -50,16 +48,19 @@ void Game::Start() {
 	mBox = Entity();
 	mBox.Add<Tag>("Box");
 
-	MeshData boxData = LoadCube();
-	mBox.Add<Mesh>(Mesh::Create(mContext, boxData));
+	MeshData monkeyData = LoadMesh("Game/Assets/Models/monkey.glb");
+	// ProcessMesh(monkeyData, MeshProcess::GenerateNormals);
+	ProcessMesh(monkeyData, MeshProcess::GenerateTangents);
+	// ProcessMesh(monkeyData, MeshProcess::NormalizeMesh);
+	mBox.Add<Mesh>(Mesh::Create(mContext, monkeyData));
 	
-	colorTexture = LoadImage("Game/Assets/Materials/Wood Floor/WoodFloor_Color.png", ImageFormat::RGB8);
+	colorTexture = LoadImage(Color::White(), ImageFormat::RGB8);
 	ProcessImage(colorTexture, ImageProcess::FlipVertical);
-	aoTexture = LoadImage("Game/Assets/Materials/Wood Floor/WoodFloor_AmbientOcclusion.png", ImageFormat::RGB8); 
+	aoTexture = LoadImage(Color::White(), ImageFormat::RGB8); 
 	ProcessImage(aoTexture, ImageProcess::FlipVertical);
-	roughnessMap = LoadImage("Game/Assets/Materials/Wood Floor/WoodFloor_Roughness.png", ImageFormat::RGB8);
+	roughnessMap = LoadImage(Color::Black(), ImageFormat::RGB8);
 	ProcessImage(roughnessMap, ImageProcess::FlipVertical);
-	normalMap = LoadImage("Game/Assets/Materials/Wood Floor/WoodFloor_Normal.png", ImageFormat::RGB8);
+	normalMap = LoadImage(Color::Magenta(), ImageFormat::RGB8);
 	ProcessImage(normalMap, ImageProcess::FlipVertical);
 	
 	PBRMaterial &boxMaterial = mBox.Add<PBRMaterial>();
@@ -77,7 +78,6 @@ void Game::Start() {
 	
 	Transform &boxTransform = mBox.Add<Transform>();
 	boxTransform.Position = { 0.0f, 2.0f, 0.0f  };
-	boxTransform.Scale = { 1.0f, 1.0f, 1.0f };
 
 	mPlayer = Entity();
 	mPlayer.Add<Tag>(Tag("Camera"));
@@ -98,11 +98,10 @@ void Game::Start() {
 }
 
 void Game::Update() {
-	Transform &bt = mBox.Get<Transform>();
-	bt.Rotation.X += 90.0f * GetDeltaTime();
-	bt.Rotation.Y += 90.0f * GetDeltaTime();
-
 	if (mWindow.IsFocused()) {
+		Transform &t = mBox.Get<Transform>();
+		t.Rotation.Y += 180.0f * GetDeltaTime();
+
 		SetCursorLocked(true);
 		SetCursorVisible(false);
 

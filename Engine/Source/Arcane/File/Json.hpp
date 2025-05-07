@@ -15,7 +15,6 @@ namespace Arcane {
 
 	JsonDocument ParseJson(const char *json) {
 		JsonDocument doc;
-		printf("%s\n", json);
 		doc.Parse(json);
 
 		AR_ASSERT(!doc.HasParseError(), "Could not parse json: %u\n", doc.GetParseError());

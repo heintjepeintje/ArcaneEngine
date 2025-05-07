@@ -231,6 +231,18 @@ namespace Arcane {
 			return result;
 		}
 
+		inline Vector4 operator*(const Vector4 &m) const {
+			Vector4 result;
+			for (uint32_t i = 0; i < 4; i++) {
+				float sum = 0.0f;
+				for (uint32_t k = 0; k < 4; k++) {
+					sum += Data[i][k] * m.Data[k];
+				}
+				result.Data[i] = sum;
+			}
+			return result;
+		}
+
 		inline Matrix4 &operator+=(const Matrix4 &m) {
 			Rows[0] += m.Rows[0];
 			Rows[1] += m.Rows[1];

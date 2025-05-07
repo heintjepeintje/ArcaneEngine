@@ -32,7 +32,7 @@ namespace Arcane {
 	};
 
 	template<Endianness _Endianness, typename _Type>
-	_Type ToNativeEndian(_Type v) {
+	inline _Type ToNativeEndian(_Type v) {
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 		if constexpr (_Endianness == Endianness::LittleEndian) {
 			return v;

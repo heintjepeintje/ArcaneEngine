@@ -99,7 +99,12 @@ namespace Arcane {
 		inline bool operator!=(const Vector4 &other) { return X != other.X || Y != other.Y; }
 
 	public:
-		float X, Y, Z, W;
+		union {
+			struct {
+				float X, Y, Z, W;
+			};
+			float Data[4];
+		};
 	};
 
 	inline Vector4 operator*(float scalar, const Vector4 &v) {

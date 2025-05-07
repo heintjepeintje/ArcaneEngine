@@ -6,12 +6,17 @@
 
 #include <vector>
 
-#include <Arcane/Util/StringUtils.hpp>
 #include <Arcane/Math/Math.hpp>
-
+#include <Arcane/Math/Vector4.hpp>
+#include <Arcane/Math/Quaternion.hpp>
+#include <Arcane/Math/Matrix4.hpp>
+#include <Arcane/Util/StringUtils.hpp>
 #include <Arcane/Util/ByteUtil.hpp>
-
 #include <Arcane/File/Json.hpp>
+#include <Arcane/Util/BufferView.hpp>
+#include <Arcane/System/Time.hpp>
+
+#include "Transform.hpp"
 
 namespace Arcane {
 
@@ -110,6 +115,8 @@ namespace Arcane {
 	struct GltfNodeDesc {
 		uint32_t MeshIndex;
 		uint32_t MaterialIndex;
+		Matrix4 Transform;
+		Matrix4 TransformNoScale;
 	};
 
 	struct GltfAccessorDesc {
@@ -356,8 +363,12 @@ namespace Arcane {
 	}
 
 	MeshData LoadMesh(const std::string &path) {
+		AR_PROFILE_FUNCTION();
+		
 		FILE *f = fopen(path.c_str(), "rb");
 		AR_ASSERT(f, "Could not open file: %s\n", path.c_str());
+
+		const uint64_t startTime = GetCurrentTimeMillis();
 
 		uint32_t header[3];
 		fread(header, 4, 3, f);
@@ -402,7 +413,6 @@ namespace Arcane {
 
 			nodeCount = allNodes.Size();
 			nodeDescs = new GltfNodeDesc[nodeCount];
-			std::memset(nodeDescs, 0, nodeCount* sizeof(GltfNodeDesc));
 
 			for (uint32_t i = 0; i < nodeCount; i++) {
 				const JsonValue &node = allNodes[i];
@@ -410,6 +420,34 @@ namespace Arcane {
 
 				nodeDesc.MeshIndex = node.HasMember("mesh") ? node["mesh"].GetUint() : UINT32_MAX;
 				nodeDesc.MaterialIndex = node.HasMember("material") ? node["material"].GetUint() : UINT32_MAX;
+
+				Transform transform;
+
+				if (node.HasMember("translation")) {
+					transform.Position.X = node["translation"][0].GetFloat();
+					transform.Position.Y = node["translation"][1].GetFloat();
+					transform.Position.Z = node["translation"][2].GetFloat();
+				}
+
+				if (node.HasMember("rotation")) {
+					Quaternion q;
+					q.X = node["rotation"][0].GetFloat();
+					q.Y = node["rotation"][1].GetFloat();
+					q.Z = node["rotation"][2].GetFloat();
+					q.W = node["rotation"][3].GetFloat();
+				
+					transform.Rotation = q.ToEuler();
+
+				}
+				nodeDesc.TransformNoScale = transform.GetModelMatrix();
+
+				if (node.HasMember("scale")) {
+					transform.Scale.X = node["scale"][0].GetFloat();
+					transform.Scale.Y = node["scale"][1].GetFloat();
+					transform.Scale.Z = node["scale"][2].GetFloat();
+				}
+
+				nodeDesc.Transform = transform.GetModelMatrix();
 			}
 
 			meshCount = allMeshes.Size();
@@ -471,7 +509,7 @@ namespace Arcane {
 
 				accessorDesc.BufferViewIndex = accessor.HasMember("bufferView") ? accessor["bufferView"].GetUint() : UINT32_MAX;
 				accessorDesc.ByteOffset = accessor.HasMember("byteOffset") ? accessor["byteOffset"].GetUint() : 0;
-				accessorDesc.ComponentType = GetGltfComponentType(accessor["componentType"].GetUint());
+				accessorDesc.ComponentType = GetComponentType(accessor["componentType"].GetUint());
 				accessorDesc.Normalized = accessor.HasMember("normalized") ? accessor["normalized"].GetBool() : false;
 				accessorDesc.Count = accessor["count"].GetUint();
 				accessorDesc.Type = GetAccessorElementType(accessor["type"].GetString());
@@ -494,7 +532,6 @@ namespace Arcane {
 
 			bufferCount = allBuffers.Size();
 			bufferDescs = new GltfBufferDesc[bufferCount];
-			std::memset(bufferDescs, 0, bufferCount * sizeof(GltfBufferDesc));
 
 			for (uint32_t i = 0; i < bufferCount; i++) {
 				const JsonValue &buffer = allBuffers[i];
@@ -515,10 +552,105 @@ namespace Arcane {
 
 		MeshData data;
 
+		const uint32_t meshIndex = nodeDescs[0].MeshIndex;
+		const GltfPrimitiveDesc &primitive = meshDescs[meshIndex].Primitives[0];
+
+		for (uint32_t i = 0; i < primitive.AttributeCount; i++) {
+			const GltfAttribute &attribute = primitive.Attributes[i];
+			const GltfAccessorDesc &accessor = accessorDescs[attribute.AccessorIndex];
+			const GltfBufferViewDesc &bufferView = bufferViewDescs[accessor.BufferViewIndex];
+			const GltfBufferDesc &buffer = bufferDescs[bufferView.BufferIndex];
+
+			BufferView view(binaryData, bufferView.ByteOffset, bufferView.ByteLength);
+
+			if (attribute.Type == GltfAttributeType::POSITION) {
+				data.Positions.reserve(accessor.Count);
+				if (accessor.ComponentType == GltfComponentType::FLOAT) {
+					for (uint32_t j = 0; j < accessor.Count; j++) {
+						Vector4 v = nodeDescs[0].Transform * Vector4(
+							ToNativeEndian<Endianness::LittleEndian>(view.Next<float>()),
+							ToNativeEndian<Endianness::LittleEndian>(view.Next<float>()),
+							ToNativeEndian<Endianness::LittleEndian>(view.Next<float>()),
+							1.0
+						);
+
+						data.Positions.emplace_back(v.X, v.Y, v.Z);
+					}
+				}
+			} else if (attribute.Type == GltfAttributeType::NORMAL) {
+				data.Normals.reserve(accessor.Count);
+				if (accessor.ComponentType == GltfComponentType::FLOAT) {
+					for (uint32_t j = 0; j < accessor.Count; j++) {
+						Vector4 v = nodeDescs[0].TransformNoScale * Vector4(
+							ToNativeEndian<Endianness::LittleEndian>(view.Next<float>()),
+							ToNativeEndian<Endianness::LittleEndian>(view.Next<float>()),
+							ToNativeEndian<Endianness::LittleEndian>(view.Next<float>()),
+							1.0
+						);
+
+						data.Normals.emplace_back(v.X, v.Y, v.Z);
+					}
+				}
+			} else if (attribute.Type == GltfAttributeType::TEXCOORD_0) {
+				data.UVs.reserve(accessor.Count);
+				if (accessor.ComponentType == GltfComponentType::FLOAT) {
+					for (uint32_t j = 0; j < accessor.Count; j++) {
+						data.UVs.emplace_back(
+							ToNativeEndian<Endianness::LittleEndian>(view.Next<float>()),
+							ToNativeEndian<Endianness::LittleEndian>(view.Next<float>())
+						);
+					}
+				} else if (accessor.ComponentType == GltfComponentType::UNSIGNED_BYTE) {
+					for (uint32_t j = 0; j < accessor.Count; j++) {
+						data.UVs.emplace_back(
+							ToNativeEndian<Endianness::LittleEndian>(view.Next<uint8_t>()),
+							ToNativeEndian<Endianness::LittleEndian>(view.Next<uint8_t>())
+						);
+					}
+				} else if (accessor.ComponentType == GltfComponentType::UNSIGNED_SHORT) {
+					for (uint32_t j = 0; j < accessor.Count; j++) {
+						data.UVs.emplace_back(
+							ToNativeEndian<Endianness::LittleEndian>(view.Next<uint16_t>()),
+							ToNativeEndian<Endianness::LittleEndian>(view.Next<uint16_t>())
+						);
+					}
+				}
+			}
+		}
+
+		if (primitive.IndexBufferAccessor != UINT32_MAX) {
+			const GltfAccessorDesc &accessor = accessorDescs[primitive.IndexBufferAccessor];
+			const GltfBufferViewDesc &bufferView = bufferViewDescs[accessor.BufferViewIndex];
+			const GltfBufferDesc &buffer = bufferDescs[bufferView.BufferIndex];
+
+			BufferView view(binaryData, bufferView.ByteOffset, bufferView.ByteLength);
+
+			data.Indices.reserve(accessor.Count);
+			if (accessor.ComponentType == GltfComponentType::UNSIGNED_INT) {
+				for (uint32_t i = 0; i < accessor.Count; i++) {
+					data.Indices.emplace_back(
+						ToNativeEndian<Endianness::LittleEndian>(view.Next<uint32_t>())
+					);
+				}
+			} else if (accessor.ComponentType == GltfComponentType::UNSIGNED_SHORT) {
+				for (uint32_t i = 0; i < accessor.Count; i++) {
+					data.Indices.emplace_back(
+						ToNativeEndian<Endianness::LittleEndian>(view.Next<uint16_t>())
+					);
+				}
+			}
+		}
+
+		printf("Loading: %s (%llums)\n", path.c_str(), GetCurrentTimeMillis() - startTime);
+		printf("\t%u vertices\n", data.Positions.size());
+		printf("\t%u indices\n", data.Indices.size());
+
 		return data;
 	}
 
 	static void MeshProcessMoveOriginToCenter(MeshData &data) {
+		AR_PROFILE_FUNCTION();
+		
 		Vector3 origin = Vector3(0);
 
 		for (const Vector3 &position : data.Positions) {
@@ -533,7 +665,9 @@ namespace Arcane {
 	}
 
 	static void MeshProcessGenerateMeshNormals(MeshData &data) {
-		data.Normals.reserve(data.Positions.size());
+		AR_PROFILE_FUNCTION();
+		data.Normals.clear();
+		data.Normals.resize(data.Positions.size());
 		
 		for (size_t i = 0; i < data.Indices.size(); i += 3) {
 			Vector3 a = data.Positions[data.Indices[i + 1]] - data.Positions[data.Indices[i + 0]];
@@ -548,10 +682,14 @@ namespace Arcane {
 	}
 
 	static void MeshProcessGenerateUVs(MeshData &data) {
+		AR_PROFILE_FUNCTION();
+		
 		
 	}
 
 	static void MeshProcessNormalizeMesh(MeshData &data) {
+		AR_PROFILE_FUNCTION();
+		
 		Vector3 min = Vector3(__FLT_MAX__);
 		Vector3 max = Vector3(-__FLT_MAX__);
 
@@ -568,6 +706,11 @@ namespace Arcane {
 	}
 
 	static void MeshProcessGenerateTangents(MeshData &data) {
+		AR_PROFILE_FUNCTION();
+
+		data.Tangents.resize(data.Normals.size());
+		data.Bitangents.resize(data.Normals.size());
+
 		for (size_t i = 0; i < data.Indices.size(); i += 3) {
 			uint32_t index0 = data.Indices[i + 0];
 			uint32_t index1 = data.Indices[i + 1];
@@ -603,6 +746,8 @@ namespace Arcane {
 	}
 
 	static void MeshProcessGenerateBoundingBox(MeshData &data) {
+		AR_PROFILE_FUNCTION();
+		
 		Vector3 min = Vector3(__FLT_MAX__);
 		Vector3 max = Vector3(-__FLT_MAX__);
 
