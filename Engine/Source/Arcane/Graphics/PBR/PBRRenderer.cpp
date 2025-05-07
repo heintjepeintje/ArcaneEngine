@@ -235,7 +235,7 @@ namespace Arcane {
 
 		Descriptor shadowDescriptors[] = {
 			{ 0, DescriptorType::UniformBuffer },
-			{ 1, DescriptorType::UniformBuffer },
+			{ 1, DescriptorType::UniformBuffer }
 		};
 
 		InputLayout shadowInputLayout = {
@@ -250,7 +250,7 @@ namespace Arcane {
 		fragmentShaderBinary = ReadFileBinary(AR_SHADOW_FRAGMENT_SHADER_PATH, &fragmentBinarySize);
 
 		PipelineInfo shadowPipelineInfo = PipelineInfo::CreateWithDefaultInfo();
-		// shadowPipelineInfo.CullMode = CullMode::Front;
+		shadowPipelineInfo.CullMode = CullMode::Front;
 		shadowPipelineInfo.Descriptors = shadowDescriptors;
 		shadowPipelineInfo.DescriptorCount = 2;
 		shadowPipelineInfo.Layout = shadowInputLayout;
@@ -259,6 +259,7 @@ namespace Arcane {
 		shadowPipelineInfo.FragmentShaderBinary = fragmentShaderBinary;
 		shadowPipelineInfo.FragmentShaderSize = fragmentBinarySize;
 		shadowPipelineInfo.Viewport.Size = Vector2(AR_PBR_SHADOW_MAP_WIDTH, AR_PBR_SHADOW_MAP_HEIGHT);
+		shadowPipelineInfo.Scissor.Size = Vector2(AR_PBR_SHADOW_MAP_WIDTH, AR_PBR_SHADOW_MAP_HEIGHT);
 		shadowPipelineInfo.SampleCount = AR_PBR_SAMPLE_COUNT;
 
 		sShadowPipeline = Pipeline::Create(sContext, shadowPipelineInfo);
@@ -511,7 +512,7 @@ namespace Arcane {
 			sRendererAPI.Clear();
 
 			sPostProcessSettingsBuffer.SetData((const void*)&sPostProcessSettingsData);
-			sPostProcessPipeline.SetCombinedImageSampler(0, sShadowMap.GetDepthBuffer(), sDefaultSampler);
+			sPostProcessPipeline.SetCombinedImageSampler(0, sLightFramebuffer.GetColorBuffer(0), sDefaultSampler);
 			sRendererAPI.SetMesh(sQuadMesh);
 			sRendererAPI.DrawIndexed(1, sQuadMesh.GetIndexBuffer().GetSize() / sPostProcessPipeline.GetElementSize());
 
