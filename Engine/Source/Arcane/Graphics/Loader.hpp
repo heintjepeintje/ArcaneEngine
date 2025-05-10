@@ -14,10 +14,11 @@ namespace Arcane {
 	enum class MeshProcess {
 		None = 0,
 		MoveOriginToCenter,
-		NormalizeMesh,
+		Normalize,
 		GenerateNormals,
 		GenerateUVs,
 		GenerateTangents,
+		SwapWindingOrder,
 		FlipUVs,
 		RemoveDuplicateVertices,
 		RemoveUnusedVertices,
@@ -37,6 +38,7 @@ namespace Arcane {
 		std::vector<Vector3> Tangents;
 		std::vector<Vector3> Bitangents;
 		std::vector<uint32_t> Indices;
+		uint32_t IndexWidth;
 	};
 
 	struct ImageData {
@@ -49,8 +51,7 @@ namespace Arcane {
 	MeshData LoadMesh(const std::string &path);
 	ImageData LoadImage(const std::string &path, ImageFormat requestedFormat);
 	ImageData LoadImage(const Color &color, ImageFormat format);
-
-	void ProcessMesh(MeshData &data, MeshProcess process);
+	
 	void ProcessImage(ImageData &data, ImageProcess process);
 
 }

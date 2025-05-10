@@ -48,10 +48,17 @@ void Game::Start() {
 	mBox = Entity();
 	mBox.Add<Tag>("Box");
 
-	MeshData monkeyData = LoadMesh("Game/Assets/Models/monkey.glb");
-	// ProcessMesh(monkeyData, MeshProcess::GenerateNormals);
-	ProcessMesh(monkeyData, MeshProcess::GenerateTangents);
-	// ProcessMesh(monkeyData, MeshProcess::NormalizeMesh);
+	MeshProcessor processor = {
+		// MeshProcess::SwapWindingOrder,
+		MeshProcess::GenerateNormals,
+		MeshProcess::GenerateTangents,
+		MeshProcess::Normalize,
+		MeshProcess::MoveOriginToCenter
+	};
+
+	
+	MeshData monkeyData = LoadMesh("Game/Assets/Models/dragon.glb");
+	processor.Process(monkeyData);
 	mBox.Add<Mesh>(Mesh::Create(mContext, monkeyData));
 	
 	colorTexture = LoadImage(Color::White(), ImageFormat::RGB8);
@@ -77,7 +84,7 @@ void Game::Start() {
 	free(aoTexture.Data);
 	
 	Transform &boxTransform = mBox.Add<Transform>();
-	boxTransform.Position = { 0.0f, 2.0f, 0.0f  };
+	boxTransform.Position = { 0.0f, 2.0f, 0.0f };
 
 	mPlayer = Entity();
 	mPlayer.Add<Tag>(Tag("Camera"));
@@ -86,6 +93,8 @@ void Game::Start() {
 	mPlayer.Add<PointLight>(PointLight(Color::Red(), 10.0f));
 	mPlayer.Add<Transform>();
 	GetCurrentScene()->SetMainEntity(mPlayer.GetID());
+
+	renderCamera.GetCamera().Front = Vector3(0, 0, 1);
 	
 	mWindow.SetVisible(true);
 	
@@ -99,8 +108,8 @@ void Game::Start() {
 
 void Game::Update() {
 	if (mWindow.IsFocused()) {
-		Transform &t = mBox.Get<Transform>();
-		t.Rotation.Y += 180.0f * GetDeltaTime();
+		// Transform &t = mBox.Get<Transform>();
+		// t.Rotation.Y += 180.0f * GetDeltaTime();
 
 		SetCursorLocked(true);
 		SetCursorVisible(false);

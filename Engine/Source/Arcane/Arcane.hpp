@@ -12,6 +12,7 @@
 #include <Arcane/Graphics/Loader.hpp>
 #include <Arcane/Graphics/Camera.hpp>
 #include <Arcane/Graphics/Transform.hpp>
+#include <Arcane/Graphics/MeshProcessor.hpp>
 
 #include <Arcane/Math/Math.hpp>
 #include <Arcane/Math/Rect2D.hpp>
@@ -26,6 +27,8 @@
 #include <Arcane/System/Window.hpp>
 #include <Arcane/System/Input.hpp>
 #include <Arcane/System/Time.hpp>
+#include <Arcane/System/Thread.hpp>
+#include <Arcane/System/ThreadPool.hpp>
 
 // PBR
 #include <Arcane/Graphics/PBR/PBRMaterial.hpp>

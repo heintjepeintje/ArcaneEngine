@@ -437,7 +437,9 @@ namespace Arcane {
 					q.W = node["rotation"][3].GetFloat();
 				
 					transform.Rotation = q.ToEuler();
-
+					transform.Rotation.X = ToDegrees(transform.Rotation.X);
+					transform.Rotation.Y = ToDegrees(transform.Rotation.Y);
+					transform.Rotation.Z = ToDegrees(transform.Rotation.Z);
 				}
 				nodeDesc.TransformNoScale = transform.GetModelMatrix();
 
@@ -463,7 +465,7 @@ namespace Arcane {
 
 				for (uint32_t j = 0; j < meshDesc.PrimitiveCount; j++) {
 					const JsonValue &primitive = primitives[j];
-					GltfPrimitiveDesc &primitiveDesc = meshDesc.Primitives[j]; 
+					GltfPrimitiveDesc &primitiveDesc = meshDesc.Primitives[j];
 					
 					const JsonValue &attributes = primitive["attributes"];
 
@@ -472,26 +474,31 @@ namespace Arcane {
 						primitiveDesc.Attributes[attributeIndex].Type = GltfAttributeType::POSITION;
 						primitiveDesc.Attributes[attributeIndex].AccessorIndex = attributes["POSITION"].GetUint();
 					}
+					
 					if (attributes.HasMember("NORMAL")) {
 						uint32_t attributeIndex = primitiveDesc.AttributeCount++;
 						primitiveDesc.Attributes[attributeIndex].Type = GltfAttributeType::NORMAL;
 						primitiveDesc.Attributes[attributeIndex].AccessorIndex = attributes["NORMAL"].GetUint();
 					}
+					
 					if (attributes.HasMember("TEXCOORD_0")) {
 						uint32_t attributeIndex = primitiveDesc.AttributeCount++;
 						primitiveDesc.Attributes[attributeIndex].Type = GltfAttributeType::TEXCOORD_0;
 						primitiveDesc.Attributes[attributeIndex].AccessorIndex = attributes["TEXCOORD_0"].GetUint();
 					}
+					
 					if (attributes.HasMember("TANGENT")) {
 						uint32_t attributeIndex = primitiveDesc.AttributeCount++;
 						primitiveDesc.Attributes[attributeIndex].Type = GltfAttributeType::TANGENT;
 						primitiveDesc.Attributes[attributeIndex].AccessorIndex = attributes["TANGENT"].GetUint();
 					}
+					
 					if (attributes.HasMember("COLOR_0")) {
 						uint32_t attributeIndex = primitiveDesc.AttributeCount++;
 						primitiveDesc.Attributes[attributeIndex].Type = GltfAttributeType::COLOR_0;
 						primitiveDesc.Attributes[attributeIndex].AccessorIndex = attributes["COLOR_0"].GetUint();
 					}
+
 					primitiveDesc.IndexBufferAccessor = primitive["indices"].GetUint();
 					primitiveDesc.MaterialAccessor = primitive.HasMember("material") ? primitive["material"].GetUint() : UINT32_MAX;
 					primitiveDesc.ModeIndex = primitive.HasMember("mode") ? primitive["mode"].GetUint() : UINT32_MAX;
@@ -567,28 +574,29 @@ namespace Arcane {
 				data.Positions.reserve(accessor.Count);
 				if (accessor.ComponentType == GltfComponentType::FLOAT) {
 					for (uint32_t j = 0; j < accessor.Count; j++) {
-						Vector4 v = nodeDescs[0].Transform * Vector4(
-							ToNativeEndian<Endianness::LittleEndian>(view.Next<float>()),
+						Vector4 transformed = nodeDescs[0].Transform * Vector4(
+							-ToNativeEndian<Endianness::LittleEndian>(view.Next<float>()),
 							ToNativeEndian<Endianness::LittleEndian>(view.Next<float>()),
 							ToNativeEndian<Endianness::LittleEndian>(view.Next<float>()),
 							1.0
 						);
 
-						data.Positions.emplace_back(v.X, v.Y, v.Z);
+						data.Positions.emplace_back(transformed.X, transformed.Y, transformed.Z);
 					}
 				}
 			} else if (attribute.Type == GltfAttributeType::NORMAL) {
 				data.Normals.reserve(accessor.Count);
 				if (accessor.ComponentType == GltfComponentType::FLOAT) {
 					for (uint32_t j = 0; j < accessor.Count; j++) {
-						Vector4 v = nodeDescs[0].TransformNoScale * Vector4(
-							ToNativeEndian<Endianness::LittleEndian>(view.Next<float>()),
+						Vector4 transformed = nodeDescs[0].TransformNoScale * Vector4(
+							-ToNativeEndian<Endianness::LittleEndian>(view.Next<float>()),
 							ToNativeEndian<Endianness::LittleEndian>(view.Next<float>()),
 							ToNativeEndian<Endianness::LittleEndian>(view.Next<float>()),
 							1.0
 						);
 
-						data.Normals.emplace_back(v.X, v.Y, v.Z);
+						Vector3 &v = data.Normals.emplace_back(transformed.X, transformed.Y, transformed.Z);
+						v = Vector3::Normalize(v);
 					}
 				}
 			} else if (attribute.Type == GltfAttributeType::TEXCOORD_0) {
@@ -646,135 +654,6 @@ namespace Arcane {
 		printf("\t%u indices\n", data.Indices.size());
 
 		return data;
-	}
-
-	static void MeshProcessMoveOriginToCenter(MeshData &data) {
-		AR_PROFILE_FUNCTION();
-		
-		Vector3 origin = Vector3(0);
-
-		for (const Vector3 &position : data.Positions) {
-			origin += position;
-		}
-
-		origin /= data.Positions.size();
-
-		for (Vector3 &position : data.Positions) {
-			position -= origin;
-		}
-	}
-
-	static void MeshProcessGenerateMeshNormals(MeshData &data) {
-		AR_PROFILE_FUNCTION();
-		data.Normals.clear();
-		data.Normals.resize(data.Positions.size());
-		
-		for (size_t i = 0; i < data.Indices.size(); i += 3) {
-			Vector3 a = data.Positions[data.Indices[i + 1]] - data.Positions[data.Indices[i + 0]];
-			Vector3 b = data.Positions[data.Indices[i + 2]] - data.Positions[data.Indices[i + 0]];
-
-			Vector3 normal = Vector3::Normalize(Vector3::Cross(a, b));
-
-			data.Normals[data.Indices[i + 0]] = normal;
-			data.Normals[data.Indices[i + 1]] = normal;
-			data.Normals[data.Indices[i + 2]] = normal;
-		}
-	}
-
-	static void MeshProcessGenerateUVs(MeshData &data) {
-		AR_PROFILE_FUNCTION();
-		
-		
-	}
-
-	static void MeshProcessNormalizeMesh(MeshData &data) {
-		AR_PROFILE_FUNCTION();
-		
-		Vector3 min = Vector3(__FLT_MAX__);
-		Vector3 max = Vector3(-__FLT_MAX__);
-
-		for (const Vector3 &position : data.Positions) {
-			min = Vector3::Min(min, position);
-			max = Vector3::Max(max, position);
-		}
-
-		float size = Vector3::Length(max - min);
-
-		for (Vector3 &position : data.Positions) {
-			position = (position - min) / size;
-		}
-	}
-
-	static void MeshProcessGenerateTangents(MeshData &data) {
-		AR_PROFILE_FUNCTION();
-
-		data.Tangents.resize(data.Normals.size());
-		data.Bitangents.resize(data.Normals.size());
-
-		for (size_t i = 0; i < data.Indices.size(); i += 3) {
-			uint32_t index0 = data.Indices[i + 0];
-			uint32_t index1 = data.Indices[i + 1];
-			uint32_t index2 = data.Indices[i + 2];
-
-			const Vector3 edge0 = data.Positions[index1] - data.Positions[index0];
-			const Vector3 edge1 = data.Positions[index2] - data.Positions[index0];
-			const Vector2 deltaUV0 = data.UVs[index1] - data.UVs[index0];
-			const Vector2 deltaUV1 = data.UVs[index2] - data.UVs[index0];
-
-			Vector3 tangent, bitangent;
-			float f = 1.0f / (deltaUV0.X * deltaUV1.Y - deltaUV1.X * deltaUV0.Y);
-
-			tangent.X = f * (deltaUV1.Y * edge0.X - deltaUV0.Y * edge1.X);
-			tangent.Y = f * (deltaUV1.Y * edge0.Y - deltaUV0.Y * edge1.Y);
-			tangent.Z = f * (deltaUV1.Y * edge0.Z - deltaUV0.Y * edge1.Z);
-
-			bitangent.X = f * (-deltaUV1.X * edge0.X + deltaUV0.X * edge1.X);
-			bitangent.Y = f * (-deltaUV1.X * edge0.Y + deltaUV0.X * edge1.Y);
-			bitangent.Z = f * (-deltaUV1.X * edge0.Z + deltaUV0.X * edge1.Z);
-
-			tangent = Vector3::Normalize(tangent);
-			bitangent = Vector3::Normalize(bitangent);
-
-			data.Tangents[index0] = tangent;
-			data.Tangents[index1] = tangent;
-			data.Tangents[index2] = tangent;
-			
-			data.Bitangents[index0] = bitangent;
-			data.Bitangents[index1] = bitangent;
-			data.Bitangents[index2] = bitangent;
-		}
-	}
-
-	static void MeshProcessGenerateBoundingBox(MeshData &data) {
-		AR_PROFILE_FUNCTION();
-		
-		Vector3 min = Vector3(__FLT_MAX__);
-		Vector3 max = Vector3(-__FLT_MAX__);
-
-		for (const Vector3 &position : data.Positions) {
-			min = Vector3::Min(min, position);
-			max = Vector3::Max(max, position);
-		}
-	}
-
-	void ProcessMesh(MeshData &data, MeshProcess process) {
-		switch (process) {
-			case MeshProcess::MoveOriginToCenter:
-				MeshProcessMoveOriginToCenter(data);
-				break;
-			case MeshProcess::GenerateNormals:
-				MeshProcessGenerateMeshNormals(data);
-				break;
-			case MeshProcess::GenerateUVs:
-				MeshProcessGenerateUVs(data);
-				break;
-			case MeshProcess::NormalizeMesh:
-				MeshProcessNormalizeMesh(data);
-				break;
-			case MeshProcess::GenerateTangents:
-				MeshProcessGenerateTangents(data);
-				break;
-		}
 	}
 
 }

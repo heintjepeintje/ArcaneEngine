@@ -22,6 +22,7 @@ private:
 	Window mWindow;
 	GraphicsContext mContext;
 	Scene mScene;
+	ThreadPool mThreads;
 
 	Entity mFloor, mBox, mSun, mPlayer;
 };
