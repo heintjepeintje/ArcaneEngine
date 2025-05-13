@@ -15,14 +15,14 @@ namespace Arcane {
 				GetCurrentThreadId()
 			));
 		}
-		return ;
+		return sCurrentThread;
 	}
 
 	void NativeThread::Exit(int32_t code) {
 		ExitThread(code);
 	}
 
-	void NativeThread::Await(const Ref<NativeThread> &thread, uint32_t seconds = UINT32_MAX) {
+	void NativeThread::Await(const Ref<NativeThread> &thread, uint32_t seconds) {
 		Ref<WindowsThread> windowsThread = CastRef<WindowsThread>(thread);
 
 		WaitForSingleObject(windowsThread->mThread, seconds);

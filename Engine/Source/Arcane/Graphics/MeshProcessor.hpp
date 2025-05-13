@@ -6,6 +6,23 @@
 
 namespace Arcane {
 
+	enum class MeshProcess {
+		None = 0,
+		MoveOriginToCenter,
+		Normalize,
+		GenerateNormals,
+		GenerateUVs,
+		GenerateTangents,
+		SwapWindingOrder,
+		FlipUVs,
+		RemoveDuplicateVertices,
+		RemoveUnusedVertices,
+	};
+
+	struct Triangle {
+		uint32_t Indices[3];
+	};
+
 	class MeshProcessor {
 	public:
 		MeshProcessor();

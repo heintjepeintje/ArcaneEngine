@@ -434,12 +434,12 @@ namespace Arcane {
 					q.X = node["rotation"][0].GetFloat();
 					q.Y = node["rotation"][1].GetFloat();
 					q.Z = node["rotation"][2].GetFloat();
-					q.W = node["rotation"][3].GetFloat();
+					q.W = ToDegrees(node["rotation"][3].GetFloat());
 				
 					transform.Rotation = q.ToEuler();
-					transform.Rotation.X = ToDegrees(transform.Rotation.X);
-					transform.Rotation.Y = ToDegrees(transform.Rotation.Y);
-					transform.Rotation.Z = ToDegrees(transform.Rotation.Z);
+					transform.Rotation.X = transform.Rotation.X;
+					transform.Rotation.Y = transform.Rotation.Y;
+					transform.Rotation.Z = transform.Rotation.Z;
 				}
 				nodeDesc.TransformNoScale = transform.GetModelMatrix();
 
@@ -571,7 +571,7 @@ namespace Arcane {
 			BufferView view(binaryData, bufferView.ByteOffset, bufferView.ByteLength);
 
 			if (attribute.Type == GltfAttributeType::POSITION) {
-				data.Positions.reserve(accessor.Count);
+				data.Positions.resize(accessor.Count);
 				if (accessor.ComponentType == GltfComponentType::FLOAT) {
 					for (uint32_t j = 0; j < accessor.Count; j++) {
 						Vector4 transformed = nodeDescs[0].Transform * Vector4(
@@ -581,11 +581,13 @@ namespace Arcane {
 							1.0
 						);
 
-						data.Positions.emplace_back(transformed.X, transformed.Y, transformed.Z);
+						data.Positions[j] = { transformed.X, transformed.Y, transformed.Z };
 					}
 				}
 			} else if (attribute.Type == GltfAttributeType::NORMAL) {
-				data.Normals.reserve(accessor.Count);
+				data.Normals.resize(accessor.Count);
+				data.Tangents.resize(accessor.Count);
+				data.Bitangents.resize(accessor.Count);
 				if (accessor.ComponentType == GltfComponentType::FLOAT) {
 					for (uint32_t j = 0; j < accessor.Count; j++) {
 						Vector4 transformed = nodeDescs[0].TransformNoScale * Vector4(
@@ -595,32 +597,32 @@ namespace Arcane {
 							1.0
 						);
 
-						Vector3 &v = data.Normals.emplace_back(transformed.X, transformed.Y, transformed.Z);
+						Vector3 &v = data.Normals[j] = { transformed.X, transformed.Y, transformed.Z };
 						v = Vector3::Normalize(v);
 					}
 				}
 			} else if (attribute.Type == GltfAttributeType::TEXCOORD_0) {
-				data.UVs.reserve(accessor.Count);
+				data.UVs.resize(accessor.Count);
 				if (accessor.ComponentType == GltfComponentType::FLOAT) {
 					for (uint32_t j = 0; j < accessor.Count; j++) {
-						data.UVs.emplace_back(
+						data.UVs[j] = {
 							ToNativeEndian<Endianness::LittleEndian>(view.Next<float>()),
 							ToNativeEndian<Endianness::LittleEndian>(view.Next<float>())
-						);
+						};
 					}
 				} else if (accessor.ComponentType == GltfComponentType::UNSIGNED_BYTE) {
 					for (uint32_t j = 0; j < accessor.Count; j++) {
-						data.UVs.emplace_back(
+						data.UVs[j] = {
 							ToNativeEndian<Endianness::LittleEndian>(view.Next<uint8_t>()),
 							ToNativeEndian<Endianness::LittleEndian>(view.Next<uint8_t>())
-						);
+						};
 					}
 				} else if (accessor.ComponentType == GltfComponentType::UNSIGNED_SHORT) {
 					for (uint32_t j = 0; j < accessor.Count; j++) {
-						data.UVs.emplace_back(
+						data.UVs[j] = {
 							ToNativeEndian<Endianness::LittleEndian>(view.Next<uint16_t>()),
 							ToNativeEndian<Endianness::LittleEndian>(view.Next<uint16_t>())
-						);
+						};
 					}
 				}
 			}

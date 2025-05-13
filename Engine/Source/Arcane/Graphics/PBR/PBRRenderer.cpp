@@ -202,6 +202,7 @@ namespace Arcane {
 		uint8_t *fragmentShaderBinary = ReadFileBinary(AR_GEOMETRY_FRAGMENT_SHADER_PATH, &fragmentBinarySize);
 		
 		PipelineInfo geometryPipelineInfo = PipelineInfo::CreateWithDefaultInfo();
+		geometryPipelineInfo.CullMode = CullMode::None;
 		geometryPipelineInfo.Descriptors = geometryDescriptors;
 		geometryPipelineInfo.DescriptorCount = 8;
 		geometryPipelineInfo.Layout = geometryInputLayout;
@@ -493,6 +494,7 @@ namespace Arcane {
 			sRendererAPI.Clear();
 
 			sLightBuffer.SetData((const void*)&sLightData);
+			
 			sLightPipeline.SetCombinedImageSampler(0, sGeometryFramebuffer.GetColorBuffer(0), sDefaultSampler);
 			sLightPipeline.SetCombinedImageSampler(1, sGeometryFramebuffer.GetColorBuffer(1), sDefaultSampler);
 			sLightPipeline.SetCombinedImageSampler(2, sGeometryFramebuffer.GetColorBuffer(2), sDefaultSampler);

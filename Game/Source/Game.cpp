@@ -49,11 +49,12 @@ void Game::Start() {
 	mBox.Add<Tag>("Box");
 
 	MeshProcessor processor = {
-		// MeshProcess::SwapWindingOrder,
-		MeshProcess::GenerateNormals,
-		MeshProcess::GenerateTangents,
+		MeshProcess::SwapWindingOrder,
 		MeshProcess::Normalize,
-		MeshProcess::MoveOriginToCenter
+		MeshProcess::GenerateNormals,
+		// MeshProcess::GenerateUVs,
+		MeshProcess::GenerateTangents,
+		// MeshProcess::MoveOriginToCenter
 	};
 
 	
@@ -67,7 +68,7 @@ void Game::Start() {
 	ProcessImage(aoTexture, ImageProcess::FlipVertical);
 	roughnessMap = LoadImage(Color::Black(), ImageFormat::RGB8);
 	ProcessImage(roughnessMap, ImageProcess::FlipVertical);
-	normalMap = LoadImage(Color::Magenta(), ImageFormat::RGB8);
+	normalMap = LoadImage(Color::Blue(), ImageFormat::RGB8);
 	ProcessImage(normalMap, ImageProcess::FlipVertical);
 	
 	PBRMaterial &boxMaterial = mBox.Add<PBRMaterial>();

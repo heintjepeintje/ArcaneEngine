@@ -12,21 +12,22 @@ namespace Arcane {
 		~Quaternion() { }
 
 		inline Vector3 ToEuler() const {
+			const float w = ToRadians(W);
 			Vector3 rotation;
-			rotation.X = std::atan2(
-				2 * (W * X + Y * Z),
+			rotation.X = ToDegrees(std::atan2(
+				2 * (w * X + Y * Z),
 				1 - 2 * (X * X + Y * Y)
-			);
+			));
 
-			rotation.Y = std::atan2(
-				std::sqrt(1 + 2 * (W * Y + X * Z)),
-				std::sqrt(1 - 2 * (W * Y + X * Z))
-			);
+			rotation.Y = ToDegrees(std::atan2(
+				std::sqrt(1 + 2 * (w * Y + X * Z)),
+				std::sqrt(1 - 2 * (w * Y + X * Z))
+			));
 
-			rotation.Z = std::atan2(
-				2 * (W * Z + X * Y),
+			rotation.Z = ToDegrees(std::atan2(
+				2 * (w * Z + X * Y),
 				1 - 2 * (Y * Y + Z * Z)
-			);
+			));
 
 			return rotation;
 		}

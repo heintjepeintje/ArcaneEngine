@@ -2,7 +2,7 @@
 
 namespace Arcane {
 
-	int32_t ThreadFunc(void *data) {
+	int32_t WorkerThreadFunc(void *data) {
 		std::vector<Task> &tasks = *(std::vector<Task>*)data;
 		while (true) {
 			if (tasks.empty()) {
@@ -20,7 +20,7 @@ namespace Arcane {
 		mNextTaskID = 0;
 		mThreads.reserve(count);
 		for (uint32_t i = 0; i < count; i++) {
-			mThreads.push_back(Thread::Create(ThreadFunc, &mTasks));
+			mThreads.push_back(Thread::Create(WorkerThreadFunc, &mTasks));
 		}
 	}
 
@@ -31,11 +31,11 @@ namespace Arcane {
 	}
 
 	TaskID ThreadPool::AddTask(TaskFunc func, void *data) {
-		mTasks.emplace_back(
+		return mTasks.emplace_back(
 			mNextTaskID++,
 			func,
 			data
-		);
+		).ID;
 	}
 
 	void *ThreadPool::AwaitTask(TaskID id) {

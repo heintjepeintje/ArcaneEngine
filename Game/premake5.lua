@@ -22,6 +22,7 @@ project "Game"
 		"opengl32",
 		"Engine",
 		"tracy",
+		"Assimp",
 		"ws2_32",
 		"winmm",
 		"dbghelp",

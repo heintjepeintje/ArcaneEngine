@@ -2,7 +2,7 @@
 
 #ifdef _WIN32
 
-#include <windows.h>
+#include "WindowsCore.hpp"
 #include <Arcane/Native/NativeWindow.hpp>
 
 namespace Arcane {

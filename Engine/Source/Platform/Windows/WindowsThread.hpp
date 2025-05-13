@@ -2,8 +2,7 @@
 
 #include <Arcane/Core.hpp>
 #include <Arcane/Native/NativeThread.hpp>
-#include <winbase.h>
-#include <processthreadsapi.h>
+#include "WindowsCore.hpp"
 
 namespace Arcane {
 
@@ -18,7 +17,7 @@ namespace Arcane {
 		virtual void Suspend() override;
 		virtual void Terminate(int32_t code) override;
 		virtual int32_t GetExitCode() const override;
-		virtual ThreadID GetID() const override;
+		inline virtual ThreadID GetID() const override { return ((ThreadID)mID); }
 
 	private:
 		HANDLE mThread;

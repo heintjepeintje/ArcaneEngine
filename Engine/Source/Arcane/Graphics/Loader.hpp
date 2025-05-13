@@ -11,19 +11,6 @@
 
 namespace Arcane {
 
-	enum class MeshProcess {
-		None = 0,
-		MoveOriginToCenter,
-		Normalize,
-		GenerateNormals,
-		GenerateUVs,
-		GenerateTangents,
-		SwapWindingOrder,
-		FlipUVs,
-		RemoveDuplicateVertices,
-		RemoveUnusedVertices,
-	};
-
 	enum class ImageProcess {
 		None = 0,
 		FlipHorizontal,
