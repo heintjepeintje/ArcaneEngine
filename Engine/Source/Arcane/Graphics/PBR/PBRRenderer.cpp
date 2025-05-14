@@ -190,11 +190,11 @@ namespace Arcane {
 		};
 		
 		InputLayout geometryInputLayout = {
-			{ InputAttribute::Position, 1, InputElementType::Vector3f32 },
-			{ InputAttribute::Normal, 1, InputElementType::Vector3f32 },
-			{ InputAttribute::UV, 1, InputElementType::Vector2f32 },
-			{ InputAttribute::Tangent, 1, InputElementType::Vector3f32 },
-			{ InputAttribute::Bitangent, 1, InputElementType::Vector3f32 },
+			{ InputAttribute::Position, 1, InputElementType::Vector3f32, false },
+			{ InputAttribute::Normal, 1, InputElementType::Vector3f32, false },
+			{ InputAttribute::UV, 1, InputElementType::Vector2f32, false },
+			{ InputAttribute::Tangent, 1, InputElementType::Vector3f32, false },
+			{ InputAttribute::Bitangent, 1, InputElementType::Vector3f32, false },
 		};
 		
 		size_t vertexBinarySize = 0, fragmentBinarySize = 0;
@@ -202,7 +202,6 @@ namespace Arcane {
 		uint8_t *fragmentShaderBinary = ReadFileBinary(AR_GEOMETRY_FRAGMENT_SHADER_PATH, &fragmentBinarySize);
 		
 		PipelineInfo geometryPipelineInfo = PipelineInfo::CreateWithDefaultInfo();
-		geometryPipelineInfo.CullMode = CullMode::None;
 		geometryPipelineInfo.Descriptors = geometryDescriptors;
 		geometryPipelineInfo.DescriptorCount = 8;
 		geometryPipelineInfo.Layout = geometryInputLayout;
@@ -240,18 +239,17 @@ namespace Arcane {
 		};
 
 		InputLayout shadowInputLayout = {
-			{ InputAttribute::Position, 1, InputElementType::Vector3f32 },
-			{ InputAttribute::Normal, 1, InputElementType::Vector3f32 },
-			{ InputAttribute::UV, 1, InputElementType::Vector2f32 },
-			{ InputAttribute::Tangent, 1, InputElementType::Vector3f32 },
-			{ InputAttribute::Bitangent, 1, InputElementType::Vector3f32 },
+			{ InputAttribute::Position, 1, InputElementType::Vector3f32, false },
+			{ InputAttribute::Normal, 1, InputElementType::Vector3f32, false },
+			{ InputAttribute::UV, 1, InputElementType::Vector2f32, false },
+			{ InputAttribute::Tangent, 1, InputElementType::Vector3f32, false },
+			{ InputAttribute::Bitangent, 1, InputElementType::Vector3f32, false },
 		};
 
 		vertexShaderBinary = ReadFileBinary(AR_SHADOW_VERTEX_SHADER_PATH, &vertexBinarySize);
 		fragmentShaderBinary = ReadFileBinary(AR_SHADOW_FRAGMENT_SHADER_PATH, &fragmentBinarySize);
 
 		PipelineInfo shadowPipelineInfo = PipelineInfo::CreateWithDefaultInfo();
-		shadowPipelineInfo.CullMode = CullMode::Front;
 		shadowPipelineInfo.Descriptors = shadowDescriptors;
 		shadowPipelineInfo.DescriptorCount = 2;
 		shadowPipelineInfo.Layout = shadowInputLayout;
@@ -298,8 +296,8 @@ namespace Arcane {
 		};
 
 		InputLayout lightInputLayout = {
-			{ InputAttribute::Position, 1, InputElementType::Vector2f32 },
-			{ InputAttribute::UV, 1, InputElementType::Vector2f32 },	
+			{ InputAttribute::Position, 1, InputElementType::Vector2f32, false },
+			{ InputAttribute::UV, 1, InputElementType::Vector2f32, false },	
 		};
 
 		vertexShaderBinary = ReadFileBinary(AR_LIGHT_VERTEX_SHADER_PATH, &vertexBinarySize);
@@ -343,8 +341,8 @@ namespace Arcane {
 		};
 
 		InputLayout postProcessInputLayout = {
-			{ InputAttribute::Position, 1, InputElementType::Vector3f32 },
-			{ InputAttribute::UV, 1, InputElementType::Vector2f32 },
+			{ InputAttribute::Position, 1, InputElementType::Vector3f32, false },
+			{ InputAttribute::UV, 1, InputElementType::Vector2f32, false },
 		};
 
 		vertexShaderBinary = ReadFileBinary(AR_POST_PROCESS_VERTEX_SHADER_PATH, &vertexBinarySize);

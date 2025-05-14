@@ -1,7 +1,7 @@
 project "Game"
 	kind "ConsoleApp"
-	language "C"
-	cdialect "C17"
+	language "C++"
+	cdialect "C++20"
 
 	objdir "Binaries/Intermediate/%{cfg.buildcfg}"
 	targetdir "Binaries/Output/%{cfg.buildcfg}"
@@ -22,7 +22,7 @@ project "Game"
 		"opengl32",
 		"Engine",
 		"tracy",
-		"Assimp",
+		"ImGui",
 		"ws2_32",
 		"winmm",
 		"dbghelp",

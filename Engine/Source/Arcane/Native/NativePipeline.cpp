@@ -4,6 +4,7 @@ namespace Arcane {
 
 	PipelineInfo PipelineInfo::CreateWithDefaultInfo() {
 		PipelineInfo defaultInfo{};
+		defaultInfo.OutputMask = OutputComponent::All;
 		defaultInfo.CullMode = CullMode::Back;
 		defaultInfo.FillMode = FillMode::Solid;
 		defaultInfo.OutputMask = OutputComponent::All;

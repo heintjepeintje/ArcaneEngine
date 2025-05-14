@@ -12,7 +12,6 @@
 #include <Arcane/Graphics/Loader.hpp>
 #include <Arcane/Graphics/Camera.hpp>
 #include <Arcane/Graphics/Transform.hpp>
-#include <Arcane/Graphics/MeshProcessor.hpp>
 
 #include <Arcane/Math/Math.hpp>
 #include <Arcane/Math/Rect2D.hpp>
@@ -40,3 +39,5 @@
 #include <Arcane/Entity/SceneView.hpp>
 #include <Arcane/Entity/SceneRenderer.hpp>
 #include <Arcane/Entity/Components/Tag.hpp>
+
+#include <Arcane/Asset/Importer.hpp>

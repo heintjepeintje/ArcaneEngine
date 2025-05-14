@@ -17,58 +17,23 @@ Game::~Game() {
 }
 
 void Game::Start() {
-	mFloor = Entity();
-	mFloor.Add<Tag>("Floor");
-	
-	MeshData floorData = LoadCube(Vector3(10.0f, 1.0f, 10.0f), false);
-	mFloor.Add<Mesh>(Mesh::Create(mContext, floorData));
-
-	ImageData grayImage = LoadImage(Color::Gray(), ImageFormat::RGB8);
-	
-	Texture blackTexture = Texture::Create(mContext, LoadImage(Color::Black(), ImageFormat::RGBA8));
-	ImageData colorTexture = LoadImage("Game/Assets/Materials/Paving Stones/PavingStones_Color.png", ImageFormat::RGB8);
-	ProcessImage(colorTexture, ImageProcess::FlipVertical);
-	ImageData aoTexture = LoadImage("Game/Assets/Materials/Paving Stones/PavingStones_AmbientOcclusion.png", ImageFormat::RGB8); 
-	ProcessImage(aoTexture, ImageProcess::FlipVertical);
-	ImageData roughnessMap = LoadImage("Game/Assets/Materials/Paving Stones/PavingStones_Roughness.png", ImageFormat::RGB8);
-	ProcessImage(roughnessMap, ImageProcess::FlipVertical);
-	ImageData normalMap = LoadImage("Game/Assets/Materials/Paving Stones/PavingStones_Normal.png", ImageFormat::RGB8);
-	ProcessImage(normalMap, ImageProcess::FlipVertical);
-
-	PBRMaterial &floorMaterial = mFloor.Add<PBRMaterial>();
-	floorMaterial.AlbedoMap = Texture::Create(mContext, colorTexture);
-	floorMaterial.NormalMap = Texture::Create(mContext, normalMap);
-	floorMaterial.MetallicMap = Texture::Create(mContext, grayImage);
-	floorMaterial.RoughnessMap = Texture::Create(mContext, roughnessMap);
-	floorMaterial.AmbientOcclusionMap = Texture::Create(mContext, aoTexture);
-
-	Transform &floorTransform = mFloor.Add<Transform>();
-	floorTransform.Position = Vector3(0, -1.0f, 0.0f);
-
 	mBox = Entity();
 	mBox.Add<Tag>("Box");
 
-	MeshProcessor processor = {
-		MeshProcess::SwapWindingOrder,
-		MeshProcess::Normalize,
-		MeshProcess::GenerateNormals,
-		// MeshProcess::GenerateUVs,
-		MeshProcess::GenerateTangents,
-		// MeshProcess::MoveOriginToCenter
-	};
+	Ref<Importer> imp = Importer::Create("Game/Assets/Models/dragon.glb");
+	imp->Import(ImportFlag_SwapWindingOrder | ImportFlag_GenerateTangents);
 
-	
-	MeshData monkeyData = LoadMesh("Game/Assets/Models/dragon.glb");
-	processor.Process(monkeyData);
-	mBox.Add<Mesh>(Mesh::Create(mContext, monkeyData));
-	
-	colorTexture = LoadImage(Color::White(), ImageFormat::RGB8);
+	mBox.Add<Mesh>(Mesh::Create(mContext, imp->GetNode(1).Mesh));
+
+	ImageData grayImage = LoadImage(Color::Gray(), ImageFormat::RGB8);
+
+	ImageData colorTexture = LoadImage(Color::White(), ImageFormat::RGB8);
 	ProcessImage(colorTexture, ImageProcess::FlipVertical);
-	aoTexture = LoadImage(Color::White(), ImageFormat::RGB8); 
+	ImageData aoTexture = LoadImage(Color::White(), ImageFormat::RGB8);
 	ProcessImage(aoTexture, ImageProcess::FlipVertical);
-	roughnessMap = LoadImage(Color::Black(), ImageFormat::RGB8);
+	ImageData roughnessMap = LoadImage(Color::Black(), ImageFormat::RGB8);
 	ProcessImage(roughnessMap, ImageProcess::FlipVertical);
-	normalMap = LoadImage(Color::Blue(), ImageFormat::RGB8);
+	ImageData normalMap = LoadImage(Color(), ImageFormat::RGB8);
 	ProcessImage(normalMap, ImageProcess::FlipVertical);
 	
 	PBRMaterial &boxMaterial = mBox.Add<PBRMaterial>();
@@ -109,9 +74,6 @@ void Game::Start() {
 
 void Game::Update() {
 	if (mWindow.IsFocused()) {
-		// Transform &t = mBox.Get<Transform>();
-		// t.Rotation.Y += 180.0f * GetDeltaTime();
-
 		SetCursorLocked(true);
 		SetCursorVisible(false);
 

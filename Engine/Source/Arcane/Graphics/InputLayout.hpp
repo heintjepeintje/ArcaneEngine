@@ -32,6 +32,7 @@ namespace Arcane {
 		InputAttribute attribute;
 		uint32_t Count;
 		InputElementType Type;
+		bool Normalize;
 	};
 
 	class InputLayout {

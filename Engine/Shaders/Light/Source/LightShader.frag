@@ -71,6 +71,7 @@ void main() {
 
 	const vec3 ambient = vec3(0.03) * albedo * ao;
 	oColor = ambient + result;
+	// oColor = normal;
 }
 
 vec3 FresnelSchlick(float cosTheta, vec3 f0) {

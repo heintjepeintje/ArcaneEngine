@@ -4,4 +4,6 @@
 **/Binaries/**
 **/Makefile
 
+**.code-workspace
+
 Temp/**

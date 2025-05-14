@@ -3,7 +3,7 @@
 #include "GraphicsContext.hpp"
 #include "Buffer.hpp"
 #include <Arcane/Native/NativeMesh.hpp>
-#include "Loader.hpp"
+#include <Arcane/Asset/Importer.hpp>
 
 namespace Arcane {
 

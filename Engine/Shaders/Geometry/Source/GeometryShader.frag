@@ -23,7 +23,8 @@ layout (location = 4) out vec3 oLightSpacePos;
 void main() {
 	oPosition = iPosition;
 	oAlbedo = texture(uAlbedo, iUV).rgb;
-	oNormal = normalize(iTBN * (texture(uNormal, iUV).rgb * 2.0 - 1.0));
+	oNormal = iNormal;
+	// oNormal = normalize(iTBN * (texture(uNormal, iUV).rgb * 2.0 - 1.0));
 	oMRA = vec3(texture(uMetallic, iUV).r, texture(uRoughness, iUV).r, texture(uAmbientOcclusion, iUV).r);
 	oLightSpacePos = iLightSpacePos;
 }

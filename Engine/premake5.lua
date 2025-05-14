@@ -15,7 +15,8 @@ project "Engine"
 		"Libraries/stb",
 		"Libraries/glm",
 		"Libraries/tracy/public",
-		"Libraries/rapidjson/include"
+		"Libraries/rapidjson/include",
+		"Libraries/ImGui"
 	}
 	
 	filter "configurations:Debug"

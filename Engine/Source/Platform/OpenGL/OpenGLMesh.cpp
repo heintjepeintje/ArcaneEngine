@@ -116,7 +116,14 @@ namespace Arcane {
 		size_t offset = 0;
 		for (size_t i = 0; i < layout.GetElements().size(); i++) {
 			glEnableVertexArrayAttrib(mVertexArray, index + i);
-			glVertexArrayAttribFormat(mVertexArray, index + i, GetInputElementTypeCount(layout.GetElements()[i]), GetInputElementOpenGLType(layout.GetElements()[i]), GL_FALSE, offset);
+			glVertexArrayAttribFormat(
+				mVertexArray, 
+				index + i, 
+				GetInputElementTypeCount(layout.GetElements()[i]), 
+				GetInputElementOpenGLType(layout.GetElements()[i]), 
+				layout.GetElements()[i].Normalize ? GL_TRUE : GL_FALSE, 
+				offset
+			);
 			glVertexArrayAttribBinding(mVertexArray, index + i, index);
 
 			offset += GetInputElementSize(layout.GetElements()[i]);
