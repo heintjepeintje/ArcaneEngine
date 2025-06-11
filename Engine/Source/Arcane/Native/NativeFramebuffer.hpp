@@ -4,13 +4,13 @@
 #include "NativeGraphicsContext.hpp"
 #include "NativeTexture.hpp"
 
-#include <Arcane/Graphics/Attachment.hpp>
-
 namespace Arcane {
 
 	struct FramebufferInfo {
 		uint32_t Width, Height;
-		const Attachment *Attachments;
+		uint32_t Samples;
+		bool FixedSampleLocations;
+		const ImageFormat *Attachments;
 		size_t AttachmentCount;
 	};
 
@@ -24,15 +24,17 @@ namespace Arcane {
 
 		virtual void Resize(uint32_t width, uint32_t height) = 0;
 
-		virtual Ref<NativeTexture> GetColorBuffer(uint32_t index) = 0;
-		virtual uint32_t GetColorBufferCount() const = 0;
-		virtual Ref<NativeTexture> GetDepthBuffer() = 0;
-		virtual Ref<NativeTexture> GetStencilBuffer() = 0;
+		virtual Ref<NativeTexture> GetColorTexture(uint32_t index) = 0;
+		virtual uint32_t GetColorAttachmentCount() const = 0;
+		virtual Ref<NativeTexture> GetDepthTexture() = 0;
+		virtual Ref<NativeTexture> GetStencilTexture() = 0;
 
-		inline virtual uint32_t GetWidth() const = 0;
-		inline virtual uint32_t GetHeight() const = 0;
+		virtual uint32_t GetWidth() const = 0;
+		virtual uint32_t GetHeight() const = 0;
+		virtual uint32_t GetSampleCount() const = 0;
+		virtual bool HasFixedSampleLocations() const = 0;
 
-		virtual const Attachment *GetAttachments() const = 0;
+		virtual const ImageFormat *GetAttachments() const = 0;
 		virtual size_t GetAttachmentCount() const = 0;
 	};
 

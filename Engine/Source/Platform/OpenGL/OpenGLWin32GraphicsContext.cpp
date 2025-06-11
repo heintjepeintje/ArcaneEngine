@@ -126,10 +126,61 @@ namespace Arcane {
 		LoadGLExtensions();
 		
 		AR_PROFILE_GPU_CONTEXT("Main OpenGL Context");
+
+		glGetIntegerv(GL_MAJOR_VERSION, (GLint*)&mMajorVersion);
+		glGetIntegerv(GL_MINOR_VERSION, (GLint*)&mMinorVersion);
+		AR_ASSERT(mMajorVersion >= 4 && mMinorVersion >= 6, "Only OpenGL 4.6 or higher is supported. (current: %u.%u)\n", mMajorVersion, mMinorVersion);
+
+		const GLubyte *deviceName = glGetString(GL_RENDERER);
+		size_t length = strlen((const char *)deviceName);
+		mDeviceName = new char[length + 1];
+		std::memset(mDeviceName, 0, length + 1);
+		std::memcpy(mDeviceName, deviceName, length);
+
+		glGetIntegerv(GL_MAX_COMBINED_SHADER_STORAGE_BLOCKS, (GLint*)&mLimits.MaxShaderStorageBlocks);
+		glGetIntegerv(GL_MAX_COMBINED_UNIFORM_BLOCKS, (GLint*)&mLimits.MaxUniformBlocks);
+		glGetIntegerv(GL_MAX_COMBINED_IMAGE_UNIFORMS, (GLint*)&mLimits.MaxTextureImageUnits);
+		
+		glGetIntegerv(GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS, (GLint*)&mLimits.MaxWorkGroupInvocations);
+		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 0, (GLint*)&mLimits.MaxWorkGroupCountX);
+		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 1, (GLint*)&mLimits.MaxWorkGroupCountY);
+		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 2, (GLint*)&mLimits.MaxWorkGroupCountZ);
+		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 0, (GLint*)&mLimits.MaxWorkGroupSizeX);
+		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 1, (GLint*)&mLimits.MaxWorkGroupSizeY);
+		glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 2, (GLint*)&mLimits.MaxWorkGroupSizeZ);
+
+		glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, (GLint*)&mLimits.MaxVertexAttributes);
+
+		glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE, (GLint*)&mLimits.MaxCubeMapTextureSize);
+		glGetIntegerv(GL_MAX_3D_TEXTURE_SIZE, (GLint*)&mLimits.Max3DTextureSize);
+		glGetIntegerv(GL_MAX_TEXTURE_SIZE, (GLint*)&mLimits.MaxTextureSize);
+		glGetIntegerv(GL_MAX_TEXTURE_LOD_BIAS, (GLint*)&mLimits.MaxTextureLODBias);
+		glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS, (GLint*)&mLimits.MaxArrayTextureLayers);
+		glGetIntegerv(GL_MAX_COLOR_TEXTURE_SAMPLES, (GLint*)&mLimits.MaxColorSamples);
+		glGetIntegerv(GL_MAX_DEPTH_TEXTURE_SAMPLES, (GLint*)&mLimits.MaxDepthSamples);
+
+		glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, (GLint*)&mLimits.MaxUniformBlockSize);
+		glGetIntegerv(GL_MAX_SHADER_STORAGE_BLOCK_SIZE, (GLint*)&mLimits.MaxStorageBlockSize);
+
+		glGetIntegerv(GL_MAX_CLIP_DISTANCES, (GLint*)&mLimits.MaxClipDistances);
+		
+		uint32_t viewportSize[2];
+		glGetIntegerv(GL_MAX_VIEWPORT_DIMS, (GLint*)viewportSize);
+		mLimits.MaxViewportWidth = viewportSize[0];
+		mLimits.MaxViewportHeight = viewportSize[1];
+
+		glGetIntegerv(GL_MAX_VIEWPORTS, (GLint*)&mLimits.MaxViewports);
+		glGetIntegerv(GL_MAX_DRAW_BUFFERS, (GLint*)&mLimits.MaxDrawBuffers);
+
+		glGetIntegerv(GL_MAX_FRAMEBUFFER_WIDTH, (GLint*)&mLimits.MaxFramebufferWidth);
+		glGetIntegerv(GL_MAX_FRAMEBUFFER_HEIGHT, (GLint*)&mLimits.MaxFramebufferHeight);
+		glGetIntegerv(GL_MAX_FRAMEBUFFER_LAYERS, (GLint*)&mLimits.MaxFramebufferLayers);
+		glGetIntegerv(GL_MAX_FRAMEBUFFER_SAMPLES, (GLint*)&mLimits.MaxFramebufferSamples);
 	}
 
 	OpenGLGraphicsContext::~OpenGLGraphicsContext() {
 		AR_PROFILE_FUNCTION();
+		delete[] mDeviceName;
 		if (wglGetCurrentContext() == mRenderContext) {
 			wglMakeCurrent(mDeviceContext, NULL);
 		}
@@ -140,27 +191,6 @@ namespace Arcane {
 		AR_PROFILE_FUNCTION();
 		wglSwapLayerBuffers(mDeviceContext, WGL_SWAP_MAIN_PLANE);
 		AR_PROFILE_GPU_COLLECT();
-	}
-
-	uint32_t OpenGLGraphicsContext::GetVersionMajor() const {
-		int32_t major = 0;
-		glGetIntegerv(GL_MAJOR_VERSION, &major);
-		return major;
-	}
-
-	uint32_t OpenGLGraphicsContext::GetVersionMinor() const {
-		int32_t major = 0;
-		glGetIntegerv(GL_MINOR_VERSION, &major);
-		return major;
-	}
-
-	uint32_t OpenGLGraphicsContext::GetPatchLevel() const {
-		return 0;
-	}
-
-	std::string OpenGLGraphicsContext::GetDeviceName() const {
-		const unsigned char *buffer = glGetString(GL_RENDERER);
-		return std::string((const char*)buffer);
 	}
 
 }

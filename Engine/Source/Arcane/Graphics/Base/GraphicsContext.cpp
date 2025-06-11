@@ -12,11 +12,10 @@ namespace Arcane {
 		sCurrentContext = context;
 	}
 
-	GraphicsContext GraphicsContext::Create(const Window &window) {
+	GraphicsContext GraphicsContext::Create(const Window &window, GraphicsAPI api) {
 		GraphicsContext context = GraphicsContext(NativeGraphicsContext::Create(
-			window.GetNativeWindow()
+			window.GetNativeWindow(), api
 		));
-		context.mWindow = window;
 		return context;
 	}
 

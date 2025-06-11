@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Arcane/Core.hpp>
+#include <Arcane/Math/Vector4.hpp>
 
 namespace Arcane {
 
@@ -21,6 +22,7 @@ namespace Arcane {
 			float g = (float)((hex >> 16) & 0xFF);
 			float b = (float)((hex >> 8)  & 0xFF);
 			float a = (float)((hex >> 0)  & 0xFF);
+			
 			return Color(r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);
 		}
 
@@ -29,6 +31,10 @@ namespace Arcane {
 		Color(float r, float g, float b, float a) : R(r), G(g), B(b), A(a) { }
 		Color(float r, float g, float b) : R(r), G(g), B(b), A(1.0f) { }
 		~Color() = default;
+
+		inline Vector4 ToVector4() const { return Vector4(R, G, B, A); }
+		inline Vector3 ToVector3() const { return Vector3(R, G, B); }
+		
 
 	public:
 		float R, G, B, A;

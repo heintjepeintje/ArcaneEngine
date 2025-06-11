@@ -4,11 +4,19 @@ namespace Arcane {
 
 	OpenGLBuffer::OpenGLBuffer(size_t size, uint32_t flags) : mSize(size) {
 		AR_PROFILE_FUNCTION_GPU_CPU();
+
+		mFlags = flags;
+		mSize = size;
+
 		glCreateBuffers(1, &mBuffer);
 		if (flags & BufferFlag_Mutable) {
-			glNamedBufferData(mBuffer, mSize, nullptr, GL_DYNAMIC_DRAW);
+			glNamedBufferData(mBuffer, mSize, nullptr, flags & BufferFlag_Static ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
 		} else {
-			glNamedBufferStorage(mBuffer, mSize, nullptr, GL_DYNAMIC_STORAGE_BIT | GL_MAP_READ_BIT | GL_MAP_WRITE_BIT);
+			AR_ASSERT(size != 0, "Size of immutable buffer cannot be 0\n");
+			GLbitfield glFlags = 0;
+			if (flags & BufferFlag_MapRead) glFlags |= GL_MAP_READ_BIT;
+			if (flags & BufferFlag_MapWrite) glFlags |= GL_MAP_WRITE_BIT;
+			glNamedBufferStorage(mBuffer, mSize, nullptr, GL_DYNAMIC_STORAGE_BIT | glFlags);
 		}
 	}
 
@@ -33,7 +41,8 @@ namespace Arcane {
 		AR_PROFILE_FUNCTION_GPU_CPU();
 		if (mSize == size) return;
 		mSize = size;
-		glNamedBufferData(mBuffer, mSize, nullptr, GL_DYNAMIC_DRAW);
+
+		glNamedBufferData(mBuffer, mSize, nullptr, mFlags & BufferFlag_Static ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
 	}
 
 	void OpenGLBuffer::Unmap() {
@@ -43,6 +52,7 @@ namespace Arcane {
 
 	void OpenGLBuffer::SetData(size_t offset, size_t size, const void *data) {
 		AR_PROFILE_FUNCTION_GPU_CPU();
+		AR_ASSERT(offset + size <= mSize, "Offset + size cannot be larger than buffer size %u + %u > %u\n", offset, size, mSize);
 		glNamedBufferSubData(mBuffer, offset, size, data);
 	}
 

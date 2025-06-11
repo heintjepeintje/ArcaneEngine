@@ -31,20 +31,6 @@ namespace Arcane {
 			);
 		}
 
-		static Vector2 Clamp(const Vector2 &v, const Vector2 &min, const Vector2 &max) {
-			return Vector2(
-				Arcane::Clamp(v.X, min.X, max.X),
-				Arcane::Clamp(v.Y, min.Y, max.Y)
-			);
-		}
-
-		static Vector2 Lerp(float t, const Vector2 &min, const Vector2 &max) {
-			return Vector2(
-				Arcane::Lerp(t, min.X, max.X),
-				Arcane::Lerp(t, min.Y, max.Y)
-			);
-		}
-
 		static float Length(const Vector2 &v) {
 			return Sqrt(v.X * v.X + v.Y * v.Y);
 		}
@@ -72,15 +58,26 @@ namespace Arcane {
 		inline Vector2 operator+(const Vector2 &other) const { return Vector2(X + other.X, Y + other.Y); }
 		inline Vector2 operator-(const Vector2 &other) const { return Vector2(X - other.X, Y - other.Y); }
 		inline Vector2 operator*(float scalar) const { return Vector2(X * scalar, Y * scalar); }
+		inline Vector2 operator*(const Vector2 &other) const { return Vector2(X * other.X, Y * other.Y); }
 		inline Vector2 operator/(float scalar) const { return Vector2(X / scalar, Y / scalar); }
+		inline Vector2 operator/(const Vector2 &other) const { return Vector2(X / other.X, Y / other.Y); }
 
 		inline Vector2 &operator+=(const Vector2 &other) { X += other.X; Y += other.Y; return *this; }
 		inline Vector2 &operator-=(const Vector2 &other) { X -= other.X; Y -= other.Y; return *this; }
 		inline Vector2 &operator*=(float scalar) { X *= scalar; Y *= scalar; return *this; }
+		inline Vector2 &operator*=(const Vector2 &other) { X *= other.X; Y *= other.Y; return *this; }
 		inline Vector2 &operator/=(float scalar) { X /= scalar; Y /= scalar; return *this; }
+		inline Vector2 &operator/=(const Vector2 &other) { X /= other.X; Y /= other.Y; return *this; }
+
+		inline Vector2 operator-() const { return Vector2(-X, -Y); }
 
 		inline bool operator==(const Vector2 &other) { return X == other.X && Y == other.Y; }
 		inline bool operator!=(const Vector2 &other) { return X != other.X || Y != other.Y; }
+
+		inline bool operator>(const Vector2 &other) { return Dot(*this, *this) > Dot(other, other); }
+		inline bool operator>=(const Vector2 &other) { return Dot(*this, *this) >= Dot(other, other); }
+		inline bool operator<(const Vector2 &other) { return Dot(*this, *this) < Dot(other, other); }
+		inline bool operator<=(const Vector2 &other) { return Dot(*this, *this) <= Dot(other, other); }
 
 	public:
 		float X, Y;

@@ -52,7 +52,7 @@ namespace Arcane {
 
 		uint32_t outputChannels = ImageFormatToChannels(data.Format);
 
-		data.Data = (uint8_t*)malloc(width * height * outputChannels);
+		data.Data = malloc(width * height * outputChannels);
 		memcpy(data.Data, pixels, width * height * outputChannels);
 		stbi_image_free((void*)pixels);
 
@@ -74,7 +74,7 @@ namespace Arcane {
 				(uint8_t)Round(Clamp(color.A, 0.0f, 1.0f) * 255.0f),
 			};
 
-			output.Data = (uint8_t*)malloc(4 * sizeof(uint8_t));
+			output.Data = malloc(4 * sizeof(uint8_t));
 			std::memcpy(output.Data, colorBytes, 4 * sizeof(uint8_t));
 		} else if (format == ImageFormat::RGB8) {
 			output.Width = 1;
@@ -87,7 +87,7 @@ namespace Arcane {
 				(uint8_t)Round(Clamp(color.B, 0.0f, 1.0f) * 255.0f),
 			};
 
-			output.Data = (uint8_t*)malloc(3 * sizeof(uint8_t));
+			output.Data = malloc(3 * sizeof(uint8_t));
 			std::memcpy(output.Data, colorBytes, 3 * sizeof(uint8_t));
 		}
 
@@ -139,14 +139,15 @@ namespace Arcane {
 	}
 
 	static void ImageProcessInvert(ImageData &data) {
+		uint32_t *rawData = (uint32_t*)data.Data;
 		if (data.Format == ImageFormat::RGBA8) {
 			for (uint32_t i = 0; i < data.Width * data.Height; i++) {
-				uint8_t alpha = (data.Data[i] & 0x000000FF);
-				data.Data[i] = ~data.Data[i] & (0xFFFFFF00 | (uint32_t)alpha);
+				uint8_t alpha = (rawData[i] & 0x000000FF);
+				rawData[i] = ~rawData[i] & (0xFFFFFF00 | (uint32_t)alpha);
 			}
 		} else if (data.Format == ImageFormat::RGB8) {
 			for (uint32_t i = 0; i < data.Width * data.Height; i++) {
-				data.Data[i] = ~data.Data[i];
+				rawData[i] = ~rawData[i];
 			}
 		}
 	}

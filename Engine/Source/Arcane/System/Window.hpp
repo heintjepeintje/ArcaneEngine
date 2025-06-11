@@ -11,6 +11,7 @@ namespace Arcane {
 
 	public:
 		Window() { }
+		Window(const Ref<NativeWindow> &window) : mNativeWindow(window) { }
 		~Window() { }
 
 		inline void SetVisible(bool visible) { mNativeWindow->SetVisible(visible); }
@@ -29,9 +30,6 @@ namespace Arcane {
 		inline Vector2 GetScreenSize() const { return mNativeWindow->GetScreenSize(); }
 
 		inline Ref<NativeWindow> GetNativeWindow() const { return mNativeWindow; }
-
-	private:
-		Window(const Ref<NativeWindow> &window) : mNativeWindow(window) { }
 
 	private:
 		Ref<NativeWindow> mNativeWindow;

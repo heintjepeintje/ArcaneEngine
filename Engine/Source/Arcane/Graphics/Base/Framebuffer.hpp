@@ -21,12 +21,16 @@ namespace Arcane {
 		inline Vector2 GetSize() const { return Vector2(GetNativeFramebuffer()->GetWidth(), GetNativeFramebuffer()->GetHeight()); }
 		inline uint32_t GetWidth() const { return GetNativeFramebuffer()->GetWidth(); }
 		inline uint32_t GetHeight() const { return GetNativeFramebuffer()->GetHeight(); }
+		inline uint32_t GetSampleCount() const { return GetNativeFramebuffer()->GetSampleCount(); }
+		inline bool HasFixedSampleLocations() const { return GetNativeFramebuffer()->HasFixedSampleLocations(); }
 
-		inline Texture GetColorBuffer(uint32_t index) { return Texture(GetNativeFramebuffer()->GetColorBuffer(index)); }
-		inline Texture GetDepthBuffer() { return Texture(GetNativeFramebuffer()->GetDepthBuffer()); }
-		inline Texture GetStencilBuffer() { return Texture(GetNativeFramebuffer()->GetStencilBuffer()); }
+		inline Texture GetColorTexture(uint32_t index) const { return Texture(GetNativeFramebuffer()->GetColorTexture(index)); }
+		inline uint32_t GetColorAttachmentCount() const { return GetColorAttachmentCount(); }
+		inline Texture GetDepthTexture() const { return Texture(GetNativeFramebuffer()->GetDepthTexture()); }
+		inline Texture GetStencilTexture() const { return Texture(GetNativeFramebuffer()->GetStencilTexture()); }
 
-		inline const Attachment *GetAttachments() const { return GetNativeFramebuffer()->GetAttachments(); }
+		inline const ImageFormat *GetAttachments() const { return GetNativeFramebuffer()->GetAttachments(); }
+		inline uint32_t GetAttachmentCount() const { return GetNativeFramebuffer()->GetAttachmentCount(); }
 
 		inline Ref<NativeFramebuffer> GetNativeFramebuffer() const {
 			AR_ASSERT(mNativeFramebuffer, "Native framebuffer is invalid");

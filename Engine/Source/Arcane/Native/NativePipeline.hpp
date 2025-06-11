@@ -40,13 +40,25 @@ namespace Arcane {
 
 	enum class DescriptorType {
 		None = 0,
-		UniformBuffer,
+		UniformBuffer, StorageBuffer,
 		CombinedImageSampler
 	};
+
+	namespace ShaderStage {
+		enum _ShaderStage {
+			Vertex = AR_BIT(0), 
+			Fragment = AR_BIT(1),
+			Compute = AR_BIT(2),
+			Geometry = AR_BIT(3),
+			TessellationControl = AR_BIT(4),
+			TessellationEvaluation = AR_BIT(5),
+		};
+	}
 
 	struct Descriptor {
 		uint32_t Binding;
 		DescriptorType Type;
+		ShaderStage Stage;
 	};
 
 	namespace OutputComponent {
@@ -74,6 +86,7 @@ namespace Arcane {
 		WindingOrder WindingOrder;
 		FillMode FillMode;
 		PrimitiveTopology Topology;	
+		bool PrimitiveRestart;
 
 		InputLayout Layout;
 
@@ -94,6 +107,9 @@ namespace Arcane {
 		float LineWidth;
 		float PointSize;
 
+		float PolygonOffsetFactor;
+		float PolygonOffsetUnits;
+
 		uint32_t ElementSize;
 	};
 
@@ -112,6 +128,8 @@ namespace Arcane {
 		virtual InputLayout GetLayout() const = 0;
 		virtual Rect2D GetViewport() const = 0;
 		virtual Rect2D GetScissor() const = 0;
+		virtual float GetPolygonOffsetFactor() const = 0;
+		virtual float GetPolygonOffsetUnits() const = 0;
 
 		virtual uint32_t GetSampleCount() const = 0;
 		virtual uint8_t GetOutputMask() const = 0;
@@ -119,6 +137,8 @@ namespace Arcane {
 		virtual float GetPointSize() const = 0;
 
 		virtual size_t GetElementSize() const = 0;
+
+		virtual const InputLayout &GetInputLayout() const = 0;
 
 		virtual void SetUniformBuffer(uint32_t binding, const Ref<NativeBuffer> &uniformBuffer) = 0;
 		virtual void SetCombinedImageSampler(uint32_t binding, const Ref<NativeTexture> &texture, const Ref<NativeSampler> &sampler) = 0;

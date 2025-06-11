@@ -2,13 +2,13 @@
 
 #include <Arcane/Application.hpp>
 
-#include <Arcane/Graphics/Buffer.hpp>
-#include <Arcane/Graphics/Texture.hpp>
-#include <Arcane/Graphics/GraphicsContext.hpp>
+#include <Arcane/Graphics/Base/Buffer.hpp>
+#include <Arcane/Graphics/Base/Texture.hpp>
+#include <Arcane/Graphics/Base/GraphicsContext.hpp>
+#include <Arcane/Graphics/Base/Mesh.hpp>
+#include <Arcane/Graphics/Base/Pipeline.hpp>
+#include <Arcane/Graphics/Base/Renderer.hpp>
 #include <Arcane/Graphics/InputLayout.hpp>
-#include <Arcane/Graphics/Mesh.hpp>
-#include <Arcane/Graphics/Pipeline.hpp>
-#include <Arcane/Graphics/Renderer.hpp>
 #include <Arcane/Graphics/Loader.hpp>
 #include <Arcane/Graphics/Camera.hpp>
 #include <Arcane/Graphics/Transform.hpp>
@@ -32,7 +32,6 @@
 // PBR
 #include <Arcane/Graphics/PBR/PBRMaterial.hpp>
 #include <Arcane/Graphics/PBR/PBRRenderer.hpp>
-#include <Arcane/Graphics/PBR/Environment.hpp>
 
 #include <Arcane/Entity/Scene.hpp>
 #include <Arcane/Entity/Entity.hpp>

@@ -1,5 +1,7 @@
 #version 430 core
 
+precision highp float;
+
 struct PointLight {
 	vec4 Position;
 	vec4 Color;
@@ -24,8 +26,8 @@ layout (std140, binding = 1) uniform LightData {
 } uLights;
 
 const float PI = 3.1415926535;
-const float MIN_SHADOW_BIAS = 0.05;
-const float MAX_SHADOW_BIAS = 0.005;
+const float MAX_SHADOW_BIAS = 0.05;
+const float MIN_SHADOW_BIAS = 0.005;
 
 layout (location = 0) in vec2 iUV;
 
@@ -52,9 +54,10 @@ void main() {
 	const vec3 position = texture(uPosition, iUV).rgb;
 	const vec3 albedo = texture(uAlbedo, iUV).rgb;
 	const vec3 normal = texture(uNormal, iUV).rgb;
-	const float metallic = texture(uMRA, iUV).r;
-	const float roughness = texture(uMRA, iUV).g;
-	const float ao = texture(uMRA, iUV).b;
+	const vec3 mra = texture(uMRA, iUV).rgb;
+	const float metallic = mra.r;
+	const float roughness = mra.g;
+	const float ao = mra.b;
 	const vec3 shadowMapPos = texture(uShadowMapPos, iUV).rgb;
 	
 	vec3 result = vec3(0.0);
@@ -63,7 +66,7 @@ void main() {
 		result += GetPointLightColor(i, position, albedo, normal, metallic, roughness);
 	}
 
-	const float shadowBias = max(0.05 * (1.0 - dot(normal, -uLights.DirLight.Direction.xyz)), 0.005);
+	const float shadowBias = max(MAX_SHADOW_BIAS * (1.0 - dot(normal, -uLights.DirLight.Direction.xyz)), MIN_SHADOW_BIAS);
 	vec3 lightSpacePos = shadowMapPos * 0.5 + 0.5;
 	const float shadow = GetShadow(shadowBias, lightSpacePos);
 
@@ -116,7 +119,7 @@ float GetShadow(float bias, vec3 lightSpacePos) {
 
 	float shadow = 0.0;
 	vec2 texelSize = 1.0 / textureSize(uShadowMap, 0);
-
+ 
 	for (int x = -1; x <= 1; ++x) {
 		for (int y = -1; y <= 1; y++) {
 			float pcfDepth = texture(uShadowMap, lightSpacePos.xy + vec2(x, y) * texelSize).r;

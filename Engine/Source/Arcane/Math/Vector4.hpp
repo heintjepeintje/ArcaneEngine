@@ -39,24 +39,6 @@ namespace Arcane {
 			);
 		}
 
-		static Vector4 Clamp(const Vector4 &v, const Vector4 &min, const Vector4 &max) {
-			return Vector4(
-				Arcane::Clamp(v.X, min.X, max.X),
-				Arcane::Clamp(v.Y, min.Y, max.Y),
-				Arcane::Clamp(v.Z, min.Z, max.Z),
-				Arcane::Clamp(v.W, min.W, max.W)
-			);
-		}
-
-		static Vector4 Lerp(float t, const Vector4 &min, const Vector4 &max) {
-			return Vector4(
-				Arcane::Lerp(t, min.X, max.X),
-				Arcane::Lerp(t, min.Y, max.Y),
-				Arcane::Lerp(t, min.Z, max.Z),
-				Arcane::Lerp(t, min.W, max.W)
-			);
-		}
-
 		static float Length(const Vector4 &v) {
 			return Sqrt(v.X * v.X + v.Y * v.Y + v.Z * v.Z + v.W * v.W);
 		}
@@ -88,15 +70,26 @@ namespace Arcane {
 		inline Vector4 operator+(const Vector4 &other) const { return Vector4(X + other.X, Y + other.Y, Z + other.Z, W + other.W); }
 		inline Vector4 operator-(const Vector4 &other) const { return Vector4(X - other.X, Y - other.Y, Z - other.Z, W - other.W); }
 		inline Vector4 operator*(float scalar) const { return Vector4(X * scalar, Y * scalar, Z * scalar, W * scalar); }
+		inline Vector4 operator*(const Vector4 &other) const { return Vector4(X * other.X, Y * other.Y, Z * other.Z, W * other.W); }
 		inline Vector4 operator/(float scalar) const { return Vector4(X / scalar, Y / scalar, Z / scalar, W / scalar); }
+		inline Vector4 operator/(const Vector4 &other) const { return Vector4(X / other.X, Y / other.Y, Z / other.Z, W / other.W); }
 
 		inline Vector4 &operator+=(const Vector4 &other) { X += other.X; Y += other.Y; Z += other.Z; W += other.W; return *this; }
 		inline Vector4 &operator-=(const Vector4 &other) { X -= other.X; Y -= other.Y; Z -= other.Z; W -= other.W; return *this; }
 		inline Vector4 &operator*=(float scalar) { X *= scalar; Y *= scalar; Z *= scalar; W *= scalar; return *this; }
+		inline Vector4 &operator*=(const Vector4 &other) { X *= other.X; Y *= other.Y; Z *= other.Z; W *= other.W; return *this; }
 		inline Vector4 &operator/=(float scalar) { X /= scalar; Y /= scalar; Z /= scalar; W /= scalar; return *this; }
+		inline Vector4 &operator/=(const Vector4 &other) { X /= other.X; Y /= other.Y; Z /= other.Z; W /= other.W; return *this; }
+
+		inline Vector4 operator-() const { return Vector4(-X, -Y, -Z, -W); }
 
 		inline bool operator==(const Vector4 &other) { return X == other.X && Y == other.Y; }
 		inline bool operator!=(const Vector4 &other) { return X != other.X || Y != other.Y; }
+
+		inline bool operator>(const Vector4 &other) { return Dot(*this, *this) > Dot(other, other); }
+		inline bool operator>=(const Vector4 &other) { return Dot(*this, *this) >= Dot(other, other); }
+		inline bool operator<(const Vector4 &other) { return Dot(*this, *this) < Dot(other, other); }
+		inline bool operator<=(const Vector4 &other) { return Dot(*this, *this) <= Dot(other, other); }
 
 	public:
 		union {

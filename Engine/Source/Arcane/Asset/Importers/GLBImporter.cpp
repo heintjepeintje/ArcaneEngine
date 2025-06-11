@@ -131,21 +131,17 @@ namespace Arcane {
 		uint32_t ByteLength;
 	};
 
-	GLBImporter::GLBImporter(const std::string &path) : mPath(path) { }
-
-	GLBImporter::~GLBImporter() { }
-
-	bool GLBImporter::Import(uint32_t flags) {
-		FILE *f = fopen(mPath.c_str(), "rb");
+	bool ImportGLB(const std::filesystem::path &path, uint32_t flags, std::vector<Node> &outNodes) {
+		FILE *f = fopen(path.string().c_str(), "rb");
 		if (!f) {
-			AR_ASSERT(false, "Could not open file: %s\n", mPath.c_str());
+			AR_ASSERT(false, "Could not open file: %s\n", path.string().c_str());
 			return false;
 		}
 
 		uint32_t header[3];
 		fread(header, 4, 3, f);
 		if (header[0] != 0x46546C67) {
-			AR_ASSERT(false, "%s is not a glTF file\n", mPath.c_str());
+			AR_ASSERT(false, "%s is not a glTF file\n", path.string().c_str());
 			return false;
 		}
 
@@ -330,10 +326,10 @@ namespace Arcane {
 
 		fclose(f);
 
-		mNodes.resize(nodeCount);
+		outNodes.resize(nodeCount);
 
 		for (uint32_t nodeIndex = 0; nodeIndex < nodeCount; nodeIndex++) {
-			Node &node = mNodes[nodeIndex];
+			Node &node = outNodes[nodeIndex];
 			
 			if (flags & ImportFlag_GenerateBoundingBox) {
 				node.BoundingBox.Min = Vector3::MaxValue();
@@ -341,162 +337,183 @@ namespace Arcane {
 			}
 
 			const uint32_t meshIndex = nodeDescs[nodeIndex].MeshIndex;
+			if (meshIndex != UINT32_MAX) {
+				const GltfPrimitiveDesc &primitive = meshDescs[meshIndex].Primitives[0];
 
-			const GltfPrimitiveDesc &primitive = meshDescs[meshIndex].Primitives[0];
+				for (uint32_t attrIndex = 0; attrIndex < primitive.AttributeCount; attrIndex++) {
+					const GltfAttribute &attribute = primitive.Attributes[attrIndex];
+					const GltfAccessorDesc &accessor = accessorDescs[attribute.AccessorIndex];
+					const GltfBufferViewDesc &bufferView = bufferViewDescs[accessor.BufferViewIndex];
+					const GltfBufferDesc &buffer = bufferDescs[bufferView.BufferIndex];
 
-			for (uint32_t attrIndex = 0; attrIndex < primitive.AttributeCount; attrIndex++) {
-				const GltfAttribute &attribute = primitive.Attributes[attrIndex];
-				const GltfAccessorDesc &accessor = accessorDescs[attribute.AccessorIndex];
-				const GltfBufferViewDesc &bufferView = bufferViewDescs[accessor.BufferViewIndex];
-				const GltfBufferDesc &buffer = bufferDescs[bufferView.BufferIndex];
+					BufferView view(binaryData, bufferView.ByteOffset, bufferView.ByteLength);
 
-				BufferView view(binaryData, bufferView.ByteOffset, bufferView.ByteLength);
+					if (attribute.Type == GltfAttributeType::POSITION) {
+						node.Mesh.HasPositions = true;
+						node.Mesh.Positions.resize(accessor.Count);
+						node.Mesh.VertexCount = accessor.Count;
 
-				if (attribute.Type == GltfAttributeType::POSITION) {
-					node.Mesh.HasPositions = true;
-					node.Mesh.Positions = new Vector3[accessor.Count];
-					node.Mesh.VertexCount = accessor.Count;
-
-					if (accessor.ComponentType == GltfComponentType::FLOAT) {
-						for (uint32_t componentIndex = 0; componentIndex < accessor.Count; componentIndex++) {
-							Vector4 transformed = nodeDescs[nodeIndex].Transform * Vector4(
-								-ToNativeEndian<Endianness::LittleEndian>(view.Next<float>()),
-								ToNativeEndian<Endianness::LittleEndian>(view.Next<float>()),
-								ToNativeEndian<Endianness::LittleEndian>(view.Next<float>()),
-								1.0
-							);
-
-							Vector3 position = { transformed.X, transformed.Y, transformed.Z };
-
-							if (flags & ImportFlag_GenerateBoundingBox) {
-								node.BoundingBox.Min = Vector3::Min(node.BoundingBox.Min, position);
-								node.BoundingBox.Max = Vector3::Max(node.BoundingBox.Max, position);
-							}
-
-							node.Mesh.Positions[componentIndex] = position;
-						}
-					}
-				} else if (attribute.Type == GltfAttributeType::NORMAL) {
-					node.Mesh.HasNormals = true;
-					node.Mesh.Normals = new Vector3[accessor.Count];
-
-					if (accessor.ComponentType == GltfComponentType::FLOAT) {
-						for (uint32_t componentIndex = 0; componentIndex < accessor.Count; componentIndex++) {
-							Vector4 transformed = nodeDescs[nodeIndex].NormalTransform * Vector4(
-								-ToNativeEndian<Endianness::LittleEndian>(view.Next<float>()),
-								ToNativeEndian<Endianness::LittleEndian>(view.Next<float>()),
-								ToNativeEndian<Endianness::LittleEndian>(view.Next<float>()),
-								1.0
-							);
-
-							Vector3 &v = node.Mesh.Normals[componentIndex] = { transformed.X, transformed.Y, transformed.Z };
-							v = Vector3::Normalize(v);
-						}
-					}
-				} else if (attribute.Type == GltfAttributeType::TANGENT) {
-					node.Mesh.HasTangents = true;
-					node.Mesh.Tangents = new Vector3[accessor.Count];
-					node.Mesh.Bitangents = new Vector3[accessor.Count];
-				} else if (attribute.Type == GltfAttributeType::TEXCOORD_0) {
-					node.Mesh.HasUVs = true;
-					node.Mesh.UVs = new Vector2[accessor.Count];
-
-					if (accessor.ComponentType == GltfComponentType::FLOAT) {
-						for (uint32_t componentIndex = 0; componentIndex < accessor.Count; componentIndex++) {
-							if (flags & ImportFlag_FlipUVs) {
-								node.Mesh.UVs[componentIndex] = {
+						if (accessor.ComponentType == GltfComponentType::FLOAT) {
+							for (uint32_t componentIndex = 0; componentIndex < accessor.Count; componentIndex++) {
+								Vector4 transformed = nodeDescs[nodeIndex].Transform * Vector4(
+									-ToNativeEndian<Endianness::LittleEndian>(view.Next<float>()),
 									ToNativeEndian<Endianness::LittleEndian>(view.Next<float>()),
-									1.0f - ToNativeEndian<Endianness::LittleEndian>(view.Next<float>())
-								};
-							} else {
-								node.Mesh.UVs[componentIndex] = {
 									ToNativeEndian<Endianness::LittleEndian>(view.Next<float>()),
-									ToNativeEndian<Endianness::LittleEndian>(view.Next<float>())
-								};
+									1.0
+								);
+
+								Vector3 position = { transformed.X, transformed.Y, transformed.Z };
+
+								if (flags & ImportFlag_GenerateBoundingBox) {
+									node.BoundingBox.Min = Vector3::Min(node.BoundingBox.Min, position);
+									node.BoundingBox.Max = Vector3::Max(node.BoundingBox.Max, position);
+								}
+
+								node.Mesh.Positions[componentIndex] = position;
 							}
 						}
-					} else if (accessor.ComponentType == GltfComponentType::UNSIGNED_BYTE) {
-						for (uint32_t componentIndex = 0; componentIndex < accessor.Count; componentIndex++) {
-							if (flags & ImportFlag_FlipUVs) {
-								node.Mesh.UVs[componentIndex] = {
-									(float)ToNativeEndian<Endianness::LittleEndian>(view.Next<uint8_t>()),
-									1.0f - (float)ToNativeEndian<Endianness::LittleEndian>(view.Next<uint8_t>())
-								};
-							} else {
-								node.Mesh.UVs[componentIndex] = {
-									(float)ToNativeEndian<Endianness::LittleEndian>(view.Next<uint8_t>()),
-									(float)ToNativeEndian<Endianness::LittleEndian>(view.Next<uint8_t>())
-								};
+					} else if (attribute.Type == GltfAttributeType::NORMAL) {
+						node.Mesh.HasNormals = true;
+						node.Mesh.Normals.resize(accessor.Count);
+
+						if (accessor.ComponentType == GltfComponentType::FLOAT) {
+							for (uint32_t componentIndex = 0; componentIndex < accessor.Count; componentIndex++) {
+								Vector4 transformed = nodeDescs[nodeIndex].NormalTransform * Vector4(
+									-ToNativeEndian<Endianness::LittleEndian>(view.Next<float>()),
+									ToNativeEndian<Endianness::LittleEndian>(view.Next<float>()),
+									ToNativeEndian<Endianness::LittleEndian>(view.Next<float>()),
+									1.0
+								);
+
+								node.Mesh.Normals[componentIndex] = Vector3::Normalize({transformed.X, transformed.Y, transformed.Z });
 							}
 						}
-					} else if (accessor.ComponentType == GltfComponentType::UNSIGNED_SHORT) {
-						for (uint32_t componentIndex = 0; componentIndex < accessor.Count; componentIndex++) {
-							if (flags & ImportFlag_FlipUVs) {
-								node.Mesh.UVs[componentIndex] = {
-									(float)ToNativeEndian<Endianness::LittleEndian>(view.Next<uint16_t>()),
-									1.0f - (float)ToNativeEndian<Endianness::LittleEndian>(view.Next<uint16_t>())
-								};
-							} else {
-								node.Mesh.UVs[componentIndex] = {
-									(float)ToNativeEndian<Endianness::LittleEndian>(view.Next<uint16_t>()),
-									(float)ToNativeEndian<Endianness::LittleEndian>(view.Next<uint16_t>())
-								};
+					} else if (attribute.Type == GltfAttributeType::TANGENT) {
+						node.Mesh.HasTangents = true;
+						node.Mesh.Tangents.resize(accessor.Count);
+						node.Mesh.Bitangents.resize(accessor.Count);
+					} else if (attribute.Type == GltfAttributeType::TEXCOORD_0) {
+						node.Mesh.HasUVs = true;
+						node.Mesh.UVs.resize(accessor.Count);
+
+						if (accessor.ComponentType == GltfComponentType::FLOAT) {
+							for (uint32_t componentIndex = 0; componentIndex < accessor.Count; componentIndex++) {
+								if (flags & ImportFlag_FlipUVs) {
+									node.Mesh.UVs[componentIndex] = {
+										ToNativeEndian<Endianness::LittleEndian>(view.Next<float>()),
+										1.0f - ToNativeEndian<Endianness::LittleEndian>(view.Next<float>())
+									};
+								} else {
+									node.Mesh.UVs[componentIndex] = {
+										ToNativeEndian<Endianness::LittleEndian>(view.Next<float>()),
+										ToNativeEndian<Endianness::LittleEndian>(view.Next<float>())
+									};
+								}
+							}
+						} else if (accessor.ComponentType == GltfComponentType::UNSIGNED_BYTE) {
+							for (uint32_t componentIndex = 0; componentIndex < accessor.Count; componentIndex++) {
+								if (flags & ImportFlag_FlipUVs) {
+									node.Mesh.UVs[componentIndex] = {
+										(float)ToNativeEndian<Endianness::LittleEndian>(view.Next<uint8_t>()),
+										1.0f - (float)ToNativeEndian<Endianness::LittleEndian>(view.Next<uint8_t>())
+									};
+								} else {
+									node.Mesh.UVs[componentIndex] = {
+										(float)ToNativeEndian<Endianness::LittleEndian>(view.Next<uint8_t>()),
+										(float)ToNativeEndian<Endianness::LittleEndian>(view.Next<uint8_t>())
+									};
+								}
+							}
+						} else if (accessor.ComponentType == GltfComponentType::UNSIGNED_SHORT) {
+							for (uint32_t componentIndex = 0; componentIndex < accessor.Count; componentIndex++) {
+								if (flags & ImportFlag_FlipUVs) {
+									node.Mesh.UVs[componentIndex] = {
+										(float)ToNativeEndian<Endianness::LittleEndian>(view.Next<uint16_t>()),
+										1.0f - (float)ToNativeEndian<Endianness::LittleEndian>(view.Next<uint16_t>())
+									};
+								} else {
+									node.Mesh.UVs[componentIndex] = {
+										(float)ToNativeEndian<Endianness::LittleEndian>(view.Next<uint16_t>()),
+										(float)ToNativeEndian<Endianness::LittleEndian>(view.Next<uint16_t>())
+									};
+								}
 							}
 						}
 					}
 				}
-			}
 
-			if (primitive.IndexBufferAccessor != UINT32_MAX) {
-				const GltfAccessorDesc &accessor = accessorDescs[primitive.IndexBufferAccessor];
-				const GltfBufferViewDesc &bufferView = bufferViewDescs[accessor.BufferViewIndex];
-				const GltfBufferDesc &buffer = bufferDescs[bufferView.BufferIndex];
+				if (primitive.IndexBufferAccessor != UINT32_MAX) {
+					const GltfAccessorDesc &accessor = accessorDescs[primitive.IndexBufferAccessor];
+					const GltfBufferViewDesc &bufferView = bufferViewDescs[accessor.BufferViewIndex];
+					const GltfBufferDesc &buffer = bufferDescs[bufferView.BufferIndex];
 
-				BufferView view(binaryData, bufferView.ByteOffset, bufferView.ByteLength);
+					BufferView view(binaryData, bufferView.ByteOffset, bufferView.ByteLength);
 
-				node.Mesh.HasIndices = true;
-				node.Mesh.Indices = new uint32_t[accessor.Count];
-				std::memset(node.Mesh.Indices, 0, accessor.Count * sizeof(uint32_t));
-				node.Mesh.IndexCount = accessor.Count;
+					node.Mesh.HasIndices = true;
+					node.Mesh.Indices.resize(accessor.Count);
+					node.Mesh.IndexCount = accessor.Count;
 
-				if (accessor.ComponentType == GltfComponentType::UNSIGNED_INT) {
-					for (uint32_t i = 0; i < accessor.Count; i += 3) {
-						if (flags & ImportFlag_SwapWindingOrder) {
-							node.Mesh.Indices[i + 2] = ToNativeEndian<Endianness::LittleEndian>(view.Next<uint32_t>());
-							node.Mesh.Indices[i + 1] = ToNativeEndian<Endianness::LittleEndian>(view.Next<uint32_t>());
-							node.Mesh.Indices[i] = ToNativeEndian<Endianness::LittleEndian>(view.Next<uint32_t>());
-						} else {
-							node.Mesh.Indices[i] = ToNativeEndian<Endianness::LittleEndian>(view.Next<uint32_t>());
+					if (accessor.ComponentType == GltfComponentType::UNSIGNED_INT) {
+						for (uint32_t i = 0; i < accessor.Count; i += 3) {
+							if (flags & ImportFlag_SwapWindingOrder) {
+								node.Mesh.Indices[i + 2] = ToNativeEndian<Endianness::LittleEndian>(view.Next<uint32_t>());
+								node.Mesh.Indices[i + 1] = ToNativeEndian<Endianness::LittleEndian>(view.Next<uint32_t>());
+								node.Mesh.Indices[i] = ToNativeEndian<Endianness::LittleEndian>(view.Next<uint32_t>());
+							} else {
+								node.Mesh.Indices[i] = ToNativeEndian<Endianness::LittleEndian>(view.Next<uint32_t>());
+								node.Mesh.Indices[i + 1] = ToNativeEndian<Endianness::LittleEndian>(view.Next<uint32_t>());
+								node.Mesh.Indices[i + 3] = ToNativeEndian<Endianness::LittleEndian>(view.Next<uint32_t>());
+							}
 						}
-					}
-				} else if (accessor.ComponentType == GltfComponentType::UNSIGNED_SHORT) {
-					for (uint32_t i = 0; i < accessor.Count; i += 3) {
-						if (flags & ImportFlag_SwapWindingOrder) {
-							node.Mesh.Indices[i] = ToNativeEndian<Endianness::LittleEndian>(view.Next<uint16_t>());
-						} else {
-							node.Mesh.Indices[i + 2] = ToNativeEndian<Endianness::LittleEndian>(view.Next<uint16_t>());
-							node.Mesh.Indices[i + 1] = ToNativeEndian<Endianness::LittleEndian>(view.Next<uint16_t>());
-							node.Mesh.Indices[i] = ToNativeEndian<Endianness::LittleEndian>(view.Next<uint16_t>());
+					} else if (accessor.ComponentType == GltfComponentType::UNSIGNED_SHORT) {
+						for (uint32_t i = 0; i < accessor.Count; i += 3) {
+							if (flags & ImportFlag_SwapWindingOrder) {
+								node.Mesh.Indices[i] = ToNativeEndian<Endianness::LittleEndian>(view.Next<uint16_t>());
+								node.Mesh.Indices[i + 1] = ToNativeEndian<Endianness::LittleEndian>(view.Next<uint16_t>());
+								node.Mesh.Indices[i + 2] = ToNativeEndian<Endianness::LittleEndian>(view.Next<uint16_t>());
+							} else {
+								node.Mesh.Indices[i + 2] = ToNativeEndian<Endianness::LittleEndian>(view.Next<uint16_t>());
+								node.Mesh.Indices[i + 1] = ToNativeEndian<Endianness::LittleEndian>(view.Next<uint16_t>());
+								node.Mesh.Indices[i] = ToNativeEndian<Endianness::LittleEndian>(view.Next<uint16_t>());
+							}
 						}
 					}
 				}
 			}
 		}
 
-		if (flags & ImportFlag_GenerateTangents) {
-			for (Node &n : mNodes) {
-				if (n.Mesh.HasTangents) continue;
-				n.Mesh.Tangents = new Vector3[n.Mesh.VertexCount];
-				n.Mesh.Bitangents = new Vector3[n.Mesh.VertexCount];
+		for (uint32_t nodeIndex = 0; nodeIndex < outNodes.size(); nodeIndex++) {
+			Node &n = outNodes[nodeIndex];
+			
+			n.Mesh.Normals.resize(n.Mesh.VertexCount);
+			n.Mesh.Tangents.resize(n.Mesh.VertexCount);
+			n.Mesh.Bitangents.resize(n.Mesh.VertexCount);
 
-				for (uint32_t i = 0; i < n.Mesh.IndexCount; i += 3) {
-					uint32_t index0 = n.Mesh.Indices[i];
-					uint32_t index1 = n.Mesh.Indices[i + 1];
-					uint32_t index2 = n.Mesh.Indices[i + 2];
+			if (flags & ImportFlag_GenerateNormals) {
+				n.Mesh.HasNormals = true;
+			}
 
-					Vector3 edge0 = n.Mesh.Positions[index1] - n.Mesh.Positions[index0];
-					Vector3 edge1 = n.Mesh.Positions[index2] - n.Mesh.Positions[index0];
+			if (flags & ImportFlag_GenerateTangents) {
+				n.Mesh.HasTangents = true;
+			}
 
+			for (uint32_t i = 0; i < n.Mesh.IndexCount; i += 3) {
+				uint32_t index0 = n.Mesh.Indices[i];
+				uint32_t index1 = n.Mesh.Indices[i + 1];
+				uint32_t index2 = n.Mesh.Indices[i + 2];
+
+				Vector3 edge0 = n.Mesh.Positions[index1] - n.Mesh.Positions[index0];
+				Vector3 edge1 = n.Mesh.Positions[index2] - n.Mesh.Positions[index0];
+				
+				if (!n.Mesh.HasNormals && flags & ImportFlag_GenerateNormals) {
+					Vector3 normal = Vector3::Normalize(Vector3::Cross(edge0, edge1));
+
+					n.Mesh.Normals[index0] = normal;
+					n.Mesh.Normals[index1] = normal;
+					n.Mesh.Normals[index2] = normal;
+				}
+
+				if (!n.Mesh.HasTangents && flags & ImportFlag_GenerateTangents) {
 					Vector2 deltaUV0 = n.Mesh.UVs[index1] - n.Mesh.UVs[index0];
 					Vector2 deltaUV1 = n.Mesh.UVs[index2] - n.Mesh.UVs[index0];
 
@@ -515,6 +532,14 @@ namespace Arcane {
 				}
 			}
 		}
+
+		delete[] nodeDescs;
+		delete[] meshDescs;
+		delete[] accessorDescs;
+		delete[] bufferViewDescs;
+		delete[] bufferDescs;
+
+		free(binaryData);
 
 		return true;
 	}

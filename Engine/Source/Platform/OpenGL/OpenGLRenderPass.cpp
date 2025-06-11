@@ -2,11 +2,11 @@
 
 namespace Arcane {
 
-	OpenGLRenderPass::OpenGLRenderPass(const Ref<OpenGLGraphicsContext> &context, const Ref<OpenGLPipeline> &pipeline, const Attachment *attachments, size_t attachmentCount) 
+	OpenGLRenderPass::OpenGLRenderPass(const Ref<OpenGLGraphicsContext> &context, const Ref<OpenGLPipeline> &pipeline, const ImageFormat *attachments, size_t attachmentCount) 
 	: mContext(context), mPipeline(pipeline) {
 		AR_PROFILE_FUNCTION();
-		mAttachments = new Attachment[attachmentCount];
-		memcpy((void*)mAttachments, (void*)attachments, attachmentCount * sizeof(Attachment));
+		mAttachments = new ImageFormat[attachmentCount];
+		memcpy((void*)mAttachments, (void*)attachments, attachmentCount * sizeof(ImageFormat));
 		mAttachmentCount = attachmentCount;
 	}
 

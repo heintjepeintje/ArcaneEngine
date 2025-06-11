@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Arcane/Graphics/Texture.hpp>
+#include <Arcane/Graphics/Base/Texture.hpp>
 #include <Arcane/Graphics/Color.hpp>
 
 namespace Arcane {

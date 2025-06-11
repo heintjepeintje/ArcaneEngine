@@ -2,24 +2,24 @@
 
 namespace Arcane {
 
-	GLenum ToOpenGLImageType(ImageType type, uint32_t samples) {
-		if (samples == 1) {
-			switch (type) {
-				case ImageType::Texture1D: return GL_TEXTURE_1D;
-				case ImageType::Texture1DArray: return GL_TEXTURE_1D_ARRAY;
-				case ImageType::Texture2D: return GL_TEXTURE_2D;
-				case ImageType::Texture2DArray: return GL_TEXTURE_2D_ARRAY;
-				case ImageType::Texture3D: return GL_TEXTURE_3D;
-				case ImageType::TextureCube: return GL_TEXTURE_CUBE_MAP;
-				default: return GL_NONE;
-			}
-		} else {
-			switch (type) {
-				case ImageType::Texture2D: return GL_TEXTURE_2D_MULTISAMPLE;
-				case ImageType::Texture2DArray: return GL_TEXTURE_2D_MULTISAMPLE_ARRAY;
-				default: return GL_NONE;
-			}
+	GLenum ToOpenGLTextureType(TextureType type, uint32_t layers, uint32_t samples) {
+		if (type == TextureType::Texture1D) {
+			AR_ASSERT(samples == 1, "1 dimensional textures cannot have multisampling\n");
+			return layers == 1 ? GL_TEXTURE_1D : GL_TEXTURE_1D_ARRAY;
+		} else if (type == TextureType::Texture2D) {
+			if (samples > 1) return layers == 1 ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D_MULTISAMPLE_ARRAY;
+			else return layers == 1 ? GL_TEXTURE_2D : GL_TEXTURE_2D_ARRAY;
+		} else if (type == TextureType::Texture3D) {
+			AR_ASSERT(layers == 1, "3 dimensional textures cannot be in an array\n");
+			AR_ASSERT(samples == 1, "3 dimensional textures cannot have multisampling\n");
+			return GL_TEXTURE_3D;
+		} else if (type == TextureType::CubeMap) {
+			AR_ASSERT(layers == 1, "Cube maps cannot be in an array\n");
+			AR_ASSERT(samples == 1, "Cube maps cannot have multisampling\n");
+			return GL_TEXTURE_CUBE_MAP;
 		}
+		AR_ASSERT(false, "Unknown texture type: %u\n", type);
+		return GL_NONE;
 	}
 
 	GLenum ToOpenGLInternalImageFormat(ImageFormat format) {
@@ -67,12 +67,16 @@ namespace Arcane {
 			case ImageFormat::D16: return GL_DEPTH_COMPONENT16;
 			case ImageFormat::D24: return GL_DEPTH_COMPONENT24;
 			case ImageFormat::D32: return GL_DEPTH_COMPONENT32;
+
 			case ImageFormat::S8: return GL_STENCIL_INDEX8;
 			case ImageFormat::S16: return GL_STENCIL_INDEX16;
+			
 			case ImageFormat::D24S8: return GL_DEPTH24_STENCIL8;
 			case ImageFormat::D32FS8: return GL_DEPTH32F_STENCIL8;
 			default: return GL_NONE;
 		}
+		AR_ASSERT(false, "Image format is unknown: %u\n", format);
+		return GL_NONE;
 	}
 
 	GLenum ToOpenGLImageFormat(ImageFormat format) {
@@ -134,6 +138,8 @@ namespace Arcane {
 
 			default: return GL_NONE;
 		}
+		AR_ASSERT(false, "Image format is unknown: %u\n", format);
+		return GL_NONE;
 	}
 
 	GLenum GetOpenGLTexelType(ImageFormat format) {
@@ -193,8 +199,9 @@ namespace Arcane {
 			case ImageFormat::D32F: return GL_FLOAT;
 			case ImageFormat::S8: return GL_UNSIGNED_BYTE;
 			case ImageFormat::S16: return GL_UNSIGNED_SHORT;
-			default: return GL_NONE;
 		}
+		AR_ASSERT(false, "Image format is unknown: %u\n", format);
+		return GL_NONE;
 	}
 
 	size_t GetFormatTexelSize(ImageFormat format) {
@@ -246,60 +253,72 @@ namespace Arcane {
 			case ImageFormat::S16: return sizeof(uint16_t);
 			case ImageFormat::D24S8: return sizeof(uint32_t);
 			case ImageFormat::D32FS8: return sizeof(uint32_t);
-			default: return 0;
 		}
+		AR_ASSERT(false, "Image format is unknown: %u\n", format);
+		return 0;
 	}
 
-	void AllocTextureStorage(GLuint texture, ImageType type, uint32_t levels, uint32_t samples, ImageFormat format, uint32_t width, uint32_t height, uint32_t depth, bool isMutable) {
+	OpenGLTexture::OpenGLTexture(const Ref<OpenGLGraphicsContext> &context, const TextureInfo &info) : mContext(context), mWidth(info.Width), mHeight(info.Height), mDepth(info.Depth), mLevels(info.Levels), mLayers(info.Layers), mType(info.Type), mFormat(info.Format), mSamples(info.Samples), mFixedSampleLocations(info.FixedSampleLocations) {
 		AR_PROFILE_FUNCTION_GPU_CPU();
-		const GLenum openglFormat = ToOpenGLInternalImageFormat(format);
-		
-		if (samples != 1) {
-			switch (type) {
-				case ImageType::Texture2D:
-					glTextureStorage2DMultisample(texture, samples, openglFormat, width, height, GL_TRUE);
-					break;
-				case ImageType::Texture2DArray:
-					glTextureStorage3DMultisample(texture, samples, openglFormat, width, height, depth, GL_TRUE);
-					break;
-			}
-		} else {
-			switch (type) {
-				case ImageType::Texture1D:
-					glTextureStorage1D(texture, levels, openglFormat, width);
-					break;
-				case ImageType::Texture1DArray:
-				case ImageType::Texture2D:
-					glTextureStorage2D(texture, levels, openglFormat, width, height);
-					break;
-				case ImageType::Texture2DArray:
-				case ImageType::Texture3D:
-					glTextureStorage3D(texture, levels, openglFormat, width, height, depth);
-					break;
-			}
+
+		AR_ASSERT(mSamples != 0, "Texture samples cannot be 0");
+		AR_ASSERT(mLayers != 0, "Texture layers cannot be 0");
+		AR_ASSERT(mLevels != 0, "Texture levels cannot be 0");
+
+		if (mType == TextureType::Texture1D) {
+			AR_ASSERT(mWidth != 0, "Texture width cannot be 0");
+			AR_ASSERT(
+				mWidth <= context->GetGraphicsLimits().MaxTextureSize,
+				"Texture is too big (width: %u). Maximum width is: %u\n",
+				mWidth,
+				context->GetGraphicsLimits().MaxTextureSize
+			);
+		} else if (mType == TextureType::Texture2D) {
+			AR_ASSERT(mWidth != 0, "Texture width cannot be 0");
+			AR_ASSERT(mHeight != 0, "Texture height cannot be 0");
+			AR_ASSERT(
+				mWidth <= mContext->GetGraphicsLimits().MaxTextureSize && 
+				mHeight <= mContext->GetGraphicsLimits().MaxTextureSize,
+				"Texture is too big (%ux%u). Maximum size is: %ux%u\n",
+				mWidth, mHeight,
+				mContext->GetGraphicsLimits().MaxTextureSize, mContext->GetGraphicsLimits().MaxTextureSize
+			);
+		} else if (mType == TextureType::Texture3D) {
+			AR_ASSERT(mWidth != 0, "Texture width cannot be 0");
+			AR_ASSERT(mHeight != 0, "Texture height cannot be 0");
+			AR_ASSERT(mDepth != 0, "Texture depth cannot be 0");
+			AR_ASSERT(
+				mWidth <= mContext->GetGraphicsLimits().Max3DTextureSize && 
+				mHeight <= mContext->GetGraphicsLimits().Max3DTextureSize &&
+				mDepth <= mContext->GetGraphicsLimits().Max3DTextureSize,
+				"Texture is too big (%ux%ux%u). Maximum size is: %ux%ux%u\n",
+				mWidth, mHeight, mDepth,
+				mContext->GetGraphicsLimits().Max3DTextureSize, mContext->GetGraphicsLimits().Max3DTextureSize, mContext->GetGraphicsLimits().Max3DTextureSize
+			);
 		}
-	}
 
-	OpenGLTexture::OpenGLTexture(const Ref<OpenGLGraphicsContext> &context, const TextureInfo &info) : mContext(context), mType(info.Type), mFormat(info.Format) {
-		AR_PROFILE_FUNCTION_GPU_CPU();
-		AR_ASSERT(info.Width != 0, "Texture width cannot be 0");
-		AR_ASSERT(info.Height != 0, "Texture height cannot be 0");
-		AR_ASSERT(info.Levels != 0, "Texture levels cannot be 0");
-		AR_ASSERT(info.Samples != 0, "Texture samples cannot be 0");
+		if (IsColorFormat(mFormat)) {
+			AR_ASSERT(mSamples <= context->GetGraphicsLimits().MaxColorSamples, "Color texture samples exceeds maximum (%u > %u)\n", mSamples, context->GetGraphicsLimits().MaxColorSamples);
+		} else if (IsDepthFormat(mFormat)) {
+			AR_ASSERT(mSamples <= context->GetGraphicsLimits().MaxDepthSamples, "Depth texture samples exceeds maximum (%u > %u)\n", mSamples, context->GetGraphicsLimits().MaxDepthSamples);	
+		}
 
-		GLuint maxSamples = 0;
-		glGetIntegerv(GL_MAX_COLOR_TEXTURE_SAMPLES, (GLint*)&maxSamples);
-		AR_ASSERT(info.Samples <= maxSamples, "Texture samples exceeds maximum samples (%u > %u)", info.Samples, maxSamples);
+		glCreateTextures(ToOpenGLTextureType(mType, mLayers, mSamples), 1, &mTexture);
 
-		glCreateTextures(ToOpenGLImageType(info.Type, info.Samples), 1, &mTexture);
+		const GLenum openglFormat = ToOpenGLInternalImageFormat(mFormat);
 
-		mWidth = info.Width;
-		mHeight = info.Height;
-		mDepth = info.Depth;
-		mLevels = info.Levels;
-		mSamples = info.Samples;
-
-		AllocTextureStorage(mTexture, mType, mLevels, mSamples, mFormat, mWidth, mHeight, mDepth, true);
+		if (mType == TextureType::Texture1D) {
+			if (mLayers == 1) glTextureStorage1D(mTexture, mLevels, openglFormat, mWidth);
+			else glTextureStorage2D(mTexture, mLevels, openglFormat, mWidth, mLayers);
+		} else if (mType == TextureType::Texture2D) {
+			if (mSamples == 1 && mLayers == 1) glTextureStorage2D(mTexture, mLevels, openglFormat, mWidth, mHeight);
+			else if (mSamples == 1 && mLayers > 1) glTextureStorage3D(mTexture, mLevels, openglFormat, mWidth, mHeight, mLayers);
+			else if (mSamples > 1 && mLayers == 1) glTextureStorage2DMultisample(mTexture, mSamples, mLevels, mWidth, mHeight, mFixedSampleLocations);
+			else if (mSamples > 1 && mLayers > 1) glTextureStorage3DMultisample(mTexture, mSamples, mLevels, mWidth, mHeight, mLayers, mFixedSampleLocations);
+			else AR_ASSERT(false, "Unreachable code");
+		} else if (mType == TextureType::Texture3D) {
+			glTextureStorage3D(mTexture, mLevels, openglFormat, mWidth, mHeight, mDepth);
+		}
 	}
 
 	OpenGLTexture::~OpenGLTexture() {
@@ -307,36 +326,29 @@ namespace Arcane {
 		glDeleteTextures(1, &mTexture);
 	}
 
-	void OpenGLTexture::SetImage(uint32_t level, const Image &image) {
+	void OpenGLTexture::SetImage(uint32_t level, uint32_t index, const ImageData &image) {
 		AR_PROFILE_FUNCTION_GPU_CPU();
+		if (mType == TextureType::CubeMap) { AR_ASSERT(index < 6, "Index is out of bounds for cube map texture: %u >= 6", index); }
+		else { AR_ASSERT(index < mLayers, "Index is out of bounds for array texture: %u >= %u\n", index, mLayers); }
+
+		AR_ASSERT(level < mLevels, "Texture level out of range: %u >= %u", level, mLevels);
 		const GLenum texelType = GetOpenGLTexelType(image.Format);
+		const GLenum imageFormat = ToOpenGLImageFormat(image.Format);
 
 		switch (mType) {
-			case ImageType::Texture1D:
-				glTextureSubImage1D(mTexture, level, 0, image.Width, ToOpenGLImageFormat(image.Format), texelType, image.Data);
+			case TextureType::Texture1D:
+				glTextureSubImage1D(mTexture, level, 0, image.Width, imageFormat, texelType, image.Data);
 				break;
-			case ImageType::Texture2D:
-				glTextureSubImage2D(mTexture, level, 0, 0, image.Width, image.Height, ToOpenGLImageFormat(image.Format), texelType, image.Data);
+			case TextureType::Texture2D:
+				glTextureSubImage2D(mTexture, level, 0, 0, image.Width, image.Height, imageFormat, texelType, image.Data);
 				break;
-			case ImageType::Texture3D:
-				glTextureSubImage3D(mTexture, level, 0, 0, 0, image.Width, image.Height, image.Depth, ToOpenGLImageFormat(image.Format), texelType, image.Data);
+			case TextureType::Texture3D:
+				glTextureSubImage3D(mTexture, level, 0, 0, 0, image.Width, image.Height, image.Depth, imageFormat, texelType, image.Data);
+				break;
+			case TextureType::CubeMap:
+				glTextureSubImage3D(mTexture, level, 0, 0, index, image.Width, image.Height, 1, imageFormat, texelType, image.Data);
 				break;
 		}
-	}
-
-	void OpenGLTexture::Resize(uint32_t width, uint32_t height, uint32_t depth) {
-		AR_PROFILE_FUNCTION_GPU_CPU();
-		if (width == mWidth && height == mHeight && depth == mDepth) return;
-		
-		mWidth = width;
-		mHeight = height;
-		mDepth = depth;
-
-		glDeleteTextures(1, &mTexture);
-
-		glCreateTextures(ToOpenGLImageType(mType, mSamples), 1, &mTexture);
-
-		AllocTextureStorage(mTexture, mType, mLevels, mSamples, mFormat, mWidth, mHeight, mDepth, true);
 	}
 
 	GLenum ToOpenGLSamplerFilterWithMipmapFilter(SamplerFilter filter, SamplerFilter mipmapFilter) {
@@ -344,15 +356,18 @@ namespace Arcane {
 			switch (mipmapFilter) {
 				case SamplerFilter::Nearest: return GL_NEAREST_MIPMAP_NEAREST;
 				case SamplerFilter::Linear: return GL_NEAREST_MIPMAP_LINEAR;
-				default: return GL_NONE;
 			}
+			AR_ASSERT(false, "Invalid mipmap sampler unknown: %u\n", mipmapFilter);
+			return GL_NONE;
 		} else if (filter == SamplerFilter::Linear) {
 			switch (mipmapFilter) {
 				case SamplerFilter::Nearest: return GL_LINEAR_MIPMAP_NEAREST;
 				case SamplerFilter::Linear: return GL_LINEAR_MIPMAP_LINEAR;
-				default: return GL_NONE;
 			}
+			AR_ASSERT(false, "Mipmap sampler filter is unknown: %u\n", mipmapFilter);
+			return GL_NONE;
 		}
+		AR_ASSERT(false, "Sampler filter is unknown: %u\n", filter);
 		return GL_NONE;
 	}
 
@@ -360,8 +375,9 @@ namespace Arcane {
 		switch (filter) {
 			case SamplerFilter::Nearest: return GL_NEAREST;
 			case SamplerFilter::Linear: return GL_LINEAR;
-			default: return GL_NONE;
 		}
+		AR_ASSERT(false, "Sampler filter is unknown: %u\n", filter);
+		return GL_NONE;
 	}
 
 	GLenum ToOpenGLSamplerWrap(SamplerWrap wrap) {
@@ -370,18 +386,28 @@ namespace Arcane {
 			case SamplerWrap::MirroredRepeat: return GL_MIRRORED_REPEAT;
 			case SamplerWrap::ClampToEdge: return GL_CLAMP_TO_EDGE;
 			case SamplerWrap::ClampToBorder: return GL_CLAMP_TO_BORDER;
-			default: return GL_NONE;
 		}
+		AR_ASSERT(false, "Sampler wrap is unknown: %u\n", wrap);
+		return GL_NONE;
 	}
 
-	OpenGLSampler::OpenGLSampler(const Ref<OpenGLGraphicsContext> &context, const SamplerInfo &info) : mContext(context) {
+	OpenGLSampler::OpenGLSampler(const Ref<OpenGLGraphicsContext> &context, const SamplerInfo &info) : mContext(context), mMinFilter(info.MinFilter), mMagFilter(info.MagFilter), mMipmapFilter(info.MipmapFilter), mMinLOD(info.MinLOD), mMaxLOD(info.MaxLOD), mBorderColor(info.BorderColor), mWrapS(info.WrapS), mWrapT(info.WrapT), mWrapR(info.WrapR) {
 		AR_PROFILE_FUNCTION_GPU_CPU();
+
 		glCreateSamplers(1, &mSampler);
-		glSamplerParameteri(mSampler, GL_TEXTURE_MIN_FILTER, ToOpenGLSamplerFilterWithMipmapFilter(info.MinFilter, info.MipmapFilter));
-		glSamplerParameteri(mSampler, GL_TEXTURE_MAG_FILTER, ToOpenGLSamplerFilter(info.MagFilter));
-		glSamplerParameteri(mSampler, GL_TEXTURE_WRAP_S, ToOpenGLSamplerWrap(info.WrapS));
-		glSamplerParameteri(mSampler, GL_TEXTURE_WRAP_T, ToOpenGLSamplerWrap(info.WrapT));
-		glSamplerParameteri(mSampler, GL_TEXTURE_WRAP_R, ToOpenGLSamplerWrap(info.WrapR));
+		
+		glSamplerParameteri(mSampler, GL_TEXTURE_MIN_FILTER, ToOpenGLSamplerFilterWithMipmapFilter(mMinFilter, mMipmapFilter));
+		glSamplerParameteri(mSampler, GL_TEXTURE_MAG_FILTER, ToOpenGLSamplerFilter(mMagFilter));
+
+		glSamplerParameteri(mSampler, GL_TEXTURE_WRAP_S, ToOpenGLSamplerWrap(mWrapS));
+		glSamplerParameteri(mSampler, GL_TEXTURE_WRAP_T, ToOpenGLSamplerWrap(mWrapT));
+		glSamplerParameteri(mSampler, GL_TEXTURE_WRAP_R, ToOpenGLSamplerWrap(mWrapR));
+		
+		glSamplerParameterf(mSampler, GL_TEXTURE_MIN_LOD, mMinLOD);
+		glSamplerParameterf(mSampler, GL_TEXTURE_MAX_LOD, mMaxLOD);
+		
+		float border[] = { mBorderColor.R, mBorderColor.G, mBorderColor.B, mBorderColor.A };
+		glSamplerParameterfv(mSampler, GL_TEXTURE_BORDER_COLOR, border);
 	}
 
 	OpenGLSampler::~OpenGLSampler() {

@@ -1,17 +1,18 @@
 #include "Importer.hpp"
 
-#include "Importers/GLBImporter.hpp"
+#include <Arcane/Asset/Importers/GLBImporter.hpp>
 
 namespace Arcane {
 
-	Ref<Importer> Importer::Create(const std::filesystem::path &path) {
-		std::string extension = path.extension().string();
-		if (extension == ".glb") {
-			return CastRef<Importer>(CreateRef<GLBImporter>(path.string()));
-		} else {
-			AR_ASSERT(false, "Could not find importer for extension %s", extension.c_str());
-			return Ref<Importer>();
+	Importer::Importer() { }
+
+	Importer::~Importer() { }
+
+	bool Importer::Import(const std::filesystem::path &path, uint32_t flags) {
+		if (path.extension() == ".glb") {
+			return ImportGLB(path, flags, mNodes);
 		}
+		return false;
 	}
 
 }

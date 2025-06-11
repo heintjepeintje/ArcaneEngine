@@ -23,6 +23,14 @@ namespace Arcane {
 			return *value;
 		}
 
+		template<typename _Type>
+		inline BufferView &operator<<(const _Type &t) {
+			_Type *value = (_Type*)AR_PTR_ADD(mBuffer, mOffset);
+			*value = t;
+			mOffset += sizeof(_Type);
+			return *this;
+		}
+
 		void Jump(int64_t offset, JumpOrigin origin = JumpOrigin::Current) {
 			switch (origin) {
 				case JumpOrigin::Begin: mOffset = offset; break;

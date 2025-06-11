@@ -15,6 +15,7 @@
 				"Engine/Libraries/ImGui",
 				"Engine/Libraries/tracy/public",
 				"Engine/Libraries/rapidjson/include",
+				"${env:VULKAN_SDK}/Include",
 				"Engine/Source",
 				"Game/Source"
 			],
@@ -36,6 +37,7 @@
 				"Engine/Libraries/ImGui",
 				"Engine/Libraries/tracy/public",
 				"Engine/Libraries/rapidjson/include",
+				"${env:VULKAN_SDK}/Include",
 				"Engine/Source",
 				"Game/Source"
 			],

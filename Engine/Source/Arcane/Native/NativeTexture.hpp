@@ -1,19 +1,28 @@
 #pragma once
 
 #include <Arcane/Core.hpp>
-#include <Arcane/Graphics/Image.hpp>
+#include <Arcane/Graphics/Color.hpp>
+#include <Arcane/Graphics/ImageData.hpp>
 #include "NativeGraphicsContext.hpp"
 
 namespace Arcane {
 
+	enum class TextureType {
+		None = 0,
+		Texture1D,
+		Texture2D,
+		Texture3D,
+		CubeMap
+	};
+
 	struct TextureInfo {
-		ImageType Type;
+		TextureType Type;
 		ImageFormat Format;
 		uint32_t Levels;
-		uint32_t Width, Height;
-		uint32_t Depth;
+		uint32_t Layers;
+		uint32_t Width, Height, Depth;
 		uint32_t Samples;
-		bool IsMutable;
+		bool FixedSampleLocations;
 	};
 
 	class NativeTexture {
@@ -25,15 +34,17 @@ namespace Arcane {
 		virtual ~NativeTexture() { }
 		
 		virtual void GenerateMipmaps() = 0;
-		virtual void Resize(uint32_t width, uint32_t height, uint32_t depth) = 0;
-		virtual void SetImage(uint32_t level, const Image &image) = 0;
+		virtual void SetImage(uint32_t level, uint32_t index, const ImageData &image) = 0;
 
-		virtual ImageFormat GetFormat() = 0;
-		virtual uint32_t GetWidth() = 0;
-		virtual uint32_t GetHeight() = 0;
-		virtual uint32_t GetDepth() = 0;
-		virtual uint32_t GetLevels() = 0;
-		virtual ImageType GetType() = 0;
+		virtual ImageFormat GetFormat() const = 0;
+		virtual TextureType GetType() const = 0;
+		virtual uint32_t GetWidth() const = 0;
+		virtual uint32_t GetHeight() const = 0;
+		virtual uint32_t GetDepth() const = 0;
+		virtual uint32_t GetLevels() const = 0;
+		virtual uint32_t GetLayers() const = 0;
+		virtual uint32_t GetSampleCount() const = 0;
+		virtual bool HasFixedSampleLocations() const = 0;
 	};
 
 	enum class SamplerFilter {
@@ -54,6 +65,9 @@ namespace Arcane {
 		SamplerFilter MinFilter;
 		SamplerFilter MagFilter;
 		SamplerFilter MipmapFilter;
+		float MinLOD;
+		float MaxLOD;
+		Color BorderColor;
 		SamplerWrap WrapS;
 		SamplerWrap WrapT;
 		SamplerWrap WrapR;
@@ -62,6 +76,16 @@ namespace Arcane {
 	class NativeSampler {
 	public:
 		static Ref<NativeSampler> Create(const Ref<NativeGraphicsContext> &context, const SamplerInfo &info);
+
+		virtual SamplerFilter GetMinFilter() const = 0;
+		virtual SamplerFilter GetMagFilter() const = 0;
+		virtual SamplerFilter GetMipmapFilter() const = 0;
+		virtual float GetMinLOD() const = 0;
+		virtual float GetMaxLOD() const = 0;
+		virtual Color GetBorderColor() const = 0;
+		virtual SamplerWrap GetWrapS() const = 0;
+		virtual SamplerWrap GetWrapT() const = 0;
+		virtual SamplerWrap GetWrapR() const = 0;
 
 	public:
 		NativeSampler() { }

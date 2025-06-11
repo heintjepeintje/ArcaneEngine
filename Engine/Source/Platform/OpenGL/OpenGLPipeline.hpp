@@ -39,6 +39,9 @@ namespace Arcane {
 		inline virtual float GetLineWidth() const override { return mLineWidth; }
 		inline virtual float GetPointSize() const override { return mPointSize; }
 		inline virtual size_t GetElementSize() const override { return mElementSize; }
+		inline virtual float GetPolygonOffsetFactor() const override { return mPolygonOffsetFactor; }
+		inline virtual float GetPolygonOffsetUnits() const override { return mPolygonOffsetUnits; }
+		inline virtual const InputLayout &GetInputLayout() const override { return mLayout; }
 
 		virtual void SetUniformBuffer(uint32_t binding, const Ref<NativeBuffer> &uniformBuffer) override;
 		virtual void SetCombinedImageSampler(uint32_t binding, const Ref<NativeTexture> &texture, const Ref<NativeSampler> &sampler) override;
@@ -65,6 +68,9 @@ namespace Arcane {
 		uint8_t mOutputMask;
 		float mLineWidth;
 		float mPointSize;
+
+		float mPolygonOffsetFactor;
+		float mPolygonOffsetUnits;
 
 		uint32_t mSampleCount;
 

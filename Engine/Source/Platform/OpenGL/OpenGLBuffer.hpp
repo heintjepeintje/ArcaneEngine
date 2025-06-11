@@ -21,6 +21,7 @@ namespace Arcane {
 
 	private:
 		size_t mSize;
+		uint32_t mFlags;
 		GLuint mBuffer;
 	};
 

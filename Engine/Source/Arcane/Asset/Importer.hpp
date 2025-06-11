@@ -4,7 +4,9 @@
 #include <Arcane/Math/Vector3.hpp>
 #include <Arcane/Math/Vector2.hpp>
 #include <Arcane/Physics/AABB.hpp>
+#include <Arcane/Graphics/MeshData.hpp>
 #include <filesystem>
+#include <vector>
 
 namespace Arcane {
 
@@ -17,35 +19,17 @@ namespace Arcane {
 		ImportFlag_GenerateBoundingBox = AR_BIT(4)
 	};
 
-	struct MeshData {
-		char *Name;
-
-		bool HasPositions;
-		Vector3 *Positions;
-		bool HasNormals;
-		Vector3 *Normals;
-		bool HasUVs;
-		Vector2 *UVs;
-		bool HasTangents;
-		Vector3 *Tangents;
-		Vector3 *Bitangents;
-		uint32_t VertexCount;
-
-		bool HasIndices;
-		uint32_t *Indices;
-		uint32_t IndexCount;
-	};
-
 	struct MaterialData {
-		char *Name;
-		char *AlbedoMap;
-		char *NormalMap;
-		char *MetallicMap;
-		char *RoughnessMap;
-		char *AmbientOcclusionMap;
+		std::string Name;
+		std::string AlbedoMap;
+		std::string NormalMap;
+		std::string MetallicMap;
+		std::string RoughnessMap;
+		std::string AmbientOcclusionMap;
 	};
 
 	struct Node {
+		std::string Name;
 		MeshData Mesh;
 		MaterialData Material;
 		AABB BoundingBox;
@@ -53,16 +37,16 @@ namespace Arcane {
 
 	class Importer {
 	public:
-		static Ref<Importer> Create(const std::filesystem::path &path);
+		Importer();
+		virtual ~Importer();
 
-	public:
-		Importer() = default;
-		virtual ~Importer() = default;
+		bool Import(const std::filesystem::path &path, uint32_t flags);
 
-		virtual bool Import(uint32_t flags) = 0;
+		inline const Node &GetNode(uint32_t index) const { return mNodes[index]; }
+		inline uint32_t GetNodeCount() const { return (uint32_t)mNodes.size(); }
 
-		virtual const Node &GetNode(uint32_t index) const = 0;
-		virtual uint32_t GetNodeCount() const = 0;
+	private:
+		std::vector<Node> mNodes;
 	};
 
 }

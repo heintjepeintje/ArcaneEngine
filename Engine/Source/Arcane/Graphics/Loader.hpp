@@ -2,7 +2,7 @@
 
 #include <Arcane/Core.hpp>
 #include <Arcane/Math/Vector3.hpp>
-#include "Image.hpp"
+#include "ImageData.hpp"
 #include "Color.hpp"
 
 #include <vector>
@@ -16,12 +16,6 @@ namespace Arcane {
 		FlipHorizontal,
 		FlipVertical,
 		Invert,
-	};
-
-	struct ImageData {
-		uint32_t Width, Height;
-		ImageFormat Format;
-		uint8_t *Data;
 	};
 
 	ImageData LoadImage(const std::string &path, ImageFormat requestedFormat);

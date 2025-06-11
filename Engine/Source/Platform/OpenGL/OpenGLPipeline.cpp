@@ -27,7 +27,6 @@ namespace Arcane {
 			switch (info.Descriptors[i].Type) {
 				case DescriptorType::UniformBuffer: mUniformBufferDescriptorCount++; break;
 				case DescriptorType::CombinedImageSampler: mCombinedImageSamplerDescriptorCount++; break;
-				default: continue; // TODO: Throw error when descriptor type is unkown
 			}
 		}
 

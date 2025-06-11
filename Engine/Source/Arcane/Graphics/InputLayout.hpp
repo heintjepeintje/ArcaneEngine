@@ -29,11 +29,14 @@ namespace Arcane {
 	};
 
 	struct InputElement {
-		InputAttribute attribute;
+		InputAttribute Attribute;
 		uint32_t Count;
 		InputElementType Type;
 		bool Normalize;
 	};
+
+	uint32_t GetInputElementTypeCount(const InputElement &element);
+	uint32_t GetInputElementSize(const InputElement &element);
 
 	class InputLayout {
 	public:

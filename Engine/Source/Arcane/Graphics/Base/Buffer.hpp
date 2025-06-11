@@ -16,6 +16,7 @@ namespace Arcane {
 		~Buffer() { }
 
 		inline void *Map(MapMode mode) { return GetNativeBuffer()->Map(mode); }
+
 		inline void Unmap() { GetNativeBuffer()->Unmap(); }
 		inline void SetData(size_t offset, size_t size, const void *data) { GetNativeBuffer()->SetData(offset, size, data); }
 		inline void SetData(size_t size, const void *data) { GetNativeBuffer()->SetData(0, size, data); }

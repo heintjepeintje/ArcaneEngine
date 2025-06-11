@@ -16,6 +16,7 @@ project "Engine"
 		"Libraries/glm",
 		"Libraries/tracy/public",
 		"Libraries/rapidjson/include",
+		os.getenv("VULKAN_SDK") .. "/Include",
 		"Libraries/ImGui"
 	}
 	

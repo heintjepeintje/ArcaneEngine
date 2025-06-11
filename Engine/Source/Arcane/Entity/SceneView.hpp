@@ -58,6 +58,13 @@ namespace Arcane {
 			for (uint32_t i = 0; i < componentCount; i++) {
 				mMask.set(components[i], true);
 			}
+
+			mCount = 0;
+			for (EntityID i = 0; i < mScene->GetMaxEntityID(); i++) {
+				if (mMask == (mMask & mScene->GetEntityComponentMask(i))) {
+					mCount++;
+				}
+			}
 		}
 
 		inline SceneIterator begin() {
@@ -76,7 +83,10 @@ namespace Arcane {
 			return SceneIterator(mScene, mScene->GetMaxEntityID() + 1, mMask, mAll);
 		}
 
+		inline uint32_t GetCount() const { return mCount; }
+
 	private:
+		uint32_t mCount;
 		Scene *mScene;
 		std::bitset<AR_MAX_COMPONENTS> mMask;
 		bool mAll;

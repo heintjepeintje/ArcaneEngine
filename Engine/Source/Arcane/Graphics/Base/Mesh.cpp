@@ -18,13 +18,12 @@ namespace Arcane {
 		Buffer bitangents = Buffer::Create(context, data.VertexCount * sizeof(Vector3));
 		Buffer indices = Buffer::Create(context, data.IndexCount * sizeof(uint32_t));
 
-		positions.SetData(data.Positions);
-		normals.SetData(data.Normals);
-		uvs.SetData(data.UVs);
-		tangents.SetData(data.Tangents);
-		bitangents.SetData(data.Bitangents);
-
-		indices.SetData(data.Indices);
+		positions.SetData(data.Positions.data());
+		normals.SetData(data.Normals.data());
+		uvs.SetData(data.UVs.data());
+		tangents.SetData(data.Tangents.data());
+		bitangents.SetData(data.Bitangents.data());
+		indices.SetData(data.Indices.data());
 
 		nativeMesh->SetVertexBuffer(0, { { InputAttribute::Position, 1, InputElementType::Vector3f32 } }, positions.GetNativeBuffer());
 		nativeMesh->SetVertexBuffer(1, { { InputAttribute::Normal, 1, InputElementType::Vector3f32 } }, normals.GetNativeBuffer());

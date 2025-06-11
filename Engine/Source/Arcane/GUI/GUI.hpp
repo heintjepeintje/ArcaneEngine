@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Arcane/System/Window.hpp>
-#include <Arcane/Graphics/GraphicsContext.hpp>
+#include <Arcane/Graphics/Base/GraphicsContext.hpp>
 
 namespace Arcane {
 

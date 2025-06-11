@@ -35,22 +35,6 @@ namespace Arcane {
 			);
 		}
 
-		static Vector3 Clamp(const Vector3 &v, const Vector3 &min, const Vector3 &max) {
-			return Vector3(
-				Arcane::Clamp(v.X, min.X, max.X),
-				Arcane::Clamp(v.Y, min.Y, max.Y),
-				Arcane::Clamp(v.Z, min.Z, max.Z)
-			);
-		}
-
-		static Vector3 Lerp(float t, const Vector3 &min, const Vector3 &max) {
-			return Vector3(
-				Arcane::Lerp(t, min.X, max.X),
-				Arcane::Lerp(t, min.Y, max.Y),
-				Arcane::Lerp(t, min.Z, max.Z)
-			);
-		}
-
 		static float Length(const Vector3 &v) {
 			return Sqrt(v.X * v.X + v.Y * v.Y + v.Z * v.Z);
 		}
@@ -89,17 +73,26 @@ namespace Arcane {
 		inline Vector3 operator+(const Vector3 &other) const { return Vector3(X + other.X, Y + other.Y, Z + other.Z); }
 		inline Vector3 operator-(const Vector3 &other) const { return Vector3(X - other.X, Y - other.Y, Z - other.Z); }
 		inline Vector3 operator*(float scalar) const { return Vector3(X * scalar, Y * scalar, Z * scalar); }
+		inline Vector3 operator*(const Vector3 &other) const { return Vector3(X * other.X, Y * other.Y, Z * other.Z); }
 		inline Vector3 operator/(float scalar) const { return Vector3(X / scalar, Y / scalar, Z / scalar); }
+		inline Vector3 operator/(const Vector3 &other) const { return Vector3(X / other.X, Y / other.Y, Z / other.Z); }
 
 		inline Vector3 &operator+=(const Vector3 &other) { X += other.X; Y += other.Y; Z += other.Z; return *this; }
 		inline Vector3 &operator-=(const Vector3 &other) { X -= other.X; Y -= other.Y; Z -= other.Z; return *this; }
 		inline Vector3 &operator*=(float scalar) { X *= scalar; Y *= scalar; Z *= scalar; return *this; }
+		inline Vector3 &operator*=(const Vector3 &other) { X *= other.X; Y *= other.Y; Z *= other.Z; return *this; }
 		inline Vector3 &operator/=(float scalar) { X /= scalar; Y /= scalar; Z /= scalar; return *this; }
+		inline Vector3 &operator/=(const Vector3 &other) { X /= other.X; Y /= other.Y; Z /= other.Z; return *this; }
 
 		inline Vector3 operator-() const { return Vector3(-X, -Y, -Z); }
 
 		inline bool operator==(const Vector3 &other) { return X == other.X && Y == other.Y && Z == other.Z; }
 		inline bool operator!=(const Vector3 &other) { return X != other.X || Y != other.Y || Z != other.Z; }
+
+		inline bool operator>(const Vector3 &other) { return Dot(*this, *this) > Dot(other, other); }
+		inline bool operator>=(const Vector3 &other) { return Dot(*this, *this) >= Dot(other, other); }
+		inline bool operator<(const Vector3 &other) { return Dot(*this, *this) < Dot(other, other); }
+		inline bool operator<=(const Vector3 &other) { return Dot(*this, *this) <= Dot(other, other); }
 
 	public:
 		float X, Y, Z;

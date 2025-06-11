@@ -3,7 +3,7 @@
 	"tasks": [
 		{
 			"label": "Build (Debug)",
-			"command": "premake5 gmake2 --cc=gcc && make config=debug CC=g++ -j",
+			"command": "premake5 gmake2 --cc=gcc && make config=debug -j",
 			"type": "shell",
 			"args": [],
 			"problemMatcher": [
@@ -11,14 +11,14 @@
 			],
 			"presentation": {
 				"reveal": "always",
-				"revealProblems": "onProblem",
+				"revealProblems": "never",
 				"clear": true
 			},
 			"group": "build"
 		},
 		{
 			"label": "Build (Release)",
-			"command": "premake5 gmake2 --cc=gcc && make config=release CC=g++ -j",
+			"command": "premake5 gmake2 --cc=gcc && make config=release -j",
 			"type": "shell",
 			"args": [],
 			"problemMatcher": [
@@ -26,7 +26,7 @@
 			],
 			"presentation": {
 				"reveal": "always",
-				"revealProblems": "onProblem",
+				"revealProblems": "never",
 				"clear": true
 			},
 			"group": "build"

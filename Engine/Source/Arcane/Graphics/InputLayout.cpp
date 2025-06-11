@@ -2,7 +2,38 @@
 
 namespace Arcane {
 
-	static uint32_t GetInputElementSize(const InputElement &element) {
+	uint32_t GetInputElementTypeCount(const InputElement &element) {
+		uint32_t count = 0;
+		switch (element.Type) {
+			case InputElementType::Vector2f32: count = 2; break;
+			case InputElementType::Vector3f32: count = 3; break;
+			case InputElementType::Vector4f32: count = 4; break;
+			case InputElementType::Vector2i8: count = 2; break;
+			case InputElementType::Vector3i8: count = 3; break;
+			case InputElementType::Vector4i8: count = 4; break;
+			case InputElementType::Vector2i16: count = 2; break;
+			case InputElementType::Vector3i16: count = 3; break;
+			case InputElementType::Vector4i16: count = 4; break;
+			case InputElementType::Vector2i32: count = 2; break;
+			case InputElementType::Vector3i32: count = 3; break;
+			case InputElementType::Vector4i32: count = 4; break;
+			case InputElementType::Vector2u8: count = 2; break;
+			case InputElementType::Vector3u8: count = 3; break;
+			case InputElementType::Vector4u8: count = 4; break;
+			case InputElementType::Vector2u16: count = 2; break;
+			case InputElementType::Vector3u16: count = 3; break;
+			case InputElementType::Vector4u16: count = 4; break;
+			case InputElementType::Vector2u32: count = 2; break;
+			case InputElementType::Vector3u32: count = 3; break;
+			case InputElementType::Vector4u32: count = 4; break;
+			case InputElementType::Float32: count = 1; break;
+			case InputElementType::Int32: count = 1; break;
+			case InputElementType::UInt32: count = 1; break;
+		}
+		return count * element.Count;
+	}
+
+	uint32_t GetInputElementSize(const InputElement &element) {
 		uint32_t size = 0;
 		switch (element.Type) {
 			case InputElementType::Vector2f32: size = 2 * sizeof(float); break;

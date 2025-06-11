@@ -7,7 +7,7 @@
 #include "Mesh.hpp"
 #include "RenderPass.hpp"
 #include "Framebuffer.hpp"
-#include "Color.hpp"
+#include <Arcane/Graphics/Color.hpp>
 
 namespace Arcane {
 

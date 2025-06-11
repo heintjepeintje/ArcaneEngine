@@ -3,9 +3,9 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 
-#include <Arcane/Graphics/Pipeline.hpp>
-#include <Arcane/Graphics/Texture.hpp>
-#include <Arcane/Graphics/Mesh.hpp>
+#include <Arcane/Graphics/Base/Pipeline.hpp>
+#include <Arcane/Graphics/Base/Texture.hpp>
+#include <Arcane/Graphics/Base/Mesh.hpp>
 #include <Arcane/Util/FileUtil.hpp>
 
 namespace Arcane::GUI {

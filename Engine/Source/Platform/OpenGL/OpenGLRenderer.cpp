@@ -48,19 +48,20 @@ namespace Arcane {
 		glDepthMask(outputMask & (uint8_t)OutputComponent::Depth);
 		glStencilMask(outputMask & (uint8_t)OutputComponent::Stencil);
 
+		if (mPipeline->GetPolygonOffsetFactor() != 0.0f || mPipeline->GetPolygonOffsetUnits() != 0.0f) {
+			switch (mPipeline->GetFillMode()) {
+				case FillMode::Points: glEnable(GL_POLYGON_OFFSET_POINT); break;
+				case FillMode::Wireframe: glEnable(GL_POLYGON_OFFSET_LINE); break;
+				case FillMode::Solid: glEnable(GL_POLYGON_OFFSET_FILL); break;
+			}
+			glPolygonOffset(mPipeline->GetPolygonOffsetFactor(), mPipeline->GetPolygonOffsetUnits());
+		}
+
+		AR_ASSERT(mFramebuffer->GetSampleCount() == mPipeline->GetSampleCount(), "Framebuffer sample count does not match pipeline sample count: %u != %u", mFramebuffer->GetSampleCount(), mPipeline->GetSampleCount());
+
 		for (uint32_t i = 0; i < mFramebuffer->GetAttachmentCount(); i++) {
-			AR_ASSERT(
-				mFramebuffer->GetAttachments()[i].Samples == mPipeline->GetSampleCount(), 
-				"Attachment samples does not match pipeline samples"
-			);
+			
 		}
-
-		GLenum *drawBuffers = new GLenum[mFramebuffer->GetColorBufferCount()];
-		for (uint32_t i = 0; i < mFramebuffer->GetColorBufferCount(); i++) {
-			drawBuffers[i] = GL_COLOR_ATTACHMENT0 + i;
-		}
-
-		glDrawBuffers(mFramebuffer->GetColorBufferCount(), drawBuffers);
 
 		if (mPipeline->GetSampleCount() > 1) {
 			glEnable(GL_MULTISAMPLE);
@@ -116,21 +117,19 @@ namespace Arcane {
 		// GLsync sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 		// glWaitSync(sync, 0, GL_TIMEOUT_IGNORED);
 		// glClientWaitSync(sync, GL_SYNC_FLUSH_COMMANDS_BIT, 0);
-
 		
 		mFrameStatistics.ElapsedCPUTime = GetCurrentTimeMillis() - mFrameStatistics.ElapsedCPUTime;
 	}
 
 	void OpenGLRendererAPI::BeginRenderPass(const Ref<NativeRenderPass> &renderPass, const Ref<NativeFramebuffer> &framebuffer) {
 		AR_PROFILE_FUNCTION_GPU_CPU();
-		AR_ASSERT(renderPass->GetAttachmentCount() == framebuffer->GetAttachmentCount(), "RenderPass and Framebuffer attachments are not compatible");
+		AR_ASSERT(renderPass->GetAttachmentCount() == framebuffer->GetAttachmentCount(), "RenderPass and Framebuffer attachments are not compatible\n");
 
-		const Attachment *renderPassAttachments = renderPass->GetAttachments();
-		const Attachment *framebufferAttachments = framebuffer->GetAttachments();
+		const ImageFormat *renderPassAttachments = renderPass->GetAttachments();
+		const ImageFormat *framebufferAttachments = framebuffer->GetAttachments();
 
 		for (size_t i = 0; i < renderPass->GetAttachmentCount(); i++) {
-			AR_ASSERT(renderPassAttachments[i].Format == framebufferAttachments[i].Format, "RenderPass and Framebuffer attachments are not compatible");
-			AR_ASSERT(renderPassAttachments[i].Type == framebufferAttachments[i].Type, "RenderPass and Framebuffer attachments are not compatible");
+			AR_ASSERT(renderPassAttachments[i] == framebufferAttachments[i], "RenderPass and Framebuffer attachments are not compatible: %u != %u\n", renderPassAttachments[i], framebufferAttachments[i]);
 		}
 
 		mFramebuffer = CastRef<OpenGLFramebuffer>(framebuffer);

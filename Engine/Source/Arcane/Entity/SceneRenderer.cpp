@@ -25,7 +25,7 @@ namespace Arcane {
 
 		for (Entity e : SceneView<Transform, PointLight>()) {
 			PBRRenderer::AddLight(
-				e.Get<Transform>().Position, 
+				e.Get<Transform>().Position,
 				e.Get<PointLight>()
 			);
 		}

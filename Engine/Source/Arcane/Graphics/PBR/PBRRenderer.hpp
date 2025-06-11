@@ -1,10 +1,10 @@
 #pragma once
 
-#include <Arcane/Graphics/GraphicsContext.hpp>
+#include <Arcane/Graphics/Base/GraphicsContext.hpp>
 #include <Arcane/Graphics/Camera.hpp>
-#include <Arcane/Graphics/Mesh.hpp>
+#include <Arcane/Graphics/Base/Mesh.hpp>
 #include <Arcane/Graphics/Transform.hpp>
-#include <Arcane/Graphics/Renderer.hpp>
+#include <Arcane/Graphics/Base/Renderer.hpp>
 #include <Arcane/Graphics/Light.hpp>
 
 #include "PBRMaterial.hpp"

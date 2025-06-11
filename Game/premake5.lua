@@ -1,7 +1,7 @@
 project "Game"
 	kind "ConsoleApp"
 	language "C++"
-	cdialect "C++20"
+	cppdialect "C++20"
 
 	objdir "Binaries/Intermediate/%{cfg.buildcfg}"
 	targetdir "Binaries/Output/%{cfg.buildcfg}"
@@ -14,7 +14,11 @@ project "Game"
 		"Source",
 		"../Engine/Source",
 		"../Engine/Libraries/glm",
-		"../Engine/Libraries/tracy/public"
+		"../Engine/Libraries/tracy/public",
+	}
+
+	libdirs {
+		os.getenv("VULKAN_SDK") .. "/Lib"
 	}
 
 	links {
@@ -26,7 +30,8 @@ project "Game"
 		"ws2_32",
 		"winmm",
 		"dbghelp",
-		"shlwapi"
+		"shlwapi",
+		"vulkan-1",
 	}
 
 	filter "configurations:Debug"

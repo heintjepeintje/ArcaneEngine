@@ -8,6 +8,7 @@
 			"program": "${workspaceFolder}/Game/Binaries/Output/Debug/Game.exe",
 			"args": [],
 			"stopAtEntry": false,
+			
 			"cwd": "${workspaceFolder}",
 			"environment": [],
 			"preLaunchTask": "Build (Debug)",
