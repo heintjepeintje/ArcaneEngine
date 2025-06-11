@@ -2,6 +2,8 @@
 
 #include <Arcane/Core.hpp>
 #include <Arcane/Native/NativeRenderPass.hpp>
+
+#include "OpenGLCore.hpp"
 #include "OpenGLGraphicsContext.hpp"
 #include "OpenGLPipeline.hpp"
 

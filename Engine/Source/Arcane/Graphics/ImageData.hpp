@@ -23,33 +23,10 @@ namespace Arcane {
 		D24S8, D32FS8
 	};
 
-	inline bool IsDepthFormat(ImageFormat format) {
-		switch (format) {
-			case ImageFormat::D16: return true;
-			case ImageFormat::D24: return true;
-			case ImageFormat::D24S8: return true;
-			case ImageFormat::D32: return true;
-			case ImageFormat::D32F: return true;
-			case ImageFormat::D32FS8: return true;
-			default: return false;
-		}
-	}
-
-	inline bool IsStencilFormat(ImageFormat format) {
-		switch (format) {
-			case ImageFormat::S1: return true;
-			case ImageFormat::S4: return true;
-			case ImageFormat::S8: return true;
-			case ImageFormat::S16: return true;
-			case ImageFormat::D24S8: return true;
-			case ImageFormat::D32FS8: return true;
-			default: return false;
-		}
-	}
-
-	inline bool IsColorFormat(ImageFormat format) {
-		return !IsDepthFormat(format) && !IsStencilFormat(format);
-	}
+	bool IsDepthFormat(ImageFormat format);
+	bool IsStencilFormat(ImageFormat format);
+	bool IsColorFormat(ImageFormat format);
+	size_t GetTexelSize(ImageFormat format);
 
 	struct ImageData {
 		ImageFormat Format;

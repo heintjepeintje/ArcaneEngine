@@ -26,7 +26,9 @@ namespace Arcane {
 
 		virtual Ref<NativeTexture> GetColorTexture(uint32_t index) = 0;
 		virtual uint32_t GetColorAttachmentCount() const = 0;
+		virtual bool HasDepthTexture() const = 0;
 		virtual Ref<NativeTexture> GetDepthTexture() = 0;
+		virtual bool HasStencilTexture() const = 0;
 		virtual Ref<NativeTexture> GetStencilTexture() = 0;
 
 		virtual uint32_t GetWidth() const = 0;

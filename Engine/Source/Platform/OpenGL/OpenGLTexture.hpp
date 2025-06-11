@@ -1,8 +1,10 @@
 #pragma once
 
-#include "OpenGL.hpp"
-#include "OpenGLGraphicsContext.hpp"
+#include <Arcane/Core.hpp>
 #include <Arcane/Native/NativeTexture.hpp>
+
+#include "OpenGLCore.hpp"
+#include "OpenGLGraphicsContext.hpp"
 
 namespace Arcane {
 

@@ -2,7 +2,7 @@
 
 #include <Platform/Windows/Win32Window.hpp>
 #include "OpenGLGraphicsContext.hpp"
-#include "OpenGL.hpp"
+#include "OpenGLCore.hpp"
 
 #include <Arcane/Util/StringUtils.hpp>
 
@@ -75,7 +75,12 @@
 namespace Arcane {
 
 	void OnOpenGLDebugMessage(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const void *userParam) {
-		AR_ASSERT(type != GL_DEBUG_TYPE_ERROR, "OpenGL > %*s\n", length, message);
+		switch (severity) {
+			case GL_DEBUG_SEVERITY_HIGH: AR_OPENGL_FATAL("%s", message); break;
+			case GL_DEBUG_SEVERITY_MEDIUM: AR_OPENGL_ERROR("%s", message); break;
+			// case GL_DEBUG_SEVERITY_LOW: AR_OPENGL_WARNING("%s", message); break;
+			case GL_DEBUG_SEVERITY_NOTIFICATION: AR_OPENGL_INFO("%s", message); break;
+		}
 	}
 
 	OpenGLGraphicsContext::OpenGLGraphicsContext(const Ref<NativeWindow> &window) : mWindow(window) {
@@ -121,6 +126,7 @@ namespace Arcane {
 
 		glEnable(GL_DEBUG_OUTPUT);
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
 		glDebugMessageCallback(OnOpenGLDebugMessage, nullptr);
 
 		LoadGLExtensions();

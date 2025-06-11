@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Arcane/Core.hpp>
 #include <Arcane/Native/NativeGraphicsContext.hpp>
 #include <Arcane/Native/NativeWindow.hpp>
 

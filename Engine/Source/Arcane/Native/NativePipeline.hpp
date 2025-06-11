@@ -58,7 +58,6 @@ namespace Arcane {
 	struct Descriptor {
 		uint32_t Binding;
 		DescriptorType Type;
-		ShaderStage Stage;
 	};
 
 	namespace OutputComponent {

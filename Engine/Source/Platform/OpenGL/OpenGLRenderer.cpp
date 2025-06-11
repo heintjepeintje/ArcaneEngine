@@ -9,6 +9,7 @@ namespace Arcane {
 		glEnable(GL_SCISSOR_TEST);
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_STENCIL_TEST);
+		glDisable(GL_DITHER);
 	}
 
 	OpenGLRendererAPI::~OpenGLRendererAPI() {
@@ -58,10 +59,6 @@ namespace Arcane {
 		}
 
 		AR_ASSERT(mFramebuffer->GetSampleCount() == mPipeline->GetSampleCount(), "Framebuffer sample count does not match pipeline sample count: %u != %u", mFramebuffer->GetSampleCount(), mPipeline->GetSampleCount());
-
-		for (uint32_t i = 0; i < mFramebuffer->GetAttachmentCount(); i++) {
-			
-		}
 
 		if (mPipeline->GetSampleCount() > 1) {
 			glEnable(GL_MULTISAMPLE);
@@ -178,7 +175,13 @@ namespace Arcane {
 
 	void OpenGLRendererAPI::Clear() {
 		AR_PROFILE_FUNCTION_GPU_CPU();
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		
+		GLbitfield clearMask = 0;
+		if (mFramebuffer->GetColorAttachmentCount() > 0) clearMask |= GL_COLOR_BUFFER_BIT;
+		if (mFramebuffer->HasDepthTexture()) clearMask |= GL_DEPTH_BUFFER_BIT;
+		if (mFramebuffer->HasStencilTexture()) clearMask |= GL_STENCIL_BUFFER_BIT;
+
+		glClear(clearMask);
 	}
 
 	void OpenGLRendererAPI::SetViewport(Rect2D viewport) {
@@ -220,6 +223,7 @@ namespace Arcane {
 			AR_PROFILE_SCOPE_GPU("Pipeline Buffer Binding");
 			for (size_t i = 0; i < mPipeline->GetUniformBufferDescriptorCount(); i++) {
 				OpenGLUniformBufferDescriptor &desc = mPipeline->GetUniformBufferDescriptors()[i];
+				AR_ASSERT(desc.buffer != 0, "Buffer is invalid in descriptor: %u\n", desc.binding);
 				glBindBufferBase(GL_UNIFORM_BUFFER, desc.binding, desc.buffer);
 			}
 		}
@@ -228,6 +232,8 @@ namespace Arcane {
 			AR_PROFILE_SCOPE_GPU("Pipeline Combined Image Sampler Binding");
 			for (size_t i = 0; i < mPipeline->GetCombinedImageSamplerDescriptorCount(); i++) {
 				OpenGLCombinedImageSamplerDescriptor &desc = mPipeline->GetCombinedImageSamplerDescriptors()[i];
+				AR_ASSERT(desc.texture != 0, "Texture is invalid in descriptor: %u\n", desc.binding);
+				AR_ASSERT(desc.sampler != 0, "Sampler is invalid in descriptor: %u\n", desc.binding);
 				glBindTextureUnit(desc.binding, desc.texture);
 				glBindSampler(desc.binding, desc.sampler);	
 			}

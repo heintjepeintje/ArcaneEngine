@@ -2,7 +2,7 @@
 
 namespace Arcane {
 
-	OpenGLBuffer::OpenGLBuffer(size_t size, uint32_t flags) : mSize(size) {
+	OpenGLBuffer::OpenGLBuffer(const Ref<OpenGLGraphicsContext> &context, size_t size, uint32_t flags) : mContext(context), mSize(size) {
 		AR_PROFILE_FUNCTION_GPU_CPU();
 
 		mFlags = flags;

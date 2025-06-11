@@ -1,13 +1,16 @@
 #pragma once
 
-#include "OpenGL.hpp"
+#include <Arcane/Core.hpp>
 #include <Arcane/Native/NativeBuffer.hpp>
+
+#include "OpenGLCore.hpp"
+#include "OpenGLGraphicsContext.hpp"
 
 namespace Arcane {
 
 	class OpenGLBuffer : public NativeBuffer {
 	public:
-		OpenGLBuffer(size_t size, uint32_t flags);
+		OpenGLBuffer(const Ref<OpenGLGraphicsContext> &context, size_t size, uint32_t flags);
 		~OpenGLBuffer();
 
 		virtual void *Map(MapMode mode) override;
@@ -20,6 +23,7 @@ namespace Arcane {
 		inline GLuint GetOpenGLID() const { return mBuffer; }
 
 	private:
+		Ref<OpenGLGraphicsContext> mContext;
 		size_t mSize;
 		uint32_t mFlags;
 		GLuint mBuffer;

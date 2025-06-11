@@ -1,6 +1,9 @@
 #pragma once
 
+#include <Arcane/Core.hpp>
 #include <Arcane/Native/NativeMesh.hpp>
+
+#include "OpenGLCore.hpp"
 #include "OpenGLGraphicsContext.hpp"
 #include "OpenGLBuffer.hpp"
 

@@ -2,10 +2,9 @@
 
 #include <Arcane/Core.hpp>
 #include <Arcane/Native/NativePipeline.hpp>
-#include "OpenGL.hpp"
-#include "OpenGLGraphicsContext.hpp"
 
-#include <vector>
+#include "OpenGLCore.hpp"
+#include "OpenGLGraphicsContext.hpp"
 
 namespace Arcane {
 

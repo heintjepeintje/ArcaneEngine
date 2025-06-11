@@ -1,12 +1,10 @@
 #pragma once
 
 #include <Arcane/Core.hpp>
-#include <utility>
-#include <vector>
 #include <Arcane/Native/NativeFramebuffer.hpp>
-#include "OpenGL.hpp"
-#include "OpenGLGraphicsContext.hpp"
 
+#include "OpenGLCore.hpp"
+#include "OpenGLGraphicsContext.hpp"
 #include "OpenGLTexture.hpp"
 
 namespace Arcane {
@@ -19,8 +17,10 @@ namespace Arcane {
 		virtual void Resize(uint32_t width, uint32_t height) override;
 
 		virtual Ref<NativeTexture> GetColorTexture(uint32_t index) override;
-		inline virtual uint32_t GetColorAttachmentCount() const override { return mColorAttachmentCount; }
+		inline virtual uint32_t GetColorAttachmentCount() const override { return mColorTextureCount; }
+		virtual bool HasDepthTexture() const override { return mDepthTexture.IsValid(); }
 		virtual Ref<NativeTexture> GetDepthTexture() override;
+		virtual bool HasStencilTexture() const override { return mStencilTexture.IsValid(); }
 		virtual Ref<NativeTexture> GetStencilTexture() override;
 
 		inline virtual uint32_t GetWidth() const override { return mWidth; }
@@ -44,9 +44,9 @@ namespace Arcane {
 		const ImageFormat *mAttachments;
 		size_t mAttachmentCount;
 
-		Ref<OpenGLTexture> *mColorAttachments;
-		size_t mColorAttachmentCount;
-		Ref<OpenGLTexture> mDepthAttachment;
-		Ref<OpenGLTexture> mStencilAttachment;
+		Ref<OpenGLTexture> *mColorTextures;
+		size_t mColorTextureCount;
+		Ref<OpenGLTexture> mDepthTexture;
+		Ref<OpenGLTexture> mStencilTexture;
 	};
 }

@@ -11,7 +11,7 @@ namespace Arcane {
 		AR_ASSERT(
 			mWidth <= mContext->GetGraphicsLimits().MaxFramebufferWidth &&
 			mHeight <= mContext->GetGraphicsLimits().MaxFramebufferHeight,
-			"Framebuffer is too big (%ux%u). Maximum size is %ux%u", 
+			"Framebuffer is too big (%ux%u). Maximum size is %ux%u",
 			mWidth, mHeight,
 			mContext->GetGraphicsLimits().MaxFramebufferWidth, mContext->GetGraphicsLimits().MaxFramebufferHeight
 		);
@@ -30,14 +30,13 @@ namespace Arcane {
 		
 		mAttachments = new ImageFormat[mAttachmentCount];
 		std::memcpy((void*)mAttachments, (void*)info.Attachments, mAttachmentCount * sizeof(ImageFormat));
-		
-		printf("Framebuffer:\n");
+
 		for (uint32_t i = 0; i < mAttachmentCount; i++) {
-			if (IsColorFormat(info.Attachments[i])) drawBufferCount++;
+			if (IsColorFormat(mAttachments[i])) drawBufferCount++;
 		}
 
-		mColorAttachmentCount = drawBufferCount;
-		mColorAttachments = new Ref<OpenGLTexture>[mColorAttachmentCount];
+		mColorTextureCount = drawBufferCount;
+		mColorTextures = new Ref<OpenGLTexture>[mColorTextureCount];
 		
 		AR_ASSERT(drawBufferCount <= mContext->GetGraphicsLimits().MaxDrawBuffers, "Framebuffer exceeds maximum draw buffer count: %u > %u\n", drawBufferCount, mContext->GetGraphicsLimits().MaxDrawBuffers);
 		
@@ -58,17 +57,17 @@ namespace Arcane {
 			Ref<OpenGLTexture> texture = CreateRef<OpenGLTexture>(mContext, textureInfo);
 
 			if (IsDepthFormat(mAttachments[i])) {
-				mDepthAttachment = texture;
+				mDepthTexture = texture;
 				glNamedFramebufferTexture(mFramebuffer, GL_DEPTH_ATTACHMENT, texture->GetOpenGLID(), 0);
 			} else if (IsStencilFormat(mAttachments[i])) {
-				mStencilAttachment = texture;
+				mStencilTexture = texture;
 				glNamedFramebufferTexture(mFramebuffer, GL_STENCIL_ATTACHMENT, texture->GetOpenGLID(), 0);
 			} else if (IsDepthFormat(mAttachments[i]) && IsStencilFormat(mAttachments[i])) {
-				mDepthAttachment = texture;
-				mStencilAttachment = texture;
+				mDepthTexture = texture;
+				mStencilTexture = texture;
 				glNamedFramebufferTexture(mFramebuffer, GL_DEPTH_STENCIL_ATTACHMENT, texture->GetOpenGLID(), 0);
 			} else {
-				mColorAttachments[nextColorAttachmentIndex] = texture;
+				mColorTextures[nextColorAttachmentIndex] = texture;
 				glNamedFramebufferTexture(mFramebuffer, GL_COLOR_ATTACHMENT0 + nextColorAttachmentIndex, texture->GetOpenGLID(), 0);
 				nextColorAttachmentIndex++;
 			}
@@ -131,17 +130,17 @@ namespace Arcane {
 			Ref<OpenGLTexture> texture = CreateRef<OpenGLTexture>(mContext, textureInfo);
 
 			if (IsDepthFormat(mAttachments[i])) {
-				mDepthAttachment = texture;
+				mDepthTexture = texture;
 				glNamedFramebufferTexture(mFramebuffer, GL_DEPTH_ATTACHMENT, texture->GetOpenGLID(), 0);
 			} else if (IsStencilFormat(mAttachments[i])) {
-				mStencilAttachment = texture;
+				mStencilTexture = texture;
 				glNamedFramebufferTexture(mFramebuffer, GL_STENCIL_ATTACHMENT, texture->GetOpenGLID(), 0);
 			} else if (IsDepthFormat(mAttachments[i]) && IsStencilFormat(mAttachments[i])) {
-				mDepthAttachment = texture;
-				mStencilAttachment = texture;
+				mDepthTexture = texture;
+				mStencilTexture = texture;
 				glNamedFramebufferTexture(mFramebuffer, GL_DEPTH_STENCIL_ATTACHMENT, texture->GetOpenGLID(), 0);
 			} else {
-				mColorAttachments[nextColorAttachmentIndex] = texture;
+				mColorTextures[nextColorAttachmentIndex] = texture;
 				glNamedFramebufferTexture(mFramebuffer, GL_COLOR_ATTACHMENT0 + nextColorAttachmentIndex, texture->GetOpenGLID(), 0);
 				nextColorAttachmentIndex++;
 			}
@@ -155,19 +154,19 @@ namespace Arcane {
 	}
 
 	Ref<NativeTexture> OpenGLFramebuffer::GetColorTexture(uint32_t index) {
-		AR_ASSERT(index < mColorAttachmentCount, "Framebuffer color texture index is out of range: %u >= %u\n", index, mColorAttachmentCount);
-		AR_ASSERT(mColorAttachments[index], "Framebufer color texture is invalid at index: %u\n", index);
-		return CastRef<NativeTexture>(mColorAttachments[index]);
+		AR_ASSERT(index < mColorTextureCount, "Framebuffer color texture index is out of range: %u >= %u\n", index, mColorTextureCount);
+		AR_ASSERT(mColorTextures[index], "Framebufer color texture is invalid at index: %u\n", index);
+		return CastRef<NativeTexture>(mColorTextures[index]);
 	}
 
 	Ref<NativeTexture> OpenGLFramebuffer::GetDepthTexture() {
-		AR_ASSERT(mDepthAttachment, "Framebuffer depth texture is invalid\n");
-		return CastRef<NativeTexture>(mDepthAttachment);
+		AR_ASSERT(mDepthTexture.IsValid(), "Framebuffer depth texture is invalid\n");
+		return CastRef<NativeTexture>(mDepthTexture);
 	}
 
 	Ref<NativeTexture> OpenGLFramebuffer::GetStencilTexture() {
-		AR_ASSERT(mStencilAttachment, "Framebuffer stencil texture is invalid\n");
-		return CastRef<NativeTexture>(mStencilAttachment);
+		AR_ASSERT(mStencilTexture.IsValid(), "Framebuffer stencil texture is invalid\n");
+		return CastRef<NativeTexture>(mStencilTexture);
 	}
 
 }

@@ -41,16 +41,12 @@ void main() {
 	vec4 lightSpacePos = uShadow.Projection * uShadow.View * vec4(oPosition, 1.0);
 	oLightSpacePos = lightSpacePos.xyz / lightSpacePos.w;
 
-	oNormal = modelNoScale * aNormal.xyz;
 	oUV = aUV;
-	oTangent = modelNoScale * aTangent.xyz;
-	oBitangent = modelNoScale * aBitangent.xyz;
-
-
-	const vec3 t = normalize(modelNoScale * aTangent);
-	const vec3 b = normalize(modelNoScale * aBitangent);
-	const vec3 n = normalize(modelNoScale * aNormal);
-	oTBN = mat3(t, b, n);
+	
+	oNormal = normalize(modelNoScale * aNormal);
+	oTangent = normalize(modelNoScale * aTangent);
+	oBitangent = normalize(modelNoScale * aBitangent);
+	oTBN = mat3(oTangent, oBitangent, oNormal);
 
 	gl_Position = uObject.MVP * vec4(aPosition, 1.0);
 }
