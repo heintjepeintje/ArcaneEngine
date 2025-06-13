@@ -2,7 +2,9 @@
 
 #include <Arcane/Core.hpp>
 #include <Arcane/Graphics/InputLayout.hpp>
+#include <Arcane/Graphics/Shader.hpp>
 #include <Arcane/Math/Rect2D.hpp>
+
 #include "NativeGraphicsContext.hpp"
 #include "NativeBuffer.hpp"
 #include "NativeTexture.hpp"
@@ -80,6 +82,7 @@ namespace Arcane {
 		~PipelineInfo() { }
 
 		uint8_t OutputMask;
+		uint32_t StageFlags;
 
 		CullMode CullMode;
 		WindingOrder WindingOrder;
@@ -92,11 +95,11 @@ namespace Arcane {
 		Rect2D Viewport;
 		Rect2D Scissor;
 		
-		uint8_t *VertexShaderBinary;
-		size_t VertexShaderSize;
-
-		uint8_t *FragmentShaderBinary;
-		size_t FragmentShaderSize;
+		ShaderBinary VertexShader;
+		ShaderBinary FragmentShader;
+		ShaderBinary TesselationControlShader;
+		ShaderBinary TesselationEvaluationShader;
+		ShaderBinary GeometryShader;
 
 		Descriptor *Descriptors;
 		uint32_t DescriptorCount;
@@ -134,6 +137,7 @@ namespace Arcane {
 		virtual uint8_t GetOutputMask() const = 0;
 		virtual float GetLineWidth() const = 0;
 		virtual float GetPointSize() const = 0;
+		virtual uint32_t GetStageFlags() const = 0;
 
 		virtual size_t GetElementSize() const = 0;
 

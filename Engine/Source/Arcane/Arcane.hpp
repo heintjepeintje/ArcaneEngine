@@ -7,7 +7,7 @@
 #include <Arcane/Graphics/Base/GraphicsContext.hpp>
 #include <Arcane/Graphics/Base/Mesh.hpp>
 #include <Arcane/Graphics/Base/Pipeline.hpp>
-#include <Arcane/Graphics/Base/Renderer.hpp>
+#include <Arcane/Graphics/Base/RendererAPI.hpp>
 #include <Arcane/Graphics/InputLayout.hpp>
 #include <Arcane/Graphics/Loader.hpp>
 #include <Arcane/Graphics/Camera.hpp>
@@ -28,10 +28,11 @@
 #include <Arcane/System/Time.hpp>
 #include <Arcane/System/Thread.hpp>
 #include <Arcane/System/ThreadPool.hpp>
+#include <Arcane/System/Socket.hpp>
 
 // PBR
-#include <Arcane/Graphics/PBR/PBRMaterial.hpp>
-#include <Arcane/Graphics/PBR/PBRRenderer.hpp>
+#include <Arcane/Graphics/PBR/Material.hpp>
+#include <Arcane/Graphics/PBR/Renderer.hpp>
 
 #include <Arcane/Entity/Scene.hpp>
 #include <Arcane/Entity/Entity.hpp>

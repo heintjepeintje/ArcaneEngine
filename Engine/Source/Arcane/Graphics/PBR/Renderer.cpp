@@ -1,7 +1,7 @@
-#include "PBRRenderer.hpp"
+#include "Renderer.hpp"
 
 #include <Arcane/Graphics/Base/Buffer.hpp>
-#include <Arcane/Graphics/Base/Renderer.hpp>
+#include <Arcane/Graphics/Base/RendererAPI.hpp>
 #include <Arcane/Graphics/Base/RenderPass.hpp>
 #include <Arcane/Graphics/Base/Pipeline.hpp>
 #include <Arcane/Util/FileUtil.hpp>
@@ -110,16 +110,34 @@ namespace Arcane {
 
 	static std::vector<RenderSubmission> sRenderSubmissions;
 
+	static void CompileShaders() {
+		CompileShader(sContext.GetGraphicsAPI(), "Engine/Shaders/Geometry/Source/GeometryShader.vert", AR_GEOMETRY_VERTEX_SHADER_PATH);
+		CompileShader(sContext.GetGraphicsAPI(), "Engine/Shaders/Geometry/Source/GeometryShader.frag", AR_GEOMETRY_FRAGMENT_SHADER_PATH);
+
+		CompileShader(sContext.GetGraphicsAPI(), "Engine/Shaders/Light/Source/LightShader.vert", AR_LIGHT_VERTEX_SHADER_PATH);
+		CompileShader(sContext.GetGraphicsAPI(), "Engine/Shaders/Light/Source/LightShader.frag", AR_LIGHT_FRAGMENT_SHADER_PATH);
+
+		CompileShader(sContext.GetGraphicsAPI(), "Engine/Shaders/PostProcess/Source/PostProcess.vert", AR_POST_PROCESS_VERTEX_SHADER_PATH);
+		CompileShader(sContext.GetGraphicsAPI(), "Engine/Shaders/PostProcess/Source/PostProcess.frag", AR_POST_PROCESS_FRAGMENT_SHADER_PATH);
+
+		CompileShader(sContext.GetGraphicsAPI(), "Engine/Shaders/Shadow/Source/Shadow.vert", AR_SHADOW_VERTEX_SHADER_PATH);
+		CompileShader(sContext.GetGraphicsAPI(), "Engine/Shaders/Shadow/Source/Shadow.frag", AR_SHADOW_FRAGMENT_SHADER_PATH);
+	}
+
 	static void InitBuffers() {
-		sCameraBuffer = Buffer::Create(sContext, sizeof(sCameraData));
+		sCameraBuffer = Buffer::Create(sContext, sizeof(sCameraData), BufferFlag::Static);
 		std::memset(&sCameraData, 0, sizeof(sCameraData));
+		
 		sObjectBuffer = Buffer::Create(sContext, sizeof(sObjectData));
 		std::memset(&sObjectData, 0, sizeof(sObjectData));
-		sShadowPassBuffer = Buffer::Create(sContext, sizeof(sShadowPassData));
+		
+		sShadowPassBuffer = Buffer::Create(sContext, sizeof(sShadowPassData), BufferFlag::Static);
 		std::memset(&sShadowPassData, 0, sizeof(sShadowPassData));
-		sLightBuffer = Buffer::Create(sContext, sizeof(sLightData));
+		
+		sLightBuffer = Buffer::Create(sContext, sizeof(sLightData), BufferFlag::Static);
 		std::memset(&sLightData, 0, sizeof(sLightData));
-		sPostProcessSettingsBuffer = Buffer::Create(sContext, sizeof(sPostProcessSettingsData));
+
+		sPostProcessSettingsBuffer = Buffer::Create(sContext, sizeof(sPostProcessSettingsData), BufferFlag::Static);
 		std::memset(&sPostProcessSettingsData, 0, sizeof(sPostProcessSettingsData));
 	}
 
@@ -219,19 +237,16 @@ namespace Arcane {
 			{ InputAttribute::Bitangent, 1, InputElementType::Vector3f32, false },
 		};
 		
-		size_t vertexBinarySize = 0, fragmentBinarySize = 0;
-		uint8_t *vertexShaderBinary = ReadFileBinary(AR_GEOMETRY_VERTEX_SHADER_PATH, &vertexBinarySize);
-		uint8_t *fragmentShaderBinary = ReadFileBinary(AR_GEOMETRY_FRAGMENT_SHADER_PATH, &fragmentBinarySize);
+		ShaderBinary vertexShaderBinary = ReadShaderBinary(AR_GEOMETRY_VERTEX_SHADER_PATH);
+		ShaderBinary fragmentShaderBinary = ReadShaderBinary(AR_GEOMETRY_FRAGMENT_SHADER_PATH);
 		
 		PipelineInfo geometryPipelineInfo = PipelineInfo::CreateWithDefaultInfo();
 		geometryPipelineInfo.CullMode = CullMode::None;
 		geometryPipelineInfo.Descriptors = geometryDescriptors;
 		geometryPipelineInfo.DescriptorCount = 8;
 		geometryPipelineInfo.Layout = geometryInputLayout;
-		geometryPipelineInfo.VertexShaderBinary = vertexShaderBinary;
-		geometryPipelineInfo.VertexShaderSize = vertexBinarySize;
-		geometryPipelineInfo.FragmentShaderBinary = fragmentShaderBinary;
-		geometryPipelineInfo.FragmentShaderSize = fragmentBinarySize;
+		geometryPipelineInfo.VertexShader = vertexShaderBinary;
+		geometryPipelineInfo.FragmentShader = fragmentShaderBinary;
 		geometryPipelineInfo.SampleCount = AR_PBR_SAMPLE_COUNT;
 
 		sGeometryPipeline = Pipeline::Create(sContext, geometryPipelineInfo);
@@ -239,8 +254,8 @@ namespace Arcane {
 		sGeometryPipeline.SetUniformBuffer(1, sObjectBuffer);
 		sGeometryPipeline.SetUniformBuffer(2, sShadowPassBuffer);
 
-		free(vertexShaderBinary);
-		free(fragmentShaderBinary);
+		free(vertexShaderBinary.Data);
+		free(fragmentShaderBinary.Data);
 
 		sGeometryRenderPass = RenderPass::Create(sContext, sGeometryPipeline, geometryAttachments, 6);
 	}
@@ -271,19 +286,16 @@ namespace Arcane {
 			{ InputAttribute::Bitangent, 1, InputElementType::Vector3f32, false },
 		};
 
-		size_t vertexBinarySize, fragmentBinarySize;
-		uint8_t *vertexShaderBinary = ReadFileBinary(AR_SHADOW_VERTEX_SHADER_PATH, &vertexBinarySize);
-		uint8_t *fragmentShaderBinary = ReadFileBinary(AR_SHADOW_FRAGMENT_SHADER_PATH, &fragmentBinarySize);
+		ShaderBinary vertexShaderBinary = ReadShaderBinary(AR_SHADOW_VERTEX_SHADER_PATH);
+		ShaderBinary fragmentShaderBinary = ReadShaderBinary(AR_SHADOW_FRAGMENT_SHADER_PATH);
 
 		PipelineInfo shadowPipelineInfo = PipelineInfo::CreateWithDefaultInfo();
 		shadowPipelineInfo.CullMode = CullMode::None;
 		shadowPipelineInfo.Descriptors = shadowDescriptors;
 		shadowPipelineInfo.DescriptorCount = 2;
 		shadowPipelineInfo.Layout = shadowInputLayout;
-		shadowPipelineInfo.VertexShaderBinary = vertexShaderBinary;
-		shadowPipelineInfo.VertexShaderSize = vertexBinarySize;
-		shadowPipelineInfo.FragmentShaderBinary = fragmentShaderBinary;
-		shadowPipelineInfo.FragmentShaderSize = fragmentBinarySize;
+		shadowPipelineInfo.VertexShader = vertexShaderBinary;
+		shadowPipelineInfo.FragmentShader = fragmentShaderBinary;
 		shadowPipelineInfo.Viewport.Size = Vector2(AR_PBR_SHADOW_MAP_WIDTH, AR_PBR_SHADOW_MAP_HEIGHT);
 		shadowPipelineInfo.Scissor.Size = Vector2(AR_PBR_SHADOW_MAP_WIDTH, AR_PBR_SHADOW_MAP_HEIGHT);
 		shadowPipelineInfo.SampleCount = AR_PBR_SAMPLE_COUNT;
@@ -292,8 +304,8 @@ namespace Arcane {
 		sShadowPipeline.SetUniformBuffer(0, sObjectBuffer);
 		sShadowPipeline.SetUniformBuffer(1, sShadowPassBuffer);
 
-		free(vertexShaderBinary);
-		free(fragmentShaderBinary);
+		free(vertexShaderBinary.Data);
+		free(fragmentShaderBinary.Data);
 
 		sShadowPass = RenderPass::Create(sContext, sShadowPipeline, shadowAttachments, 1);
 	}
@@ -331,26 +343,23 @@ namespace Arcane {
 			{ InputAttribute::UV, 1, InputElementType::Vector2f32, false },	
 		};
 
-		size_t vertexBinarySize, fragmentBinarySize;
-		uint8_t *vertexShaderBinary = ReadFileBinary(AR_LIGHT_VERTEX_SHADER_PATH, &vertexBinarySize);
-		uint8_t *fragmentShaderBinary = ReadFileBinary(AR_LIGHT_FRAGMENT_SHADER_PATH, &fragmentBinarySize);
+		ShaderBinary vertexShaderBinary = ReadShaderBinary(AR_LIGHT_VERTEX_SHADER_PATH);
+		ShaderBinary fragmentShaderBinary = ReadShaderBinary(AR_LIGHT_FRAGMENT_SHADER_PATH);
 
 		PipelineInfo lightPipelineInfo = PipelineInfo::CreateWithDefaultInfo();
 		lightPipelineInfo.Descriptors = lightDescriptors;
 		lightPipelineInfo.DescriptorCount = 8;
 		lightPipelineInfo.Layout = lightInputLayout;
-		lightPipelineInfo.VertexShaderBinary = vertexShaderBinary;
-		lightPipelineInfo.VertexShaderSize = vertexBinarySize;
-		lightPipelineInfo.FragmentShaderBinary = fragmentShaderBinary;
-		lightPipelineInfo.FragmentShaderSize = fragmentBinarySize;
+		lightPipelineInfo.VertexShader = vertexShaderBinary;
+		lightPipelineInfo.FragmentShader = fragmentShaderBinary;
 		lightPipelineInfo.SampleCount = AR_PBR_SAMPLE_COUNT;
 
 		sLightPipeline = Pipeline::Create(sContext, lightPipelineInfo);
 		sLightPipeline.SetUniformBuffer(0, sCameraBuffer);
 		sLightPipeline.SetUniformBuffer(1, sLightBuffer);
 
-		free(vertexShaderBinary);
-		free(fragmentShaderBinary);
+		free(vertexShaderBinary.Data);
+		free(fragmentShaderBinary.Data);
 
 		sLightRenderPass = RenderPass::Create(sContext, sLightPipeline, lightAttachments, 2);
 	}
@@ -381,35 +390,33 @@ namespace Arcane {
 			{ InputAttribute::UV, 1, InputElementType::Vector2f32, false },
 		};
 
-		size_t vertexBinarySize, fragmentBinarySize;
-		uint8_t *vertexShaderBinary = ReadFileBinary(AR_POST_PROCESS_VERTEX_SHADER_PATH, &vertexBinarySize);
-		uint8_t *fragmentShaderBinary = ReadFileBinary(AR_POST_PROCESS_FRAGMENT_SHADER_PATH, &fragmentBinarySize);
+		ShaderBinary vertexShaderBinary = ReadShaderBinary(AR_POST_PROCESS_VERTEX_SHADER_PATH);
+		ShaderBinary fragmentShaderBinary = ReadShaderBinary(AR_POST_PROCESS_FRAGMENT_SHADER_PATH);
 
 		PipelineInfo postProcessPipelineInfo = PipelineInfo::CreateWithDefaultInfo();
 		postProcessPipelineInfo.Descriptors = postProcessDescriptors;
 		postProcessPipelineInfo.DescriptorCount = 2;
 		postProcessPipelineInfo.Layout = postProcessInputLayout;
-		postProcessPipelineInfo.VertexShaderBinary = vertexShaderBinary;
-		postProcessPipelineInfo.VertexShaderSize = vertexBinarySize;
-		postProcessPipelineInfo.FragmentShaderBinary = fragmentShaderBinary;
-		postProcessPipelineInfo.FragmentShaderSize = fragmentBinarySize;
+		postProcessPipelineInfo.VertexShader = vertexShaderBinary;
+		postProcessPipelineInfo.FragmentShader = fragmentShaderBinary;
 		postProcessPipelineInfo.SampleCount = AR_PBR_SAMPLE_COUNT;
 
 		sPostProcessPipeline = Pipeline::Create(sContext, postProcessPipelineInfo);
 		sPostProcessPipeline.SetUniformBuffer(0, sPostProcessSettingsBuffer);
 
-		free(vertexShaderBinary);
-		free(fragmentShaderBinary);
+		free(vertexShaderBinary.Data);
+		free(fragmentShaderBinary.Data);
 
 		sPostProcessRenderPass = RenderPass::Create(sContext, sPostProcessPipeline, postProcessAttachments, 2);
 	}
 
-	void PBRRenderer::Init(const GraphicsContext &context) {
+	void Renderer::Init(const GraphicsContext &context) {
 		AR_PROFILE_FUNCTION();
 		sContext = context;
 
 		sRendererAPI = RendererAPI::Create(sContext);
 		
+		CompileShaders();
 		InitBuffers();
 		InitSamplers();
 		InitFullscreenQuad();
@@ -420,11 +427,11 @@ namespace Arcane {
 		InitPostProcessPass();
 	}
 
-	void PBRRenderer::Shutdown() {
+	void Renderer::Shutdown() {
 		AR_PROFILE_FUNCTION();
 	}
 
-	void PBRRenderer::Reload() {
+	void Renderer::Reload() {
 		AR_PROFILE_FUNCTION();
 
 		InitGeometryPass();
@@ -433,7 +440,7 @@ namespace Arcane {
 		InitPostProcessPass();
 	}
 
-	void PBRRenderer::Begin(const RenderCamera &camera) {
+	void Renderer::Begin(const RenderCamera &camera) {
 		AR_PROFILE_FUNCTION();
 
 		sCamera = camera.GetCamera();
@@ -452,7 +459,7 @@ namespace Arcane {
 		sClearColor = camera.GetBackgroundColor();
 	}
 
-	void PBRRenderer::AddLight(const Vector3 &position, const PointLight &light) {
+	void Renderer::AddLight(const Vector3 &position, const PointLight &light) {
 		AR_PROFILE_FUNCTION();
 		uint32_t index = sLightData.PointLightCount++;
 		sLightData.PointLights[index].Color = light.Color;
@@ -460,7 +467,7 @@ namespace Arcane {
 		sLightData.PointLights[index].Position = Vector4(position, 1.0);
 	}
 
-	void PBRRenderer::AddLight(const Vector3 &direction, const DirectionalLight &light) {
+	void Renderer::AddLight(const Vector3 &direction, const DirectionalLight &light) {
 		AR_PROFILE_FUNCTION();
 		sLightData.DirectionalLight.Color = light.Color;
 		sLightData.DirectionalLight.Direction = Vector4(Vector3::Normalize(direction), 1.0);
@@ -475,7 +482,7 @@ namespace Arcane {
 		sShadowPassBuffer.SetData(&sShadowPassData);
 	}
 
-	void PBRRenderer::Submit(const Transform &transform, const Mesh &mesh, const PBRMaterial &material) {
+	void Renderer::Submit(const Transform &transform, const Mesh &mesh, const Material &material) {
 		AR_PROFILE_FUNCTION();
 		sRenderSubmissions.emplace_back(
 			transform.GetModelMatrix(),
@@ -489,7 +496,7 @@ namespace Arcane {
 		);
 	}
 
-	void PBRRenderer::End() {
+	void Renderer::End() {
 		AR_PROFILE_FUNCTION();
 		const Vector2 size = sContext.GetWindow().GetClientSize();
 
@@ -588,7 +595,7 @@ namespace Arcane {
 		std::memset(&sCameraData, 0, sizeof(sCameraData));
 	}
 
-	RendererAPI PBRRenderer::GetRenderer() {
+	RendererAPI Renderer::GetRenderer() {
 		return sRendererAPI;
 	}
 

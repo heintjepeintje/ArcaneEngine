@@ -18,6 +18,7 @@ namespace Arcane {
 		defaultInfo.ElementSize = sizeof(uint32_t);
 		defaultInfo.PolygonOffsetFactor = 0.0f;
 		defaultInfo.PolygonOffsetUnits = 0.0f;
+		defaultInfo.StageFlags = ShaderStage::Vertex | ShaderStage::Fragment;
 
 		return defaultInfo;
 	}

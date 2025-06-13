@@ -18,6 +18,7 @@ namespace Arcane {
 
 	void OpenGLRendererAPI::UpdatePipeline() {
 		AR_PROFILE_FUNCTION_GPU_CPU();
+		
 		glEnable(GL_CULL_FACE);
 
 		switch (mPipeline->GetCullMode()) {
@@ -66,8 +67,6 @@ namespace Arcane {
 			glDisable(GL_MULTISAMPLE);
 		}
 
-		glUseProgram(mPipeline->GetShaderProgram());
-
 		if (mPipeline->GetViewport().Position == Vector2::Zero() && mPipeline->GetViewport().Size == Vector2::MaxValue()) {
 			mOutputViewport = mSpecifiedViewport;
 		} else {
@@ -92,6 +91,8 @@ namespace Arcane {
 
 		glLineWidth(mPipeline->GetLineWidth());
 		glPointSize(mPipeline->GetPointSize());
+		
+		glBindProgramPipeline(mPipeline->GetProgramPipeline());
 	}
 
 	void OpenGLRendererAPI::Begin() {

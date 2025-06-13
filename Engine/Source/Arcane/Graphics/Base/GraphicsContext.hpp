@@ -25,6 +25,7 @@ namespace Arcane {
 		inline uint32_t GetPatchLevel() const { return GetNativeContext()->GetPatchLevel(); }
 		inline Window GetWindow() const { return Window(GetNativeContext()->GetWindow()); }
 		inline const GraphicsLimits &GetGraphicsLimits() const { return GetNativeContext()->GetGraphicsLimits(); }
+		inline GraphicsAPI GetGraphicsAPI() const { return GetNativeContext()->GetGraphicsAPI(); }
 
 		inline Ref<NativeGraphicsContext> GetNativeContext() const {
 			AR_ASSERT(mNativeContext, "Native context is invalid");

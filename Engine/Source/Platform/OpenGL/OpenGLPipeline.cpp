@@ -17,6 +17,8 @@ namespace Arcane {
 		mViewport = info.Viewport;
 		mScissor = info.Scissor;
 
+		mStageFlags = info.StageFlags;
+
 		mUniformBufferDescriptorCount = 0;
 		mCombinedImageSamplerDescriptorCount = 0;
 
@@ -41,16 +43,57 @@ namespace Arcane {
 		mElementSize = info.ElementSize;
 
 		mProgram = glCreateProgram();
-		
-		GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-		glShaderBinary(1, &vertexShader, GL_SHADER_BINARY_FORMAT_SPIR_V, info.VertexShaderBinary, info.VertexShaderSize);
-		glAttachShader(mProgram, vertexShader);
-		glSpecializeShader(vertexShader, "main", 0, nullptr, nullptr);
+		glProgramParameteri(mProgram, GL_PROGRAM_SEPARABLE, GL_TRUE);
 
-		GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-		glShaderBinary(1, &fragmentShader, GL_SHADER_BINARY_FORMAT_SPIR_V, info.FragmentShaderBinary, info.FragmentShaderSize);
-		glAttachShader(mProgram, fragmentShader);
-		glSpecializeShader(fragmentShader, "main", 0, nullptr, nullptr);
+		if (mStageFlags & ShaderStage::Vertex) {
+			AR_OPENGL_ASSERT(info.VertexShader.Size > 0, "Vertex shader binary data is empty");
+			AR_OPENGL_ASSERT(info.VertexShader.Data != nullptr, "Vertex shader binary data is nullptr");
+			
+			GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+			glShaderBinary(1, &vertexShader, GL_SHADER_BINARY_FORMAT_SPIR_V, info.VertexShader.Data, info.VertexShader.Size);
+			glAttachShader(mProgram, vertexShader);
+			glSpecializeShader(vertexShader, "main", 0, nullptr, nullptr);
+		}
+
+		if (mStageFlags & ShaderStage::TessellationControl) {
+			AR_OPENGL_ASSERT(info.TesselationControlShader.Size > 0, "Tessellation control shader binary data is empty");
+			AR_OPENGL_ASSERT(info.TesselationControlShader.Data != nullptr, "Tessellation control shader binary data is nullptr");
+
+			GLuint tessControlShader = glCreateShader(GL_TESS_CONTROL_SHADER);
+			glShaderBinary(1, &tessControlShader, GL_SHADER_BINARY_FORMAT_SPIR_V, info.TesselationControlShader.Data, info.TesselationControlShader.Size);
+			glAttachShader(mProgram, tessControlShader);
+			glSpecializeShader(tessControlShader, "main", 0, nullptr, nullptr);
+		}
+
+		if (mStageFlags & ShaderStage::TessellationEvaluation) {
+			AR_OPENGL_ASSERT(info.TesselationEvaluationShader.Size > 0, "Tessellation evaluation shader binary data is empty");
+			AR_OPENGL_ASSERT(info.TesselationEvaluationShader.Data != nullptr, "Tessellation evaluation shader binary data is nullptr");
+
+			GLuint tessEvalShader = glCreateShader(GL_TESS_EVALUATION_SHADER);
+			glShaderBinary(1, &tessEvalShader, GL_SHADER_BINARY_FORMAT_SPIR_V, info.TesselationEvaluationShader.Data, info.TesselationEvaluationShader.Size);
+			glAttachShader(mProgram, tessEvalShader);
+			glSpecializeShader(tessEvalShader, "main", 0, nullptr, nullptr);
+		}
+
+		if (mStageFlags & ShaderStage::Geometry) {
+			AR_OPENGL_ASSERT(info.GeometryShader.Size > 0, "Geometry shader binary data is empty");
+			AR_OPENGL_ASSERT(info.GeometryShader.Data != nullptr, "Geometry shader binary data is nullptr");
+
+			GLuint geometryShader = glCreateShader(GL_GEOMETRY_SHADER);
+			glShaderBinary(1, &geometryShader, GL_SHADER_BINARY_FORMAT_SPIR_V, info.GeometryShader.Data, info.GeometryShader.Size);
+			glAttachShader(mProgram, geometryShader);
+			glSpecializeShader(geometryShader, "main", 0, nullptr, nullptr);
+		}
+
+		if (mStageFlags & ShaderStage::Fragment) {
+			AR_OPENGL_ASSERT(info.FragmentShader.Size > 0, "Fragment shader binary data is empty");
+			AR_OPENGL_ASSERT(info.FragmentShader.Data != nullptr, "Fragment shader binary data is nullptr");
+
+			GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+			glShaderBinary(1, &fragmentShader, GL_SHADER_BINARY_FORMAT_SPIR_V, info.FragmentShader.Data, info.FragmentShader.Size);
+			glAttachShader(mProgram, fragmentShader);
+			glSpecializeShader(fragmentShader, "main", 0, nullptr, nullptr);
+		}
 
 		glLinkProgram(mProgram);
 
@@ -68,11 +111,24 @@ namespace Arcane {
 		}
 
 		glValidateProgram(mProgram);
+
+		glCreateProgramPipelines(1, &mProgramPipeline);
+
+		GLbitfield stages = 0;
+		if (mStageFlags & ShaderStage::Vertex) stages |= GL_VERTEX_SHADER_BIT;
+		if (mStageFlags & ShaderStage::TessellationControl) stages |= GL_TESS_CONTROL_SHADER_BIT;
+		if (mStageFlags & ShaderStage::TessellationEvaluation) stages |= GL_TESS_EVALUATION_SHADER_BIT;
+		if (mStageFlags & ShaderStage::Geometry) stages |= GL_GEOMETRY_SHADER_BIT;
+		if (mStageFlags & ShaderStage::Fragment) stages |= GL_FRAGMENT_SHADER_BIT;
+
+		glUseProgramStages(mProgramPipeline, stages, mProgram);
+		glValidateProgramPipeline(mProgramPipeline);
 	}
 
 	OpenGLPipeline::~OpenGLPipeline() {
 		AR_PROFILE_FUNCTION_GPU_CPU();
 		glDeleteProgram(mProgram);
+		glDeleteProgramPipelines(1, &mProgramPipeline);
 		delete[] mDescriptors;
 	}
 

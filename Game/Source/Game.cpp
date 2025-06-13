@@ -1,5 +1,49 @@
 #include "Game.hpp"
 
+int32_t Server1Func(void *data) {
+	Socket server = Socket::Create();
+	server.Bind("127.0.0.1", 8080);
+	server.Listen(10);
+
+	Socket connection = server.Accept();
+	while (!connection.IsValid()) {
+		connection = server.Accept();
+		Thread::Sleep(10);
+	}
+
+	std::string message = "Hello from server 1!";
+
+	connection.Send(message.size());
+	connection.Send(message.c_str(), message.size());
+
+	connection.Close();
+	server.Close();
+
+	return 0;
+}
+
+int32_t Server2Func(void *data) {
+	Socket server = Socket::Create();
+	server.Bind("127.0.0.1", 8081);
+	server.Listen(10);
+
+	Socket connection = server.Accept();
+	while (!connection.IsValid()) {
+		connection = server.Accept();
+		Thread::Sleep(10);
+	}
+
+	std::string message = "Hello from server 2!";
+
+	connection.Send<size_t>(message.size());
+	connection.Send(message.c_str(), message.size());
+
+	connection.Close();
+	server.Close();
+
+	return 0;
+}
+
 Game::Game() {
 	mWindow = Window::Create(1920 / 2, 1080 / 2, "Arcane Engine");
 	mWindow.SetMaximized(true);
@@ -13,7 +57,7 @@ Game::Game() {
 }
 
 Game::~Game() {
-
+	
 }
 
 void Game::Start() {
@@ -32,7 +76,7 @@ void Game::Start() {
 	const Node &floorNode = imp.GetNode(1);
 	mFloor.Add<Mesh>(Mesh::Create(mContext, floorNode.Mesh));
 	
-	PBRMaterial &floorMaterial = mFloor.Add<PBRMaterial>();
+	Material &floorMaterial = mFloor.Add<Material>();
 	floorMaterial.AlbedoMap = Texture::Create(mContext, colorTexture);
 	floorMaterial.NormalMap = Texture::Create(mContext, normalMap);
 	floorMaterial.MetallicMap = Texture::Create(mContext, grayImage);
@@ -41,14 +85,13 @@ void Game::Start() {
 
 	Transform &floorTransform = mFloor.Add<Transform>();
 	floorTransform.Position = { 0.0f, -1.0f, 0.0f };
-	// floorTransform.Scale = Vector3(10.0f, 1.0f, 10.0f);
 
 	mBox = Entity();
 	mBox.Add<Tag>("Box");
-
+	
 	mBox.Add<Mesh>(Mesh::Create(mContext, imp.GetNode(0).Mesh));
 	
-	PBRMaterial &boxMaterial = mBox.Add<PBRMaterial>();
+	Material &boxMaterial = mBox.Add<Material>();
 	boxMaterial.AlbedoMap = Texture::Create(mContext, colorTexture);
 	boxMaterial.NormalMap = Texture::Create(mContext, normalMap);
 	boxMaterial.MetallicMap = Texture::Create(mContext, grayImage);
@@ -62,7 +105,7 @@ void Game::Start() {
 	free(aoTexture.Data);
 	
 	Transform &boxTransform = mBox.Add<Transform>();
-	boxTransform.Position = { 0.0f, 10.0f, 0.0f };
+	boxTransform.Position = { 0.0f, 3.0f, 0.0f };
 
 	mPlayer = Entity();
 	mPlayer.Add<Tag>(Tag("Camera"));
@@ -105,7 +148,7 @@ void Game::Update() {
 
 
 		if (IsKeyDown(KeyCode::R)) {
-			PBRRenderer::Reload();
+			Renderer::Reload();
 		}
 
 		if (IsKeyPressed(KeyCode::Space))
@@ -121,10 +164,6 @@ void Game::Update() {
 			cam.Position -= Vector3::Normalize(Vector3::Cross(cam.Up, cam.Front)) * speed * GetDeltaTime();
 		if (IsKeyPressed(KeyCode::D))
 			cam.Position += Vector3::Normalize(Vector3::Cross(cam.Up, cam.Front)) * speed * GetDeltaTime();
-
-		if (IsKeyPressed(KeyCode::Escape)) {
-			__debugbreak();
-		}
 		
 		mPlayer.Get<Transform>().Position = cam.Position;
 	} else {
@@ -135,11 +174,9 @@ void Game::Update() {
 
 void Game::Render() {
 	SceneRenderer::Draw();
-	const FrameStatistics &frameStats = PBRRenderer::GetRenderer().GetFrameStatistics();
+	const FrameStatistics &frameStats = Renderer::GetRenderer().GetFrameStatistics();
 	mContext.Present();
 	mWindow.Update();
-
-	// __debugbreak();
 }
 
 void Game::Stop() {

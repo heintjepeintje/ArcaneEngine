@@ -14,6 +14,7 @@
 #endif
 
 #ifdef _DEBUG
+#	define AR_OPENGL_ASSERT(x, ...) { if (!(x)) { ::Arcane::GetOpenGLLogger().Log(LogLevel::Fatal, __VA_ARGS__); __debugbreak(); } }
 #	define AR_OPENGL_TRACE(...) ::Arcane::GetOpenGLLogger().Log(Arcane::LogLevel::Trace, __VA_ARGS__)
 #	define AR_OPENGL_INFO(...) ::Arcane::GetOpenGLLogger().Log(Arcane::LogLevel::Info, __VA_ARGS__)
 #	define AR_OPENGL_DEBUG(...) ::Arcane::GetOpenGLLogger().Log(Arcane::LogLevel::Debug, __VA_ARGS__)
@@ -21,6 +22,7 @@
 #	define AR_OPENGL_ERROR(...) ::Arcane::GetOpenGLLogger().Log(Arcane::LogLevel::Error, __VA_ARGS__)
 #	define AR_OPENGL_FATAL(...) ::Arcane::GetOpenGLLogger().Log(Arcane::LogLevel::Fatal, __VA_ARGS__)
 #else
+#	define AR_OPENGL_ASSERT(x, ...)
 #	define AR_OPENGL_TRACE(...)
 #	define AR_OPENGL_INFO(...)
 #	define AR_OPENGL_DEBUG(...)

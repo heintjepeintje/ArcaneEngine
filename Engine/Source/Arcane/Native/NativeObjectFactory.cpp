@@ -11,6 +11,7 @@
 #include <Arcane/Native/NativeWindow.hpp>
 
 #include <Platform/Windows/Win32Window.hpp>
+#include <Platform/Windows/WindowsSocket.hpp>
 
 #include <Platform/OpenGL/OpenGLBuffer.hpp>
 #include <Platform/OpenGL/OpenGLFramebuffer.hpp>
@@ -30,6 +31,14 @@ namespace Arcane {
 		return CastRef<NativeWindow>(CreateRef<Win32Window>(width, height, title));
 #else
 		return Ref<NativeWindow>::Invalid();
+#endif
+	}
+
+	Ref<NativeSocket> NativeSocket::Create() {
+#ifdef _WIN32
+		return CastRef<NativeSocket>(CreateRef<WindowsSocket>());
+#else
+		return Ref<NativeSocket>::Invalid();
 #endif
 	}
 

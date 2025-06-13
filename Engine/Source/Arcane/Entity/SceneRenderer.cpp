@@ -2,14 +2,14 @@
 #include "SceneView.hpp"
 #include "Components/Tag.hpp"
 
-#include <Arcane/Graphics/PBR/PBRRenderer.hpp>
+#include <Arcane/Graphics/PBR/Renderer.hpp>
 
 #include <iostream>
 
 namespace Arcane {
 
 	void SceneRenderer::Init() {
-		PBRRenderer::Init(GraphicsContext::GetCurrent());
+		Renderer::Init(GraphicsContext::GetCurrent());
 	}
 
 	void SceneRenderer::Draw() {
@@ -21,10 +21,10 @@ namespace Arcane {
 
 		if (!GetCurrentScene()->IsEntity(cameraEntityID)) return;
 
-		PBRRenderer::Begin(GetCurrentScene()->GetComponent<RenderCamera>(cameraEntityID));
+		Renderer::Begin(GetCurrentScene()->GetComponent<RenderCamera>(cameraEntityID));
 
 		for (Entity e : SceneView<Transform, PointLight>()) {
-			PBRRenderer::AddLight(
+			Renderer::AddLight(
 				e.Get<Transform>().Position,
 				e.Get<PointLight>()
 			);
@@ -38,21 +38,21 @@ namespace Arcane {
 				Sin(ToRadians(t.Rotation.Y)) * Cos(ToRadians(t.Rotation.X))
 			};
 
-			PBRRenderer::AddLight(
+			Renderer::AddLight(
 				direction,
 				e.Get<DirectionalLight>()
 			);
 		}
 
-		for (Entity e : SceneView<Transform, Mesh, PBRMaterial>()) {
-			PBRRenderer::Submit(e.Get<Transform>(), e.Get<Mesh>(), e.Get<PBRMaterial>());
+		for (Entity e : SceneView<Transform, Mesh, Material>()) {
+			Renderer::Submit(e.Get<Transform>(), e.Get<Mesh>(), e.Get<Material>());
 		}
 
-		PBRRenderer::End();
+		Renderer::End();
 	}
 
 	void SceneRenderer::Shutdown() {
-		PBRRenderer::Shutdown();
+		Renderer::Shutdown();
 	}
 
 }

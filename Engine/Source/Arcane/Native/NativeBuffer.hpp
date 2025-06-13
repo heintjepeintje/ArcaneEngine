@@ -11,16 +11,18 @@ namespace Arcane {
 		Read, Write, ReadWrite
 	};
 
-	enum BufferFlags {
-		BufferFlag_Mutable = AR_BIT(0),
-		BufferFlag_Static = AR_BIT(1),
-		BufferFlag_MapRead = AR_BIT(2),
-		BufferFlag_MapWrite = AR_BIT(3)
-	};
+	namespace BufferFlag {
+		enum _BufferFlags {
+			Mutable = AR_BIT(0),
+			Static = AR_BIT(1),
+			MapRead = AR_BIT(2),
+			MapWrite = AR_BIT(3)
+		};
+	}
 
 	class NativeBuffer {
 	public:
-		static Ref<NativeBuffer> Create(const Ref<NativeGraphicsContext> &context, size_t size, uint32_t flags = 0);
+		static Ref<NativeBuffer> Create(const Ref<NativeGraphicsContext> &context, size_t size, uint32_t flags);
 
 	public:
 		NativeBuffer() { }

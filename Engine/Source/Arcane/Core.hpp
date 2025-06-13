@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <cmath>
+#include <filesystem>
 
 #include "Ref.hpp"
 #include "Log.hpp"

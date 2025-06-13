@@ -4,15 +4,15 @@
 #include <Arcane/Graphics/Camera.hpp>
 #include <Arcane/Graphics/Base/Mesh.hpp>
 #include <Arcane/Graphics/Transform.hpp>
-#include <Arcane/Graphics/Base/Renderer.hpp>
+#include <Arcane/Graphics/Base/RendererAPI.hpp>
 #include <Arcane/Graphics/Light.hpp>
 
-#include "PBRMaterial.hpp"
+#include "Material.hpp"
 #include "RenderCamera.hpp"
 
 namespace Arcane {
 
-	class PBRRenderer {
+	class Renderer {
 	public:
 		static void Init(const GraphicsContext &context);
 		static void Reload();
@@ -21,7 +21,7 @@ namespace Arcane {
 		static void Begin(const RenderCamera &camera);
 		static void AddLight(const Vector3 &position, const PointLight &light);
 		static void AddLight(const Vector3 &direction, const DirectionalLight &light);
-		static void Submit(const Transform &transform, const Mesh &mesh, const PBRMaterial &material);
+		static void Submit(const Transform &transform, const Mesh &mesh, const Material &material);
 		static void End();
 
 		static RendererAPI GetRenderer();

@@ -5,12 +5,12 @@
 
 namespace Arcane {
 
-	class PBRMaterial {
+	class Material {
 	public:
-		PBRMaterial() { }
-		PBRMaterial(const Texture &albedo, const Texture &normal, const Texture &metallic, const Texture &roughness, const Texture &ao) 
+		Material() { }
+		Material(const Texture &albedo, const Texture &normal, const Texture &metallic, const Texture &roughness, const Texture &ao) 
 			: AlbedoMap(albedo), NormalMap(normal), MetallicMap(metallic), RoughnessMap(roughness), AmbientOcclusionMap(ao) { }
-		~PBRMaterial() { }
+		~Material() { }
 
 	public:
 		Texture AlbedoMap;

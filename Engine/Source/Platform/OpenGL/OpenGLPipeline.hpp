@@ -25,9 +25,10 @@ namespace Arcane {
 		~OpenGLPipeline();
 
 		inline GLuint GetShaderProgram() const { return mProgram; }
-		inline Rect2D GetViewport() const { return mViewport; }
-		inline Rect2D GetScissor() const { return mScissor; }
+		inline GLuint GetProgramPipeline() const { return mProgramPipeline; }
 
+		inline Rect2D GetViewport() const override { return mViewport; }
+		inline Rect2D GetScissor() const override { return mScissor; }
 		inline virtual CullMode GetCullMode() const override { return mCullMode; }
 		inline virtual WindingOrder GetWindingOrder() const override { return mWindingOrder; }
 		inline virtual FillMode GetFillMode() const override { return mFillMode; }
@@ -41,6 +42,7 @@ namespace Arcane {
 		inline virtual float GetPolygonOffsetFactor() const override { return mPolygonOffsetFactor; }
 		inline virtual float GetPolygonOffsetUnits() const override { return mPolygonOffsetUnits; }
 		inline virtual const InputLayout &GetInputLayout() const override { return mLayout; }
+		inline virtual uint32_t GetStageFlags() const override { return mStageFlags; }
 
 		virtual void SetUniformBuffer(uint32_t binding, const Ref<NativeBuffer> &uniformBuffer) override;
 		virtual void SetCombinedImageSampler(uint32_t binding, const Ref<NativeTexture> &texture, const Ref<NativeSampler> &sampler) override;
@@ -53,6 +55,8 @@ namespace Arcane {
 	private:
 		Ref<OpenGLGraphicsContext> mContext;
 		GLuint mProgram;
+		GLuint mProgramPipeline;
+		uint32_t mStageFlags;
 		
 		CullMode mCullMode;
 		WindingOrder mWindingOrder;

@@ -23,6 +23,9 @@ namespace Arcane::GUI {
 		sWindow = window;
 		sContext = context;
 
+		CompileShader(sContext.GetGraphicsAPI(), "Engine/Shaders/UI/Source/UIShader.vert", "Engine/Shaders/UI/Binaries/Output/UIShader.vert");
+		CompileShader(sContext.GetGraphicsAPI(), "Engine/Shaders/UI/Source/UIShader.frag", "Engine/Shaders/UI/Binaries/Output/UIShader.frag");
+
 		ImGui::CreateContext();
 		sIO = &ImGui::GetIO();
 
@@ -47,10 +50,8 @@ namespace Arcane::GUI {
 			{ 0, DescriptorType::CombinedImageSampler }
 		};
 
-		size_t vertexBinarySize, fragmentBinarySize;
-		uint8_t *vertexBinary, *fragmentBinary;
-		vertexBinary = ReadFileBinary("Engine/Shaders/UI/Binaries/Output/UIShader.vert", &vertexBinarySize);
-		fragmentBinary = ReadFileBinary("Engine/Shaders/UI/Binaries/Output/UIShader.frag", &fragmentBinarySize);
+		ShaderBinary vertexShaderBinary = ReadShaderBinary("Engine/Shaders/UI/Binaries/Output/UIShader.vert.spv");
+		ShaderBinary fragmentShaderBinary = ReadShaderBinary("Engine/Shaders/UI/Binaries/Output/UIShader.frag.spv");
 
 		PipelineInfo info = PipelineInfo::CreateWithDefaultInfo();
 		info.OutputMask = OutputComponent::Color;
@@ -58,10 +59,8 @@ namespace Arcane::GUI {
 		info.Descriptors = descriptors;
 		info.DescriptorCount = 2;
 		info.Layout = layout;
-		info.VertexShaderBinary = vertexBinary;
-		info.VertexShaderSize = vertexBinarySize;
-		info.FragmentShaderBinary = fragmentBinary;
-		info.FragmentShaderSize = fragmentBinarySize;
+		info.VertexShader = vertexShaderBinary;
+		info.FragmentShader = fragmentShaderBinary;
 		
 		sPipeline = Pipeline::Create(sContext, info);
 	}
