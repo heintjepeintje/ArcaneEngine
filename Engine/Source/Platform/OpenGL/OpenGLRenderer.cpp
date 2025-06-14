@@ -59,7 +59,7 @@ namespace Arcane {
 			glPolygonOffset(mPipeline->GetPolygonOffsetFactor(), mPipeline->GetPolygonOffsetUnits());
 		}
 
-		AR_ASSERT(mFramebuffer->GetSampleCount() == mPipeline->GetSampleCount(), "Framebuffer sample count does not match pipeline sample count: %u != %u", mFramebuffer->GetSampleCount(), mPipeline->GetSampleCount());
+		AR_OPENGL_ASSERT(mFramebuffer->GetSampleCount() == mPipeline->GetSampleCount(), "Framebuffer sample count does not match pipeline sample count: %u != %u", mFramebuffer->GetSampleCount(), mPipeline->GetSampleCount());
 
 		if (mPipeline->GetSampleCount() > 1) {
 			glEnable(GL_MULTISAMPLE);
@@ -121,13 +121,13 @@ namespace Arcane {
 
 	void OpenGLRendererAPI::BeginRenderPass(const Ref<NativeRenderPass> &renderPass, const Ref<NativeFramebuffer> &framebuffer) {
 		AR_PROFILE_FUNCTION_GPU_CPU();
-		AR_ASSERT(renderPass->GetAttachmentCount() == framebuffer->GetAttachmentCount(), "RenderPass and Framebuffer attachments are not compatible\n");
+		AR_OPENGL_ASSERT(renderPass->GetAttachmentCount() == framebuffer->GetAttachmentCount(), "RenderPass and Framebuffer attachments are not compatible\n");
 
 		const ImageFormat *renderPassAttachments = renderPass->GetAttachments();
 		const ImageFormat *framebufferAttachments = framebuffer->GetAttachments();
 
 		for (size_t i = 0; i < renderPass->GetAttachmentCount(); i++) {
-			AR_ASSERT(renderPassAttachments[i] == framebufferAttachments[i], "RenderPass and Framebuffer attachments are not compatible: %u != %u\n", renderPassAttachments[i], framebufferAttachments[i]);
+			AR_OPENGL_ASSERT(renderPassAttachments[i] == framebufferAttachments[i], "RenderPass and Framebuffer attachments are not compatible: %u != %u\n", renderPassAttachments[i], framebufferAttachments[i]);
 		}
 
 		mFramebuffer = CastRef<OpenGLFramebuffer>(framebuffer);
@@ -208,7 +208,7 @@ namespace Arcane {
 		UpdatePipeline();
 	}
 
-	void OpenGLRendererAPI::DrawIndexed(uint32_t instances, uint32_t count) {
+	void OpenGLRendererAPI::DrawIndexed(uint32_t instances, uint32_t count, size_t idxOffset, size_t vtxOffset) {
 		AR_PROFILE_FUNCTION_GPU_CPU();
 		GLenum topology = GL_NONE;
 		switch (mPipeline->GetTopology()) {
@@ -224,8 +224,8 @@ namespace Arcane {
 			AR_PROFILE_SCOPE_GPU("Pipeline Buffer Binding");
 			for (size_t i = 0; i < mPipeline->GetUniformBufferDescriptorCount(); i++) {
 				OpenGLUniformBufferDescriptor &desc = mPipeline->GetUniformBufferDescriptors()[i];
-				AR_ASSERT(desc.buffer != 0, "Buffer is invalid in descriptor: %u\n", desc.binding);
-				glBindBufferBase(GL_UNIFORM_BUFFER, desc.binding, desc.buffer);
+				AR_OPENGL_ASSERT(desc.buffer != 0, "Buffer is invalid in descriptor: %u\n", desc.binding);
+				glBindBufferRange(GL_UNIFORM_BUFFER, desc.binding, desc.buffer, desc.offset, desc.size);
 			}
 		}
 
@@ -233,8 +233,8 @@ namespace Arcane {
 			AR_PROFILE_SCOPE_GPU("Pipeline Combined Image Sampler Binding");
 			for (size_t i = 0; i < mPipeline->GetCombinedImageSamplerDescriptorCount(); i++) {
 				OpenGLCombinedImageSamplerDescriptor &desc = mPipeline->GetCombinedImageSamplerDescriptors()[i];
-				AR_ASSERT(desc.texture != 0, "Texture is invalid in descriptor: %u\n", desc.binding);
-				AR_ASSERT(desc.sampler != 0, "Sampler is invalid in descriptor: %u\n", desc.binding);
+				AR_OPENGL_ASSERT(desc.texture != 0, "Texture is invalid in descriptor: %u\n", desc.binding);
+				AR_OPENGL_ASSERT(desc.sampler != 0, "Sampler is invalid in descriptor: %u\n", desc.binding);
 				glBindTextureUnit(desc.binding, desc.texture);
 				glBindSampler(desc.binding, desc.sampler);	
 			}
@@ -242,7 +242,7 @@ namespace Arcane {
 
 		{
 			AR_PROFILE_SCOPE_GPU("Draw Call");
-			glDrawElementsInstanced(topology, count, mPipeline->GetElementSize() == 4 ? GL_UNSIGNED_INT : GL_UNSIGNED_BYTE, nullptr, instances);
+			glDrawElementsInstancedBaseVertex(topology, count, mPipeline->GetElementSize() == 4 ? GL_UNSIGNED_INT : GL_UNSIGNED_BYTE, reinterpret_cast<void*>(idxOffset * mPipeline->GetElementSize()), instances, vtxOffset);
 		}
 
 		mFrameStatistics.DrawCommands++;

@@ -14,7 +14,7 @@ namespace Arcane {
 		OpenGLMesh(const Ref<OpenGLGraphicsContext> &context);
 		~OpenGLMesh();
 
-		virtual void SetVertexBuffer(uint32_t index, const InputLayout &layout, const Ref<NativeBuffer> &vertexBuffer) override;
+		virtual void SetVertexBuffer(uint32_t index, const InputLayout &layout, const Ref<NativeBuffer> &vertexBuffer, size_t offset, size_t stride) override;
 		virtual void SetIndexBuffer(const Ref<NativeBuffer> &indexBuffer) override;
 		virtual Ref<NativeBuffer> GetVertexBuffer(uint32_t index) override;
 		virtual Ref<NativeBuffer> GetIndexBuffer() override;

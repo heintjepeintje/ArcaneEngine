@@ -4,21 +4,21 @@
 
 #ifdef _DEBUG
 #	define AR_ASSERT(x, ...) { if (!(x)) { ::Arcane::GetEngineLogger().Log(LogLevel::Fatal, __VA_ARGS__); __debugbreak(); } }
-#	define AR_ENGINE_LOG(level, message, ...) { ::Arcane::GetEngineLogger().Log(level, message, __VA_ARGS__); }
-#	define AR_ENGINE_TRACE(message, ...) { ::Arcane::GetEngineLogger().Log(LogLevel::Trace, message, __VA_ARGS__); }
-#	define AR_ENGINE_INFO(message, ...) { ::Arcane::GetEngineLogger().Log(LogLevel::Info, message, __VA_ARGS__); }
-#	define AR_ENGINE_DEBUG(message, ...) { ::Arcane::GetEngineLogger().Log(LogLevel::Debug, message, __VA_ARGS__); }
-#	define AR_ENGINE_WARNING(message, ...) { ::Arcane::GetEngineLogger().Log(LogLevel::Warning, message, __VA_ARGS__); }
-#	define AR_ENGINE_ERROR(message, ...) { ::Arcane::GetEngineLogger().Log(LogLevel::Error, message, __VA_ARGS__); }
-#	define AR_ENGINE_FATAL(message, ...) { ::Arcane::GetEngineLogger().Log(LogLevel::Fatal, message, __VA_ARGS__); }
+#	define AR_ENGINE_LOG(level, ...) { ::Arcane::GetEngineLogger().Log(level, message, __VA_ARGS__); }
+#	define AR_ENGINE_TRACE(...) { ::Arcane::GetEngineLogger().Log(LogLevel::Trace, __VA_ARGS__); }
+#	define AR_ENGINE_INFO(...) { ::Arcane::GetEngineLogger().Log(LogLevel::Info, __VA_ARGS__); }
+#	define AR_ENGINE_DEBUG(...) { ::Arcane::GetEngineLogger().Log(LogLevel::Debug, __VA_ARGS__); }
+#	define AR_ENGINE_WARNING(...) { ::Arcane::GetEngineLogger().Log(LogLevel::Warning, __VA_ARGS__); }
+#	define AR_ENGINE_ERROR(...) { ::Arcane::GetEngineLogger().Log(LogLevel::Error, __VA_ARGS__); }
+#	define AR_ENGINE_FATAL(...) { ::Arcane::GetEngineLogger().Log(LogLevel::Fatal, __VA_ARGS__); }
 #else
-#	define AR_ENGINE_LOG(level, message, ...)
-#	define AR_ENGINE_TRACE(message, ...)
-#	define AR_ENGINE_INFO(message, ...)
-#	define AR_ENGINE_DEBUG(message, ...)
-#	define AR_ENGINE_WARNING(message, ...)
-#	define AR_ENGINE_ERROR(message, ...)
-#	define AR_ENGINE_FATAL(message, ...)
+#	define AR_ENGINE_LOG(level, ...)
+#	define AR_ENGINE_TRACE(...)
+#	define AR_ENGINE_INFO(...)
+#	define AR_ENGINE_DEBUG(...)
+#	define AR_ENGINE_WARNING(...)
+#	define AR_ENGINE_ERROR(...)
+#	define AR_ENGINE_FATAL(...)
 #	define AR_ASSERT(x, ...)
 #endif
 

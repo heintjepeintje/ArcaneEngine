@@ -35,7 +35,8 @@ namespace Arcane {
 		inline Rect2D GetScissor() { return GetNativeRendererAPI()->GetScissor(); }
 
 		inline void SetMesh(const Mesh &mesh) { GetNativeRendererAPI()->SetMesh(mesh.GetNativeMesh()); }
-		inline void DrawIndexed(uint32_t instances, uint32_t count) { GetNativeRendererAPI()->DrawIndexed(instances, count); }
+		inline void DrawIndexed(uint32_t instances, uint32_t count) { GetNativeRendererAPI()->DrawIndexed(instances, count, 0, 0); }
+		inline void DrawIndexed(uint32_t instances, uint32_t count, size_t idxOffset, size_t vtxOffset) { GetNativeRendererAPI()->DrawIndexed(instances, count, 0, 0); }
 
 		inline FrameStatistics GetFrameStatistics() { return GetNativeRendererAPI()->GetFrameStatistics(); }
 

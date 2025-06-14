@@ -6,6 +6,7 @@
 #include <Arcane/Graphics/Base/Pipeline.hpp>
 #include <Arcane/Util/FileUtil.hpp>
 #include <Arcane/System/Time.hpp>
+#include <Arcane/Gui/GUI.hpp>
 
 #define AR_VERT_SHADER_PATH(folder, name) "Engine/Shaders/"#folder"/Binaries/Output/"#name".vert.spv"
 #define AR_FRAG_SHADER_PATH(folder, name) "Engine/Shaders/"#folder"/Binaries/Output/"#name".frag.spv"
@@ -382,7 +383,8 @@ namespace Arcane {
 
 		Descriptor postProcessDescriptors[] = {
 			{ 0, DescriptorType::UniformBuffer },
-			{ 0, DescriptorType::CombinedImageSampler }
+			{ 0, DescriptorType::CombinedImageSampler },
+			{ 1, DescriptorType::CombinedImageSampler }
 		};
 
 		InputLayout postProcessInputLayout = {
@@ -395,7 +397,7 @@ namespace Arcane {
 
 		PipelineInfo postProcessPipelineInfo = PipelineInfo::CreateWithDefaultInfo();
 		postProcessPipelineInfo.Descriptors = postProcessDescriptors;
-		postProcessPipelineInfo.DescriptorCount = 2;
+		postProcessPipelineInfo.DescriptorCount = 3;
 		postProcessPipelineInfo.Layout = postProcessInputLayout;
 		postProcessPipelineInfo.VertexShader = vertexShaderBinary;
 		postProcessPipelineInfo.FragmentShader = fragmentShaderBinary;
@@ -425,6 +427,8 @@ namespace Arcane {
 		InitShadowPass();
 		InitLightPass();
 		InitPostProcessPass();
+
+		GUI::Init(sContext.GetWindow(), sContext, sRendererAPI);
 	}
 
 	void Renderer::Shutdown() {
@@ -498,6 +502,7 @@ namespace Arcane {
 
 	void Renderer::End() {
 		AR_PROFILE_FUNCTION();
+
 		const Vector2 size = sContext.GetWindow().GetClientSize();
 
 		sRendererAPI.SetViewport(size);
@@ -574,12 +579,19 @@ namespace Arcane {
 		}
 
 		{
+			AR_PROFILE_SCOPE("GUI Pass");
+			GUI::Draw();
+		}
+
+		{
 			AR_PROFILE_SCOPE("Post-Process Pass");
 			sRendererAPI.BeginRenderPass(sPostProcessRenderPass, sPostProcessFramebuffer);
 			sRendererAPI.Clear();
 
 			sPostProcessSettingsBuffer.SetData((const void*)&sPostProcessSettingsData);
 			sPostProcessPipeline.SetCombinedImageSampler(0, sLightFramebuffer.GetColorTexture(0), sDefaultSampler);
+			sPostProcessPipeline.SetCombinedImageSampler(1, GUI::GetOutputFramebuffer().GetColorTexture(0), sDefaultSampler);
+
 			sRendererAPI.SetMesh(sQuadMesh);
 			sRendererAPI.DrawIndexed(1, sQuadMesh.GetIndexBuffer().GetSize() / sPostProcessPipeline.GetElementSize());
 

@@ -132,10 +132,13 @@ namespace Arcane {
 		delete[] mDescriptors;
 	}
 
-	void OpenGLPipeline::SetUniformBuffer(uint32_t binding, const Ref<NativeBuffer> &uniformBuffer) {
+	void OpenGLPipeline::SetUniformBuffer(uint32_t binding, const Ref<NativeBuffer> &uniformBuffer, size_t offset, size_t size) {
 		AR_PROFILE_FUNCTION();
+		
 		mUniformBufferDescriptors[binding].binding = binding;
 		mUniformBufferDescriptors[binding].buffer = CastRef<OpenGLBuffer>(uniformBuffer)->GetOpenGLID();
+		mUniformBufferDescriptors[binding].offset = offset;
+		mUniformBufferDescriptors[binding].size = size;
 	}
 
 	void OpenGLPipeline::SetCombinedImageSampler(uint32_t binding, const Ref<NativeTexture> &texture, const Ref<NativeSampler> &sampler) {

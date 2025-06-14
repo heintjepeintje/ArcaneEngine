@@ -15,6 +15,7 @@ project "Game"
 		"../Engine/Source",
 		"../Engine/Libraries/glm",
 		"../Engine/Libraries/tracy/public",
+		"../Engine/Libraries/ImGui"
 	}
 
 	libdirs {

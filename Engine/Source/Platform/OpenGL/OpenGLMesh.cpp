@@ -42,15 +42,15 @@ namespace Arcane {
 		glDeleteVertexArrays(1, &mVertexArray);
 	}
 
-	void OpenGLMesh::SetVertexBuffer(uint32_t index, const InputLayout &layout, const Ref<NativeBuffer> &vertexBuffer) {
+	void OpenGLMesh::SetVertexBuffer(uint32_t index, const InputLayout &layout, const Ref<NativeBuffer> &vertexBuffer, size_t offset, size_t stride) {
 		AR_PROFILE_FUNCTION_GPU_CPU();
 		Ref<OpenGLBuffer> buffer = CastRef<OpenGLBuffer>(vertexBuffer);
 
 		mVertexBuffers.emplace(mVertexBuffers.begin() + index, vertexBuffer);
 
-		glVertexArrayVertexBuffer(mVertexArray, index, buffer->GetOpenGLID(), 0, layout.GetTotalSize());
+		glVertexArrayVertexBuffer(mVertexArray, index, buffer->GetOpenGLID(), offset, stride);
 
-		size_t offset = 0;
+		size_t relativeOffset = 0;
 		for (size_t i = 0; i < layout.GetElements().size(); i++) {
 			glEnableVertexArrayAttrib(mVertexArray, index + i);
 			glVertexArrayAttribFormat(
@@ -59,11 +59,11 @@ namespace Arcane {
 				GetInputElementTypeCount(layout.GetElements()[i]), 
 				GetInputElementOpenGLType(layout.GetElements()[i]), 
 				layout.GetElements()[i].Normalize ? GL_TRUE : GL_FALSE, 
-				offset
+				relativeOffset
 			);
 			glVertexArrayAttribBinding(mVertexArray, index + i, index);
 
-			offset += GetInputElementSize(layout.GetElements()[i]);
+			relativeOffset += GetInputElementSize(layout.GetElements()[i]);
 		}
 
 		mLayout.Append(layout);

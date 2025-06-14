@@ -5,6 +5,7 @@ layout (location = 0) in vec2 iUV;
 layout (location = 0) out vec3 oColor;
 
 layout (binding = 0) uniform sampler2D uTexture;
+layout (binding = 1) uniform sampler2D uGUITexture;
 
 layout (std140, binding = 0) uniform PostProcessSettings {
 	float Gamma;
@@ -13,6 +14,7 @@ layout (std140, binding = 0) uniform PostProcessSettings {
 
 void main() {
 	vec3 color = texture(uTexture, iUV).rgb;
+	vec4 guiColor = texture(uGUITexture, iUV);
 
 	// Exposure
 	vec3 mapped = vec3(1.0) - exp(-color * uSettings.Exposure);
@@ -21,5 +23,6 @@ void main() {
 	if (uSettings.Gamma != 0.0) {
 		mapped = pow(mapped, vec3(1.0 / uSettings.Gamma));
 	}
-	oColor = mapped;
+
+	oColor = vec3(guiColor.rgb);
 }

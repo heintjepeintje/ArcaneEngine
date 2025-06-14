@@ -25,11 +25,11 @@ namespace Arcane {
 		bitangents.SetData(data.Bitangents.data());
 		indices.SetData(data.Indices.data());
 
-		nativeMesh->SetVertexBuffer(0, { { InputAttribute::Position, 1, InputElementType::Vector3f32 } }, positions.GetNativeBuffer());
-		nativeMesh->SetVertexBuffer(1, { { InputAttribute::Normal, 1, InputElementType::Vector3f32 } }, normals.GetNativeBuffer());
-		nativeMesh->SetVertexBuffer(2, { { InputAttribute::UV, 1, InputElementType::Vector2f32 } }, uvs.GetNativeBuffer());
-		nativeMesh->SetVertexBuffer(3, { { InputAttribute::Tangent, 1, InputElementType::Vector3f32 } }, tangents.GetNativeBuffer());
-		nativeMesh->SetVertexBuffer(4, { { InputAttribute::Bitangent, 1, InputElementType::Vector3f32 } }, bitangents.GetNativeBuffer());
+		nativeMesh->SetVertexBuffer(0, { { InputAttribute::Position, 1, InputElementType::Vector3f32 } }, positions.GetNativeBuffer(), 0, 3 * sizeof(float));
+		nativeMesh->SetVertexBuffer(1, { { InputAttribute::Normal, 1, InputElementType::Vector3f32 } }, normals.GetNativeBuffer(), 0, 3 * sizeof(float));
+		nativeMesh->SetVertexBuffer(2, { { InputAttribute::UV, 1, InputElementType::Vector2f32 } }, uvs.GetNativeBuffer(), 0, 2 * sizeof(float));
+		nativeMesh->SetVertexBuffer(3, { { InputAttribute::Tangent, 1, InputElementType::Vector3f32 } }, tangents.GetNativeBuffer(), 0, 3 * sizeof(float));
+		nativeMesh->SetVertexBuffer(4, { { InputAttribute::Bitangent, 1, InputElementType::Vector3f32 } }, bitangents.GetNativeBuffer(), 0, 3 * sizeof(float));
 
 		nativeMesh->SetIndexBuffer(indices.GetNativeBuffer());
 

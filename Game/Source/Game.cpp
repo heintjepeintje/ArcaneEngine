@@ -1,49 +1,5 @@
 #include "Game.hpp"
 
-int32_t Server1Func(void *data) {
-	Socket server = Socket::Create();
-	server.Bind("127.0.0.1", 8080);
-	server.Listen(10);
-
-	Socket connection = server.Accept();
-	while (!connection.IsValid()) {
-		connection = server.Accept();
-		Thread::Sleep(10);
-	}
-
-	std::string message = "Hello from server 1!";
-
-	connection.Send(message.size());
-	connection.Send(message.c_str(), message.size());
-
-	connection.Close();
-	server.Close();
-
-	return 0;
-}
-
-int32_t Server2Func(void *data) {
-	Socket server = Socket::Create();
-	server.Bind("127.0.0.1", 8081);
-	server.Listen(10);
-
-	Socket connection = server.Accept();
-	while (!connection.IsValid()) {
-		connection = server.Accept();
-		Thread::Sleep(10);
-	}
-
-	std::string message = "Hello from server 2!";
-
-	connection.Send<size_t>(message.size());
-	connection.Send(message.c_str(), message.size());
-
-	connection.Close();
-	server.Close();
-
-	return 0;
-}
-
 Game::Game() {
 	mWindow = Window::Create(1920 / 2, 1080 / 2, "Arcane Engine");
 	mWindow.SetMaximized(true);
@@ -56,11 +12,37 @@ Game::Game() {
 	SceneRenderer::Init();
 }
 
-Game::~Game() {
-	
-}
+Game::~Game() { }
 
 void Game::Start() {
+	Socket socket = Socket::Create();
+	AR_ENGINE_DEBUG("Established connection to example.com");
+	socket.Connect("93.184.216.34", 80);
+
+	std::string request = "GET /index.html HTTP/1.1\r\n"
+					"Host: example.com\r\n"
+					"Connection: close\r\n"
+					"\r\n";
+
+	
+	socket.Send(request.c_str(), request.size());
+
+	AR_ENGINE_DEBUG("Waiting for data...");
+	Thread::Sleep(1000);
+
+	size_t bytesAvailable = socket.GetBytesAvailable();
+	char *buffer = new char[bytesAvailable + 1];
+
+	std::memset(buffer, 0, bytesAvailable + 1);
+
+	size_t bytesRead = socket.Receive(buffer, bytesAvailable);
+
+	printf("Data:\n%s\n", buffer);
+
+	socket.Close();
+
+	__debugbreak();
+
 	Importer imp;
 	imp.Import("Game/Assets/Models/dragon_floor.glb", ImportFlag_SwapWindingOrder | ImportFlag_GenerateNormals | ImportFlag_GenerateTangents);
 
@@ -170,6 +152,10 @@ void Game::Update() {
 		SetCursorLocked(false);
 		SetCursorVisible(true);
 	}
+}
+
+void Game::RenderUI() {
+	ImGui::ShowDemoWindow();
 }
 
 void Game::Render() {

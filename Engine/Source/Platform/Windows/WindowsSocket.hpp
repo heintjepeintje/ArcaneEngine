@@ -20,6 +20,7 @@ namespace Arcane {
 		virtual Ref<NativeSocket> Accept() override;
 		virtual void Send(const void *data, size_t size) override;
 		virtual size_t Receive(void *buffer, size_t size) override;
+		virtual size_t GetBytesAvailable() const override;
 
 		virtual bool IsValid() const override { return mSocket != INVALID_SOCKET; }
 

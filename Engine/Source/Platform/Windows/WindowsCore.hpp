@@ -34,6 +34,7 @@
 namespace Arcane {
 
 	Logger &GetWindowsLogger();
+	std::string GetWindowsErrorMessageString(int errorCode);
 
 } 
 

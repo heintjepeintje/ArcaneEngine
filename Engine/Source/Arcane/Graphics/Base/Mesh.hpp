@@ -21,7 +21,8 @@ namespace Arcane {
 		inline void operator=(const Mesh &other) { mNativeMesh = other.mNativeMesh; }
 		inline void operator=(Mesh &&other) { mNativeMesh = other.mNativeMesh; }
 
-		inline void SetVertexBuffer(uint32_t index, const InputLayout &layout, const Buffer &vertexBuffer) { GetNativeMesh()->SetVertexBuffer(index, layout, vertexBuffer.GetNativeBuffer()); }
+		inline void SetVertexBuffer(uint32_t index, const InputLayout &layout, const Buffer &vertexBuffer) { GetNativeMesh()->SetVertexBuffer(index, layout, vertexBuffer.GetNativeBuffer(), 0, layout.GetTotalSize()); }
+		inline void SetVertexBuffer(uint32_t index, const InputLayout &layout, const Buffer &vertexBuffer, size_t offset, size_t stride) { GetNativeMesh()->SetVertexBuffer(index, layout, vertexBuffer.GetNativeBuffer(), offset, stride); }
 		inline void SetIndexBuffer(const Buffer &indexBuffer) { GetNativeMesh()->SetIndexBuffer(indexBuffer.GetNativeBuffer()); }
 		inline Buffer GetVertexBuffer(uint32_t index) const { return GetNativeMesh()->GetVertexBuffer(index); }
 		inline Buffer GetIndexBuffer() const { return GetNativeMesh()->GetIndexBuffer(); }

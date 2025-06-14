@@ -259,7 +259,7 @@ namespace Arcane {
 		// Cleanup Vulkan pipeline resources here
 	}
 
-	void VulkanPipeline::SetUniformBuffer(uint32_t binding, const Ref<NativeBuffer> &uniformBuffer) {
+	void VulkanPipeline::SetUniformBuffer(uint32_t binding, const Ref<NativeBuffer> &uniformBuffer, size_t offset, size_t size) {
 		// Set uniform buffer logic
 	}
 

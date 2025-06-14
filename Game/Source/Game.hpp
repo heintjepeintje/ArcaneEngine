@@ -13,6 +13,7 @@ public:
 
 	virtual void Start() override;
 	virtual void Update() override;
+	virtual void RenderUI() override;
 	virtual void Render() override;
 	virtual void Stop() override;
 

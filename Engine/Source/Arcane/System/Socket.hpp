@@ -34,6 +34,8 @@ namespace Arcane {
 			GetNativeSocket()->Receive(&t, sizeof(_Type)); 
 			return t;
 		}
+
+		inline size_t GetBytesAvailable() const { return GetNativeSocket()->GetBytesAvailable(); }
 		
 		inline bool IsValid() const { return GetNativeSocket()->IsValid(); }
 

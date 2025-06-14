@@ -21,6 +21,7 @@ namespace Arcane {
 
 		virtual void Send(const void *data, size_t size) = 0;
 		virtual size_t Receive(void *buffer, size_t size) = 0;
+		virtual size_t GetBytesAvailable() const = 0;
 
 		virtual bool IsValid() const = 0;
 	};

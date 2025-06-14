@@ -143,7 +143,7 @@ namespace Arcane {
 
 		virtual const InputLayout &GetInputLayout() const = 0;
 
-		virtual void SetUniformBuffer(uint32_t binding, const Ref<NativeBuffer> &uniformBuffer) = 0;
+		virtual void SetUniformBuffer(uint32_t binding, const Ref<NativeBuffer> &uniformBuffer, size_t offset, size_t size) = 0;
 		virtual void SetCombinedImageSampler(uint32_t binding, const Ref<NativeTexture> &texture, const Ref<NativeSampler> &sampler) = 0;
 	};
 

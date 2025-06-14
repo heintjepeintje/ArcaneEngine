@@ -44,7 +44,7 @@ namespace Arcane {
 
 		virtual const InputLayout &GetInputLayout() const override { return mLayout; }
 
-		virtual void SetUniformBuffer(uint32_t binding, const Ref<NativeBuffer> &uniformBuffer) override;
+		virtual void SetUniformBuffer(uint32_t binding, const Ref<NativeBuffer> &uniformBuffer, size_t offset, size_t size) override;
 		virtual void SetCombinedImageSampler(uint32_t binding, const Ref<NativeTexture> &texture, const Ref<NativeSampler> &sampler) override;
 
 	private:

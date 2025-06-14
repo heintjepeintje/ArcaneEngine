@@ -76,7 +76,7 @@ namespace Arcane {
 
 	void OnOpenGLDebugMessage(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const void *userParam) {
 		switch (severity) {
-			case GL_DEBUG_SEVERITY_HIGH: AR_OPENGL_FATAL("%s", message); break;
+			case GL_DEBUG_SEVERITY_HIGH: AR_OPENGL_ASSERT(false, "%s", message); break;
 			case GL_DEBUG_SEVERITY_MEDIUM: AR_OPENGL_ERROR("%s", message); break;
 			// case GL_DEBUG_SEVERITY_LOW: AR_OPENGL_WARNING("%s", message); break;
 			case GL_DEBUG_SEVERITY_NOTIFICATION: AR_OPENGL_INFO("%s", message); break;

@@ -11,6 +11,8 @@ namespace Arcane {
 	struct OpenGLUniformBufferDescriptor {
 		uint32_t binding;
 		GLuint buffer;
+		size_t offset;
+		size_t size;
 	};
 
 	struct OpenGLCombinedImageSamplerDescriptor {
@@ -44,7 +46,7 @@ namespace Arcane {
 		inline virtual const InputLayout &GetInputLayout() const override { return mLayout; }
 		inline virtual uint32_t GetStageFlags() const override { return mStageFlags; }
 
-		virtual void SetUniformBuffer(uint32_t binding, const Ref<NativeBuffer> &uniformBuffer) override;
+		virtual void SetUniformBuffer(uint32_t binding, const Ref<NativeBuffer> &uniformBuffer, size_t offset, size_t size) override;
 		virtual void SetCombinedImageSampler(uint32_t binding, const Ref<NativeTexture> &texture, const Ref<NativeSampler> &sampler) override;
 		
 		inline size_t GetUniformBufferDescriptorCount() const { return mUniformBufferDescriptorCount; }

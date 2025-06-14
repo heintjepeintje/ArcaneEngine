@@ -32,7 +32,8 @@ namespace Arcane {
 		inline float GetPolygonOffsetFactor() const { return GetNativePipeline()->GetPolygonOffsetFactor(); }
 		inline float GetPolygonOffsetUnits() const { return GetNativePipeline()->GetPolygonOffsetUnits(); }
 
-		inline void SetUniformBuffer(uint32_t index, const Buffer &buffer) { GetNativePipeline()->SetUniformBuffer(index, buffer.GetNativeBuffer()); }
+		inline void SetUniformBuffer(uint32_t index, const Buffer &buffer) { GetNativePipeline()->SetUniformBuffer(index, buffer.GetNativeBuffer(), 0, buffer.GetSize()); }
+		inline void SetUniformBuffer(uint32_t index, const Buffer &buffer, size_t offset, size_t size) { GetNativePipeline()->SetUniformBuffer(index, buffer.GetNativeBuffer(), offset, size); }
 		inline void SetCombinedImageSampler(uint32_t index, const Texture &texture, const Sampler &sampler) { GetNativePipeline()->SetCombinedImageSampler(index, texture.GetNativeTexture(), sampler.GetNativeSampler()); }
 
 		inline Ref<NativePipeline> GetNativePipeline() const {

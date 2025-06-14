@@ -3,6 +3,7 @@
 #include <Arcane/Core.hpp>
 #include <Arcane/System/Time.hpp>
 #include <Arcane/System/Input.hpp>
+#include <Arcane/GUI/GUI.hpp>
 
 namespace Arcane {
 
@@ -13,6 +14,7 @@ namespace Arcane {
 
 		virtual void Start() { }
 		virtual void Update() { }
+		virtual void RenderUI() { }
 		virtual void Render() { }
 		virtual void Stop() { }
 
@@ -33,6 +35,15 @@ int main(int argc, char **argv) {
 			AR_PROFILE_SCOPE("Application::Update");
 			app->Update();
 		}
+
+		{
+			AR_PROFILE_SCOPE("Application::RenderUI");
+			Arcane::GUI::BeginFrame();
+			app->RenderUI();
+			Arcane::GUI::EndFrame();
+		}
+		
+		
 		{
 			AR_PROFILE_SCOPE("Application::Render");
 			app->Render();

@@ -35,7 +35,7 @@ namespace Arcane {
 
 		virtual void SetMesh(const Ref<NativeMesh> &mesh) override;
 		virtual void SetPipeline(const Ref<NativePipeline> &pipeline) override;
-		virtual void DrawIndexed(uint32_t instances, uint32_t count) override;
+		virtual void DrawIndexed(uint32_t instances, uint32_t count, size_t idxOffset, size_t vtxOffset) override;
 
 		virtual FrameStatistics GetFrameStatistics() const override;
 
