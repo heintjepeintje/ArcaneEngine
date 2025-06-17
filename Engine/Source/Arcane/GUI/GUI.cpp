@@ -37,8 +37,8 @@ namespace Arcane::GUI {
 		sContext = context;
 		sRendererAPI = rendererAPI;
 
-		CompileShader(sContext.GetGraphicsAPI(), "Engine/Shaders/UI/Source/UIShader.vert", "Engine/Shaders/UI/Binaries/Output/UIShader.vert.spv");
-		CompileShader(sContext.GetGraphicsAPI(), "Engine/Shaders/UI/Source/UIShader.frag", "Engine/Shaders/UI/Binaries/Output/UIShader.frag.spv");
+		CompileShader(sContext, "Engine/Shaders/UI/Source/UIShader.vert", "Engine/Shaders/UI/Binaries/Output/UIShader.vert.spv");
+		CompileShader(sContext, "Engine/Shaders/UI/Source/UIShader.frag", "Engine/Shaders/UI/Binaries/Output/UIShader.frag.spv");
 
 		ImGui::CreateContext();
 		sIO = &ImGui::GetIO();

@@ -21,6 +21,9 @@ namespace Arcane {
 		inline void SetData(size_t offset, size_t size, const void *data) { GetNativeBuffer()->SetData(offset, size, data); }
 		inline void SetData(size_t size, const void *data) { GetNativeBuffer()->SetData(0, size, data); }
 		inline void SetData(const void *data) { GetNativeBuffer()->SetData(0, mNativeBuffer->GetSize(), data); }
+
+		template<typename _Type>
+		inline void SetData(const _Type &data) { GetNativeBuffer()->SetData(0, sizeof(_Type), &data); }
 		
 		inline void Resize(size_t size) { GetNativeBuffer()->Resize(size); }
 		inline size_t GetSize() const { return GetNativeBuffer()->GetSize(); }
