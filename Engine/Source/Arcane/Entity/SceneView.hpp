@@ -3,6 +3,7 @@
 #include "Scene.hpp"
 #include "Entity.hpp"
 #include <iostream>
+#include <functional>
 
 namespace Arcane {
 
@@ -67,6 +68,38 @@ namespace Arcane {
 			}
 		}
 
+		inline void ForEach(const std::function<void(Entity e, _Types &...)> &func) {
+			for (EntityID i = 0; i < mScene->GetMaxEntityID(); i++) {
+				if (!mScene->IsEntity(i)) continue;
+				if (mMask != (mMask & mScene->GetEntityComponentMask(i))) continue;
+				
+				Entity entity(i, *mScene);
+				func(entity, mScene->GetComponent<_Types>(i)...);
+			}
+		}
+
+		inline void ForEach(const std::function<void(_Types &...)> &func) {
+			for (EntityID i = 0; i < mScene->GetMaxEntityID(); i++) {
+				if (!mScene->IsEntity(i)) continue;
+				if (mMask != (mMask & mScene->GetEntityComponentMask(i))) continue;
+				
+				func(mScene->GetComponent<_Types>(i)...);
+			}
+		}
+
+		inline Entity FindFirst(const std::function<bool(Entity e, _Types &...)> &condition) {
+			for (EntityID i = 0; i < mScene->GetMaxEntityID(); i++) {
+				if (!mScene->IsEntity(i)) continue;
+				if (mMask != (mMask & mScene->GetEntityComponentMask(i))) continue;
+				
+				Entity entity(i, *mScene);
+				if (condition(entity, entity.Get<_Types>()...)) {
+					return entity;
+				}
+			}
+			return Entity(AR_INVALID_ENTITY_ID, *mScene);
+		}
+
 		inline SceneIterator begin() {
 			EntityID first = 0;
 			while (
@@ -84,6 +117,7 @@ namespace Arcane {
 		}
 
 		inline uint32_t GetCount() const { return mCount; }
+		inline std::bitset<AR_MAX_COMPONENTS> GetComponentMask() const { return mMask; }
 
 	private:
 		uint32_t mCount;

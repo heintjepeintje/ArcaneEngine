@@ -14,37 +14,37 @@ namespace Arcane {
 
 		template<typename _Type, typename ..._Args>
 		_Type &Add(_Args &&...args) {
-			AR_ASSERT(mScene != nullptr, "Scene of entity %u is nullptr", mID);
+			AR_ASSERT(mScene != nullptr, "Scene of entity {} is nullptr", mID);
 			return mScene->AddComponent<_Type>(mID, std::forward<_Args>(args)...);
 		}
 
 		template<typename _Type>
 		_Type &Add(_Type &&t) {
-			AR_ASSERT(mScene != nullptr, "Scene of entity %u is nullptr", mID);
+			AR_ASSERT(mScene != nullptr, "Scene of entity {} is nullptr", mID);
 			return mScene->AddComponent<_Type>(mID, std::forward<_Type>(t));
 		}
 
 		template<typename _Type>
 		void Remove() {
-			AR_ASSERT(mScene != nullptr, "Scene of entity %u is nullptr", mID);
+			AR_ASSERT(mScene != nullptr, "Scene of entity {} is nullptr", mID);
 			mScene->RemoveComponent<_Type>(mID);
 		}
 
-		template<typename _Type>
+		template<typename ..._Types>
 		bool Has() const {
-			AR_ASSERT(mScene != nullptr, "Scene of entity %u is nullptr", mID);
-			return mScene->HasComponent<_Type>(mID);
+			AR_ASSERT(mScene != nullptr, "Scene of entity {} is nullptr", mID);
+			return mScene->HasComponents<_Types...>(mID);
 		}
 
 		template<typename _Type>
 		_Type &Get() {
-			AR_ASSERT(mScene != nullptr, "Scene of entity %u is nullptr", mID);
+			AR_ASSERT(mScene != nullptr, "Scene of entity {} is nullptr", mID);
 			return mScene->GetComponent<_Type>(mID);
 		}
 
 		template<typename _Type>
 		const _Type &Get() const {
-			AR_ASSERT(mScene != nullptr, "Scene of entity %u is nullptr", mID);
+			AR_ASSERT(mScene != nullptr, "Scene of entity {} is nullptr", mID);
 			return mScene->GetComponent<_Type>(mID);
 		}
 

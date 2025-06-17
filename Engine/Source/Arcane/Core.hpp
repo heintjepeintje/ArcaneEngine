@@ -26,7 +26,8 @@
 #else 
 #	define AR_PROFILE_FUNCTION()
 #	define AR_PROFILE_SCOPE(name)
-#	define AR_PROFILE_FRAME()
+#	define AR_PROFILE_FRAME_START()
+#	define AR_PROFILE_FRAME_END()
 #endif
 
 #define AR_BIT(x) (1 << x)

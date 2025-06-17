@@ -6,12 +6,12 @@ namespace Arcane {
 		AR_PROFILE_FUNCTION_GPU_CPU();
 		
 		AR_ASSERT(mWidth != 0 && mHeight != 0, "Framebuffer size cannot be 0\n");
-		AR_ASSERT(mSamples <= context->GetGraphicsLimits().MaxFramebufferSamples, "Framebuffer exceeds maximum sample count: %u > %u\n", mSamples, context->GetGraphicsLimits().MaxFramebufferSamples);
+		AR_ASSERT(mSamples <= context->GetGraphicsLimits().MaxFramebufferSamples, "Framebuffer exceeds maximum sample count: {} > {}\n", mSamples, context->GetGraphicsLimits().MaxFramebufferSamples);
 		
 		AR_ASSERT(
 			mWidth <= mContext->GetGraphicsLimits().MaxFramebufferWidth &&
 			mHeight <= mContext->GetGraphicsLimits().MaxFramebufferHeight,
-			"Framebuffer is too big (%ux%u). Maximum size is %ux%u",
+			"Framebuffer is too big ({}x{}). Maximum size is {}x{}",
 			mWidth, mHeight,
 			mContext->GetGraphicsLimits().MaxFramebufferWidth, mContext->GetGraphicsLimits().MaxFramebufferHeight
 		);
@@ -38,7 +38,7 @@ namespace Arcane {
 		mColorTextureCount = drawBufferCount;
 		mColorTextures = new Ref<OpenGLTexture>[mColorTextureCount];
 		
-		AR_ASSERT(drawBufferCount <= mContext->GetGraphicsLimits().MaxDrawBuffers, "Framebuffer exceeds maximum draw buffer count: %u > %u\n", drawBufferCount, mContext->GetGraphicsLimits().MaxDrawBuffers);
+		AR_ASSERT(drawBufferCount <= mContext->GetGraphicsLimits().MaxDrawBuffers, "Framebuffer exceeds maximum draw buffer count: {} > {}\n", drawBufferCount, mContext->GetGraphicsLimits().MaxDrawBuffers);
 		
 		uint32_t nextColorAttachmentIndex = 0;
 		
@@ -108,7 +108,7 @@ namespace Arcane {
 		AR_ASSERT(
 			mWidth <= mContext->GetGraphicsLimits().MaxFramebufferWidth &&
 			mHeight <= mContext->GetGraphicsLimits().MaxFramebufferHeight,
-			"Framebuffer is too big (%ux%u). Maximum size is %ux%u", 
+			"Framebuffer is too big ({}x{}). Maximum size is {}x{}", 
 			mWidth, mHeight,
 			mContext->GetGraphicsLimits().MaxFramebufferWidth, mContext->GetGraphicsLimits().MaxFramebufferHeight
 		);
@@ -154,8 +154,8 @@ namespace Arcane {
 	}
 
 	Ref<NativeTexture> OpenGLFramebuffer::GetColorTexture(uint32_t index) {
-		AR_ASSERT(index < mColorTextureCount, "Framebuffer color texture index is out of range: %u >= %u\n", index, mColorTextureCount);
-		AR_ASSERT(mColorTextures[index], "Framebufer color texture is invalid at index: %u\n", index);
+		AR_ASSERT(index < mColorTextureCount, "Framebuffer color texture index is out of range: {} >= {}\n", index, mColorTextureCount);
+		AR_ASSERT(mColorTextures[index], "Framebufer color texture is invalid at index: {}\n", index);
 		return CastRef<NativeTexture>(mColorTextures[index]);
 	}
 

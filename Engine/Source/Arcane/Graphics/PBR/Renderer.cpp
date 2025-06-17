@@ -238,25 +238,19 @@ namespace Arcane {
 			{ InputAttribute::Bitangent, 1, InputElementType::Vector3f32, false },
 		};
 		
-		ShaderBinary vertexShaderBinary = ReadShaderBinary(AR_GEOMETRY_VERTEX_SHADER_PATH);
-		ShaderBinary fragmentShaderBinary = ReadShaderBinary(AR_GEOMETRY_FRAGMENT_SHADER_PATH);
-		
 		PipelineInfo geometryPipelineInfo = PipelineInfo::CreateWithDefaultInfo();
 		geometryPipelineInfo.CullMode = CullMode::None;
 		geometryPipelineInfo.Descriptors = geometryDescriptors;
 		geometryPipelineInfo.DescriptorCount = 8;
 		geometryPipelineInfo.Layout = geometryInputLayout;
-		geometryPipelineInfo.VertexShader = vertexShaderBinary;
-		geometryPipelineInfo.FragmentShader = fragmentShaderBinary;
+		geometryPipelineInfo.VertexShaderBinary = ReadFileBinary(AR_GEOMETRY_VERTEX_SHADER_PATH);
+		geometryPipelineInfo.FragmentShaderBinary = ReadFileBinary(AR_GEOMETRY_FRAGMENT_SHADER_PATH);
 		geometryPipelineInfo.SampleCount = AR_PBR_SAMPLE_COUNT;
 
 		sGeometryPipeline = Pipeline::Create(sContext, geometryPipelineInfo);
 		sGeometryPipeline.SetUniformBuffer(0, sCameraBuffer);
 		sGeometryPipeline.SetUniformBuffer(1, sObjectBuffer);
 		sGeometryPipeline.SetUniformBuffer(2, sShadowPassBuffer);
-
-		free(vertexShaderBinary.Data);
-		free(fragmentShaderBinary.Data);
 
 		sGeometryRenderPass = RenderPass::Create(sContext, sGeometryPipeline, geometryAttachments, 6);
 	}
@@ -287,16 +281,13 @@ namespace Arcane {
 			{ InputAttribute::Bitangent, 1, InputElementType::Vector3f32, false },
 		};
 
-		ShaderBinary vertexShaderBinary = ReadShaderBinary(AR_SHADOW_VERTEX_SHADER_PATH);
-		ShaderBinary fragmentShaderBinary = ReadShaderBinary(AR_SHADOW_FRAGMENT_SHADER_PATH);
-
 		PipelineInfo shadowPipelineInfo = PipelineInfo::CreateWithDefaultInfo();
 		shadowPipelineInfo.CullMode = CullMode::None;
 		shadowPipelineInfo.Descriptors = shadowDescriptors;
 		shadowPipelineInfo.DescriptorCount = 2;
 		shadowPipelineInfo.Layout = shadowInputLayout;
-		shadowPipelineInfo.VertexShader = vertexShaderBinary;
-		shadowPipelineInfo.FragmentShader = fragmentShaderBinary;
+		shadowPipelineInfo.VertexShaderBinary = ReadFileBinary(AR_SHADOW_VERTEX_SHADER_PATH);
+		shadowPipelineInfo.FragmentShaderBinary = ReadFileBinary(AR_SHADOW_FRAGMENT_SHADER_PATH);
 		shadowPipelineInfo.Viewport.Size = Vector2(AR_PBR_SHADOW_MAP_WIDTH, AR_PBR_SHADOW_MAP_HEIGHT);
 		shadowPipelineInfo.Scissor.Size = Vector2(AR_PBR_SHADOW_MAP_WIDTH, AR_PBR_SHADOW_MAP_HEIGHT);
 		shadowPipelineInfo.SampleCount = AR_PBR_SAMPLE_COUNT;
@@ -304,9 +295,6 @@ namespace Arcane {
 		sShadowPipeline = Pipeline::Create(sContext, shadowPipelineInfo);
 		sShadowPipeline.SetUniformBuffer(0, sObjectBuffer);
 		sShadowPipeline.SetUniformBuffer(1, sShadowPassBuffer);
-
-		free(vertexShaderBinary.Data);
-		free(fragmentShaderBinary.Data);
 
 		sShadowPass = RenderPass::Create(sContext, sShadowPipeline, shadowAttachments, 1);
 	}
@@ -344,23 +332,17 @@ namespace Arcane {
 			{ InputAttribute::UV, 1, InputElementType::Vector2f32, false },	
 		};
 
-		ShaderBinary vertexShaderBinary = ReadShaderBinary(AR_LIGHT_VERTEX_SHADER_PATH);
-		ShaderBinary fragmentShaderBinary = ReadShaderBinary(AR_LIGHT_FRAGMENT_SHADER_PATH);
-
 		PipelineInfo lightPipelineInfo = PipelineInfo::CreateWithDefaultInfo();
 		lightPipelineInfo.Descriptors = lightDescriptors;
 		lightPipelineInfo.DescriptorCount = 8;
 		lightPipelineInfo.Layout = lightInputLayout;
-		lightPipelineInfo.VertexShader = vertexShaderBinary;
-		lightPipelineInfo.FragmentShader = fragmentShaderBinary;
+		lightPipelineInfo.VertexShaderBinary = ReadFileBinary(AR_LIGHT_VERTEX_SHADER_PATH);
+		lightPipelineInfo.FragmentShaderBinary = ReadFileBinary(AR_LIGHT_FRAGMENT_SHADER_PATH);
 		lightPipelineInfo.SampleCount = AR_PBR_SAMPLE_COUNT;
 
 		sLightPipeline = Pipeline::Create(sContext, lightPipelineInfo);
 		sLightPipeline.SetUniformBuffer(0, sCameraBuffer);
 		sLightPipeline.SetUniformBuffer(1, sLightBuffer);
-
-		free(vertexShaderBinary.Data);
-		free(fragmentShaderBinary.Data);
 
 		sLightRenderPass = RenderPass::Create(sContext, sLightPipeline, lightAttachments, 2);
 	}
@@ -392,22 +374,16 @@ namespace Arcane {
 			{ InputAttribute::UV, 1, InputElementType::Vector2f32, false },
 		};
 
-		ShaderBinary vertexShaderBinary = ReadShaderBinary(AR_POST_PROCESS_VERTEX_SHADER_PATH);
-		ShaderBinary fragmentShaderBinary = ReadShaderBinary(AR_POST_PROCESS_FRAGMENT_SHADER_PATH);
-
 		PipelineInfo postProcessPipelineInfo = PipelineInfo::CreateWithDefaultInfo();
 		postProcessPipelineInfo.Descriptors = postProcessDescriptors;
 		postProcessPipelineInfo.DescriptorCount = 3;
 		postProcessPipelineInfo.Layout = postProcessInputLayout;
-		postProcessPipelineInfo.VertexShader = vertexShaderBinary;
-		postProcessPipelineInfo.FragmentShader = fragmentShaderBinary;
+		postProcessPipelineInfo.VertexShaderBinary = ReadFileBinary(AR_POST_PROCESS_VERTEX_SHADER_PATH);
+		postProcessPipelineInfo.FragmentShaderBinary = ReadFileBinary(AR_POST_PROCESS_FRAGMENT_SHADER_PATH);
 		postProcessPipelineInfo.SampleCount = AR_PBR_SAMPLE_COUNT;
 
 		sPostProcessPipeline = Pipeline::Create(sContext, postProcessPipelineInfo);
 		sPostProcessPipeline.SetUniformBuffer(0, sPostProcessSettingsBuffer);
-
-		free(vertexShaderBinary.Data);
-		free(fragmentShaderBinary.Data);
 
 		sPostProcessRenderPass = RenderPass::Create(sContext, sPostProcessPipeline, postProcessAttachments, 2);
 	}
@@ -437,6 +413,8 @@ namespace Arcane {
 
 	void Renderer::Reload() {
 		AR_PROFILE_FUNCTION();
+
+		CompileShaders();
 
 		InitGeometryPass();
 		InitShadowPass();

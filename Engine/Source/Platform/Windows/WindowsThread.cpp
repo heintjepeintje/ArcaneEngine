@@ -32,6 +32,25 @@ namespace Arcane {
 		::Sleep(millis);
 	}
 
+	WindowsMutex::WindowsMutex() {
+		mMutex = CreateMutexA(NULL, FALSE, nullptr);
+		AR_ASSERT(mMutex != nullptr, "Failed to create mutex: %s", GetWindowsErrorMessageString(GetLastError()).c_str());
+	}
+
+	WindowsMutex::~WindowsMutex() {
+		CloseHandle(mMutex);
+	}
+
+	void WindowsMutex::Lock() {
+		DWORD result = WaitForSingleObject(mMutex, INFINITE);
+		AR_ASSERT(result == WAIT_OBJECT_0, "Failed to lock mutex: %s", GetWindowsErrorMessageString(GetLastError()).c_str());
+	}
+
+	void WindowsMutex::Unlock() {
+		BOOL result = ReleaseMutex(mMutex);
+		AR_ASSERT(result, "Failed to unlock mutex: %s", GetWindowsErrorMessageString(GetLastError()).c_str());
+	}
+
 	WindowsThread::WindowsThread(ThreadFunc func, void *data) {
 		mThread = CreateThread(
 			nullptr,
@@ -67,12 +86,6 @@ namespace Arcane {
 		DWORD exitCode = 0;
 		GetExitCodeThread(mThread, &exitCode);
 		return exitCode;
-	}
-
-	Ref<NativeThread> NativeThread::Create(ThreadFunc func, void *data) {
-		return CastRef<NativeThread>(CreateRef<WindowsThread>(
-			func, data
-		));
 	}
 
 }

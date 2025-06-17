@@ -52,8 +52,8 @@ namespace Arcane {
 
 		uint32_t outputChannels = ImageFormatToChannels(data.Format);
 
-		data.Data = malloc(width * height * outputChannels);
-		memcpy(data.Data, pixels, width * height * outputChannels);
+		data.Data = AllocateBuffer(width * height * outputChannels);
+		memcpy(data.Data.GetPointer(), pixels, width * height * outputChannels);
 		stbi_image_free((void*)pixels);
 
 		return data;
@@ -74,8 +74,8 @@ namespace Arcane {
 				(uint8_t)Round(Clamp(color.A, 0.0f, 1.0f) * 255.0f),
 			};
 
-			output.Data = malloc(4 * sizeof(uint8_t));
-			std::memcpy(output.Data, colorBytes, 4 * sizeof(uint8_t));
+			output.Data = AllocateBuffer(4 * sizeof(uint8_t));
+			std::memcpy(output.Data.GetPointer(), colorBytes, 4 * sizeof(uint8_t));
 		} else if (format == ImageFormat::RGB8) {
 			output.Width = 1;
 			output.Height = 1;
@@ -87,8 +87,8 @@ namespace Arcane {
 				(uint8_t)Round(Clamp(color.B, 0.0f, 1.0f) * 255.0f),
 			};
 
-			output.Data = malloc(3 * sizeof(uint8_t));
-			std::memcpy(output.Data, colorBytes, 3 * sizeof(uint8_t));
+			output.Data = AllocateBuffer(3 * sizeof(uint8_t));
+			std::memcpy(output.Data.GetPointer(), colorBytes, 3 * sizeof(uint8_t));
 		}
 
 		return output;
@@ -111,7 +111,7 @@ namespace Arcane {
 				}
 			}
 
-			memcpy(data.Data, flipped, data.Width * data.Height * pixelSize);
+			memcpy(data.Data.GetPointer(), flipped, data.Width * data.Height * pixelSize);
 			return;
 		}
 	}
@@ -133,13 +133,13 @@ namespace Arcane {
 				);
 			}
 
-			memcpy(data.Data, flipped, data.Width * data.Height * pixelSize);
+			memcpy(data.Data.GetPointer(), flipped, data.Width * data.Height * pixelSize);
 			delete[] flipped;
 		}
 	}
 
 	static void ImageProcessInvert(ImageData &data) {
-		uint32_t *rawData = (uint32_t*)data.Data;
+		uint32_t *rawData = data.Data.GetPointerAs<uint32_t>();
 		if (data.Format == ImageFormat::RGBA8) {
 			for (uint32_t i = 0; i < data.Width * data.Height; i++) {
 				uint8_t alpha = (rawData[i] & 0x000000FF);

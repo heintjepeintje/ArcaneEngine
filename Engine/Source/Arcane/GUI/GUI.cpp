@@ -12,6 +12,8 @@
 
 #include <Arcane/Graphics/Base/RendererAPI.hpp>
 
+#include <Arcane/System/Memory.hpp>
+
 namespace Arcane::GUI {
 
 	static ImGuiIO *sIO;
@@ -75,12 +77,15 @@ namespace Arcane::GUI {
 		int width, height;
 		sIO->Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 
+		BufferRef fontBuffer = AllocateBuffer(width * height * sizeof(uint32_t));
+		CopyMemory(fontBuffer.GetPointer(), pixels, fontBuffer.GetSize());
+
 		ImageData imageData{};
 		imageData.Width = static_cast<uint32_t>(width);
 		imageData.Height = static_cast<uint32_t>(height);
 		imageData.Depth = 1;
 		imageData.Format = ImageFormat::RGBA8U;
-		imageData.Data = reinterpret_cast<void*>(pixels);
+		imageData.Data = fontBuffer;
 
 		TextureInfo textureInfo{};
 		textureInfo.Type = TextureType::Texture2D;
@@ -116,25 +121,22 @@ namespace Arcane::GUI {
 			{ 0, DescriptorType::CombinedImageSampler }
 		};
 		
-		ShaderBinary vertexShaderBinary = ReadShaderBinary("Engine/Shaders/UI/Binaries/Output/UIShader.vert.spv");
-		ShaderBinary fragmentShaderBinary = ReadShaderBinary("Engine/Shaders/UI/Binaries/Output/UIShader.frag.spv");
+		BufferRef vertexShaderBinary = ReadFileBinary("Engine/Shaders/UI/Binaries/Output/UIShader.vert.spv");
+		BufferRef fragmentShaderBinary = ReadFileBinary("Engine/Shaders/UI/Binaries/Output/UIShader.frag.spv");
 		
 		PipelineInfo pipelineInfo = PipelineInfo::CreateWithDefaultInfo();
 		pipelineInfo.CullMode = CullMode::None;
 		pipelineInfo.Descriptors = descriptors;
 		pipelineInfo.DescriptorCount = 2;
 		pipelineInfo.Layout = inputLayout;
-		pipelineInfo.VertexShader = vertexShaderBinary;
-		pipelineInfo.FragmentShader = fragmentShaderBinary;
+		pipelineInfo.VertexShaderBinary = vertexShaderBinary;
+		pipelineInfo.FragmentShaderBinary = fragmentShaderBinary;
 		pipelineInfo.SampleCount = 1;
 		pipelineInfo.PrimitiveRestart = false;
 		pipelineInfo.ElementSize = sizeof(ImDrawIdx);
 
 		sPipeline = Pipeline::Create(sContext, pipelineInfo);
 		sPipeline.SetUniformBuffer(0, sUniformBuffer);
-
-		free(vertexShaderBinary.Data);
-		free(fragmentShaderBinary.Data);
 
 		sRenderPass = RenderPass::Create(sContext, sPipeline, attachments, 1);
 	}

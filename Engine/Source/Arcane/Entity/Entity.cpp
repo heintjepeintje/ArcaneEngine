@@ -6,10 +6,10 @@ namespace Arcane {
 		mScene = GetCurrentScene();
 		if (mScene == nullptr) {
 			mID = AR_INVALID_ENTITY_ID;
+			return;
 		}
-		else {
-			mID = mScene->CreateEntity();
-		}
+		
+		mID = mScene->CreateEntity();
 	}
 
 	Entity::Entity(Scene &scene) {

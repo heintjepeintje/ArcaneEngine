@@ -15,34 +15,6 @@ Game::Game() {
 Game::~Game() { }
 
 void Game::Start() {
-	Socket socket = Socket::Create();
-	AR_ENGINE_DEBUG("Established connection to example.com");
-	socket.Connect("93.184.216.34", 80);
-
-	std::string request = "GET /index.html HTTP/1.1\r\n"
-					"Host: example.com\r\n"
-					"Connection: close\r\n"
-					"\r\n";
-
-	
-	socket.Send(request.c_str(), request.size());
-
-	AR_ENGINE_DEBUG("Waiting for data...");
-	Thread::Sleep(1000);
-
-	size_t bytesAvailable = socket.GetBytesAvailable();
-	char *buffer = new char[bytesAvailable + 1];
-
-	std::memset(buffer, 0, bytesAvailable + 1);
-
-	size_t bytesRead = socket.Receive(buffer, bytesAvailable);
-
-	printf("Data:\n%s\n", buffer);
-
-	socket.Close();
-
-	__debugbreak();
-
 	Importer imp;
 	imp.Import("Game/Assets/Models/dragon_floor.glb", ImportFlag_SwapWindingOrder | ImportFlag_GenerateNormals | ImportFlag_GenerateTangents);
 
@@ -80,33 +52,25 @@ void Game::Start() {
 	boxMaterial.RoughnessMap = Texture::Create(mContext, roughnessMap);
 	boxMaterial.AmbientOcclusionMap = Texture::Create(mContext, aoTexture);
 	
-	free(colorTexture.Data);
-	free(normalMap.Data);
-	free(grayImage.Data);
-	free(roughnessMap.Data);
-	free(aoTexture.Data);
-	
 	Transform &boxTransform = mBox.Add<Transform>();
 	boxTransform.Position = { 0.0f, 3.0f, 0.0f };
 
 	mPlayer = Entity();
-	mPlayer.Add<Tag>(Tag("Camera"));
+	mPlayer.Add<Tag>("Camera");
 
 	RenderCamera &renderCamera = mPlayer.Add<RenderCamera>(Camera3D(90.0f, mWindow.GetClientSize(), 0.0001f, 10000.0f));
 	mPlayer.Add<PointLight>(PointLight(Color::Red(), 10.0f));
 	mPlayer.Add<Transform>();
-	GetCurrentScene()->SetMainEntity(mPlayer.GetID());
 
+	renderCamera.SetActive(true);
 	renderCamera.GetCamera().Front = Vector3(0, 0, 1);
 	
 	mWindow.SetVisible(true);
 	
 	mSun = Entity();
-	mSun.Add<Tag>(Tag("DirLight"));
+	mSun.Add<Tag>("Sun");
 	mSun.Add<DirectionalLight>(Color::Gray());
 	mSun.Add<Transform>(Vector3::Zero(), Vector3(-45.0f, 0.0f, 0.0f));
-
-	float x = 0.0f;
 }
 
 void Game::Update() {

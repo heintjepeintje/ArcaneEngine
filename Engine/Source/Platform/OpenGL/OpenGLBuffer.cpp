@@ -56,7 +56,7 @@ namespace Arcane {
 
 	void OpenGLBuffer::SetData(size_t offset, size_t size, const void *data) {
 		AR_PROFILE_FUNCTION_GPU_CPU();
-		AR_ASSERT(offset + size <= mSize, "Offset + size cannot be larger than buffer size %u + %u > %u\n", offset, size, mSize);
+		AR_ASSERT(offset + size <= mSize, "Offset + size cannot be larger than buffer size {} + {} > {}\n", offset, size, mSize);
 		
 		glNamedBufferSubData(mBuffer, offset, size, data);
 	}

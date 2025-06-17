@@ -9,9 +9,13 @@
 #include <Arcane/Native/NativeRenderPass.hpp>
 #include <Arcane/Native/NativeTexture.hpp>
 #include <Arcane/Native/NativeWindow.hpp>
+#include <Arcane/Native/NativeThread.hpp>
 
+#ifdef _WIN32
 #include <Platform/Windows/Win32Window.hpp>
 #include <Platform/Windows/WindowsSocket.hpp>
+#include <Platform/Windows/WindowsThread.hpp>
+#endif
 
 #include <Platform/OpenGL/OpenGLBuffer.hpp>
 #include <Platform/OpenGL/OpenGLFramebuffer.hpp>
@@ -39,6 +43,24 @@ namespace Arcane {
 		return CastRef<NativeSocket>(CreateRef<WindowsSocket>());
 #else
 		return Ref<NativeSocket>::Invalid();
+#endif
+	}
+
+	Ref<NativeMutex> NativeMutex::Create() {
+#ifdef _WIN32
+		return CastRef<NativeMutex>(CreateRef<WindowsMutex>());
+#else
+		return Ref<NativeMutex>::Invalid();
+#endif
+	}
+
+	Ref<NativeThread> NativeThread::Create(ThreadFunc func, void *data) {
+#ifdef _WIN32
+		return CastRef<NativeThread>(CreateRef<WindowsThread>(
+			func, data
+		));
+#else
+		return Ref<NativeThread>::Invalid();
 #endif
 	}
 

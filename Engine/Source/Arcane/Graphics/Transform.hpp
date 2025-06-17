@@ -11,6 +11,16 @@ namespace Arcane {
 		Transform(const Vector3 &position, const Vector3 &rotation) : Position(position), Rotation(rotation), Scale(1) { }
 		~Transform() { }
 
+		inline Vector3 GetDirection() {
+			Vector3 direction = {
+				Cos(ToRadians(Rotation.Y)) * Cos(ToRadians(Rotation.X)),
+				Sin(ToRadians(Rotation.X)),
+				Sin(ToRadians(Rotation.Y)) * Cos(ToRadians(Rotation.X))
+			};
+			
+			return Vector3::Normalize(direction);
+		}
+
 		inline Matrix4 GetModelMatrix() const {
 			Matrix4 modelMatrix = Matrix4::Identity();
 			modelMatrix = Matrix4::Translate(modelMatrix, Position);

@@ -26,11 +26,15 @@ namespace Arcane {
 		inline Color GetBackgroundColor() const { return mBackgroundColor; }
 		inline void SetBackgroundColor(const Color &color) { mBackgroundColor = color; }
 
+		inline void SetActive(bool active) { mIsActive = active; }
+		inline bool IsActive() const { return mIsActive; }
+
 	private:
 		Camera3D mCamera;
 		float mGamma = 2.2f;
 		float mExposure = 1.0f;
 		Color mBackgroundColor = Color::Black();
+		bool mIsActive = true;
 	};
 
 }

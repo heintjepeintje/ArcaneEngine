@@ -59,7 +59,7 @@ namespace Arcane {
 			glPolygonOffset(mPipeline->GetPolygonOffsetFactor(), mPipeline->GetPolygonOffsetUnits());
 		}
 
-		AR_OPENGL_ASSERT(mFramebuffer->GetSampleCount() == mPipeline->GetSampleCount(), "Framebuffer sample count does not match pipeline sample count: %u != %u", mFramebuffer->GetSampleCount(), mPipeline->GetSampleCount());
+		AR_OPENGL_ASSERT(mFramebuffer->GetSampleCount() == mPipeline->GetSampleCount(), "Framebuffer sample count does not match pipeline sample count: {} != {}", mFramebuffer->GetSampleCount(), mPipeline->GetSampleCount());
 
 		if (mPipeline->GetSampleCount() > 1) {
 			glEnable(GL_MULTISAMPLE);
@@ -127,7 +127,7 @@ namespace Arcane {
 		const ImageFormat *framebufferAttachments = framebuffer->GetAttachments();
 
 		for (size_t i = 0; i < renderPass->GetAttachmentCount(); i++) {
-			AR_OPENGL_ASSERT(renderPassAttachments[i] == framebufferAttachments[i], "RenderPass and Framebuffer attachments are not compatible: %u != %u\n", renderPassAttachments[i], framebufferAttachments[i]);
+			AR_OPENGL_ASSERT(renderPassAttachments[i] == framebufferAttachments[i], "RenderPass and Framebuffer attachments are not compatible: {} != {}\n", (uint32_t)renderPassAttachments[i], (uint32_t)framebufferAttachments[i]);
 		}
 
 		mFramebuffer = CastRef<OpenGLFramebuffer>(framebuffer);
@@ -224,7 +224,7 @@ namespace Arcane {
 			AR_PROFILE_SCOPE_GPU("Pipeline Buffer Binding");
 			for (size_t i = 0; i < mPipeline->GetUniformBufferDescriptorCount(); i++) {
 				OpenGLUniformBufferDescriptor &desc = mPipeline->GetUniformBufferDescriptors()[i];
-				AR_OPENGL_ASSERT(desc.buffer != 0, "Buffer is invalid in descriptor: %u\n", desc.binding);
+				AR_OPENGL_ASSERT(desc.buffer != 0, "Buffer is invalid in descriptor: {}\n", desc.binding);
 				glBindBufferRange(GL_UNIFORM_BUFFER, desc.binding, desc.buffer, desc.offset, desc.size);
 			}
 		}
@@ -233,8 +233,8 @@ namespace Arcane {
 			AR_PROFILE_SCOPE_GPU("Pipeline Combined Image Sampler Binding");
 			for (size_t i = 0; i < mPipeline->GetCombinedImageSamplerDescriptorCount(); i++) {
 				OpenGLCombinedImageSamplerDescriptor &desc = mPipeline->GetCombinedImageSamplerDescriptors()[i];
-				AR_OPENGL_ASSERT(desc.texture != 0, "Texture is invalid in descriptor: %u\n", desc.binding);
-				AR_OPENGL_ASSERT(desc.sampler != 0, "Sampler is invalid in descriptor: %u\n", desc.binding);
+				AR_OPENGL_ASSERT(desc.texture != 0, "Texture is invalid in descriptor: {}\n", desc.binding);
+				AR_OPENGL_ASSERT(desc.sampler != 0, "Sampler is invalid in descriptor: {}\n", desc.binding);
 				glBindTextureUnit(desc.binding, desc.texture);
 				glBindSampler(desc.binding, desc.sampler);	
 			}

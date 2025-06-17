@@ -18,7 +18,7 @@ namespace Arcane {
 			AR_ASSERT(samples == 1, "Cube maps cannot have multisampling\n");
 			return GL_TEXTURE_CUBE_MAP;
 		}
-		AR_ASSERT(false, "Unknown texture type: %u\n", type);
+		AR_ASSERT(false, "Unknown texture type: {}\n", (uint32_t)type);
 		return GL_NONE;
 	}
 
@@ -75,7 +75,7 @@ namespace Arcane {
 			case ImageFormat::D32FS8: return GL_DEPTH32F_STENCIL8;
 			default: return GL_NONE;
 		}
-		AR_ASSERT(false, "Image format is unknown: %u\n", format);
+		AR_ASSERT(false, "Image format is unknown: {}\n", (uint32_t)format);
 		return GL_NONE;
 	}
 
@@ -138,7 +138,7 @@ namespace Arcane {
 
 			default: return GL_NONE;
 		}
-		AR_ASSERT(false, "Image format is unknown: %u\n", format);
+		AR_ASSERT(false, "Image format is unknown: {}\n", (uint32_t)format);
 		return GL_NONE;
 	}
 
@@ -200,7 +200,7 @@ namespace Arcane {
 			case ImageFormat::S8: return GL_UNSIGNED_BYTE;
 			case ImageFormat::S16: return GL_UNSIGNED_SHORT;
 		}
-		AR_ASSERT(false, "Image format is unknown: %u\n", format);
+		AR_ASSERT(false, "Image format is unknown: {}\n", (uint32_t)format);
 		return GL_NONE;
 	}
 
@@ -215,7 +215,7 @@ namespace Arcane {
 			AR_ASSERT(mWidth != 0, "Texture width cannot be 0");
 			AR_ASSERT(
 				mWidth <= context->GetGraphicsLimits().MaxTextureSize,
-				"Texture is too big (width: %u). Maximum width is: %u\n",
+				"Texture is too big (width: {}). Maximum width is: {}\n",
 				mWidth,
 				context->GetGraphicsLimits().MaxTextureSize
 			);
@@ -225,7 +225,7 @@ namespace Arcane {
 			AR_ASSERT(
 				mWidth <= mContext->GetGraphicsLimits().MaxTextureSize && 
 				mHeight <= mContext->GetGraphicsLimits().MaxTextureSize,
-				"Texture is too big (%ux%u). Maximum size is: %ux%u\n",
+				"Texture is too big ({}x{}). Maximum size is: {}x{}\n",
 				mWidth, mHeight,
 				mContext->GetGraphicsLimits().MaxTextureSize, mContext->GetGraphicsLimits().MaxTextureSize
 			);
@@ -237,16 +237,16 @@ namespace Arcane {
 				mWidth <= mContext->GetGraphicsLimits().Max3DTextureSize && 
 				mHeight <= mContext->GetGraphicsLimits().Max3DTextureSize &&
 				mDepth <= mContext->GetGraphicsLimits().Max3DTextureSize,
-				"Texture is too big (%ux%ux%u). Maximum size is: %ux%ux%u\n",
+				"Texture is too big ({}x{}x{}). Maximum size is: {}x{}x{}\n",
 				mWidth, mHeight, mDepth,
 				mContext->GetGraphicsLimits().Max3DTextureSize, mContext->GetGraphicsLimits().Max3DTextureSize, mContext->GetGraphicsLimits().Max3DTextureSize
 			);
 		}
 
 		if (IsColorFormat(mFormat)) {
-			AR_ASSERT(mSamples <= context->GetGraphicsLimits().MaxColorSamples, "Color texture samples exceeds maximum (%u > %u)\n", mSamples, context->GetGraphicsLimits().MaxColorSamples);
+			AR_ASSERT(mSamples <= context->GetGraphicsLimits().MaxColorSamples, "Color texture samples exceeds maximum ({} > {})\n", mSamples, context->GetGraphicsLimits().MaxColorSamples);
 		} else if (IsDepthFormat(mFormat)) {
-			AR_ASSERT(mSamples <= context->GetGraphicsLimits().MaxDepthSamples, "Depth texture samples exceeds maximum (%u > %u)\n", mSamples, context->GetGraphicsLimits().MaxDepthSamples);	
+			AR_ASSERT(mSamples <= context->GetGraphicsLimits().MaxDepthSamples, "Depth texture samples exceeds maximum ({} > {})\n", mSamples, context->GetGraphicsLimits().MaxDepthSamples);	
 		}
 
 		glCreateTextures(ToOpenGLTextureType(mType, mLayers, mSamples), 1, &mTexture);
@@ -267,7 +267,7 @@ namespace Arcane {
 		} else if (mType == TextureType::Texture3D) {
 			glTextureStorage3D(mTexture, mLevels, openglFormat, mWidth, mHeight, mDepth);
 		} else {
-			AR_ASSERT(false, "Texture type is unknown: %u\n", mType);
+			AR_ASSERT(false, "Texture type is unknown: {}\n", (uint32_t)mType);
 		}
 	}
 
@@ -279,25 +279,25 @@ namespace Arcane {
 	void OpenGLTexture::SetImage(uint32_t level, uint32_t index, const ImageData &image) {
 		AR_PROFILE_FUNCTION_GPU_CPU();
 		
-		if (mType == TextureType::CubeMap) { AR_ASSERT(index < 6, "Index is out of bounds for cube map texture: %u >= 6", index); }
-		else { AR_ASSERT(index < mLayers, "Index is out of bounds for array texture: %u >= %u\n", index, mLayers); }
+		if (mType == TextureType::CubeMap) { AR_ASSERT(index < 6, "Index is out of bounds for cube map texture: {} >= 6", index); }
+		else { AR_ASSERT(index < mLayers, "Index is out of bounds for array texture: {} >= {}\n", index, mLayers); }
 
-		AR_ASSERT(level < mLevels, "Texture level out of range: %u >= %u", level, mLevels);
+		AR_ASSERT(level < mLevels, "Texture level out of range: {} >= {}", level, mLevels);
 		const GLenum texelType = GetOpenGLTexelType(image.Format);
 		const GLenum imageFormat = ToOpenGLImageFormat(image.Format);
 
 		switch (mType) {
 			case TextureType::Texture1D:
-				glTextureSubImage1D(mTexture, level, 0, image.Width, imageFormat, texelType, image.Data);
+				glTextureSubImage1D(mTexture, level, 0, image.Width, imageFormat, texelType, image.Data.GetPointer());
 				break;
 			case TextureType::Texture2D:
-				glTextureSubImage2D(mTexture, level, 0, 0, image.Width, image.Height, imageFormat, texelType, image.Data);
+				glTextureSubImage2D(mTexture, level, 0, 0, image.Width, image.Height, imageFormat, texelType, image.Data.GetPointer());
 				break;
 			case TextureType::Texture3D:
-				glTextureSubImage3D(mTexture, level, 0, 0, 0, image.Width, image.Height, image.Depth, imageFormat, texelType, image.Data);
+				glTextureSubImage3D(mTexture, level, 0, 0, 0, image.Width, image.Height, image.Depth, imageFormat, texelType, image.Data.GetPointer());
 				break;
 			case TextureType::CubeMap:
-				glTextureSubImage3D(mTexture, level, 0, 0, index, image.Width, image.Height, 1, imageFormat, texelType, image.Data);
+				glTextureSubImage3D(mTexture, level, 0, 0, index, image.Width, image.Height, 1, imageFormat, texelType, image.Data.GetPointer());
 				break;
 		}
 	}
@@ -308,17 +308,17 @@ namespace Arcane {
 				case SamplerFilter::Nearest: return GL_NEAREST_MIPMAP_NEAREST;
 				case SamplerFilter::Linear: return GL_NEAREST_MIPMAP_LINEAR;
 			}
-			AR_ASSERT(false, "Invalid mipmap sampler unknown: %u\n", mipmapFilter);
+			AR_ASSERT(false, "Invalid mipmap sampler unknown: {}\n", (uint32_t)mipmapFilter);
 			return GL_NONE;
 		} else if (filter == SamplerFilter::Linear) {
 			switch (mipmapFilter) {
 				case SamplerFilter::Nearest: return GL_LINEAR_MIPMAP_NEAREST;
 				case SamplerFilter::Linear: return GL_LINEAR_MIPMAP_LINEAR;
 			}
-			AR_ASSERT(false, "Mipmap sampler filter is unknown: %u\n", mipmapFilter);
+			AR_ASSERT(false, "Mipmap sampler filter is unknown: {}\n", (uint32_t)mipmapFilter);
 			return GL_NONE;
 		}
-		AR_ASSERT(false, "Sampler filter is unknown: %u\n", filter);
+		AR_ASSERT(false, "Sampler filter is unknown: {}\n", (uint32_t)filter);
 		return GL_NONE;
 	}
 
@@ -327,7 +327,7 @@ namespace Arcane {
 			case SamplerFilter::Nearest: return GL_NEAREST;
 			case SamplerFilter::Linear: return GL_LINEAR;
 		}
-		AR_ASSERT(false, "Sampler filter is unknown: %u\n", filter);
+		AR_ASSERT(false, "Sampler filter is unknown: {}\n", (uint32_t)filter);
 		return GL_NONE;
 	}
 
@@ -338,7 +338,7 @@ namespace Arcane {
 			case SamplerWrap::ClampToEdge: return GL_CLAMP_TO_EDGE;
 			case SamplerWrap::ClampToBorder: return GL_CLAMP_TO_BORDER;
 		}
-		AR_ASSERT(false, "Sampler wrap is unknown: %u\n", wrap);
+		AR_ASSERT(false, "Sampler wrap is unknown: {}\n", (uint32_t)wrap);
 		return GL_NONE;
 	}
 

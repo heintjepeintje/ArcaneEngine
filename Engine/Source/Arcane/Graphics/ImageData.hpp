@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Arcane/Core.hpp>
+#include <Arcane/Data/BufferData.hpp>
 
 namespace Arcane {
 
@@ -26,12 +27,14 @@ namespace Arcane {
 	bool IsDepthFormat(ImageFormat format);
 	bool IsStencilFormat(ImageFormat format);
 	bool IsColorFormat(ImageFormat format);
+	uint32_t GetChannelCount(ImageFormat format);
+	size_t GetChannelSize(ImageFormat format);
 	size_t GetTexelSize(ImageFormat format);
 
 	struct ImageData {
 		ImageFormat Format;
 		uint32_t Width, Height, Depth;
-		void *Data;
+		BufferRef Data;
 	};
 
 }

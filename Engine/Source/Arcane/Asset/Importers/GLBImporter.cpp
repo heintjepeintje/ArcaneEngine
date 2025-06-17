@@ -134,14 +134,14 @@ namespace Arcane {
 	bool ImportGLB(const std::filesystem::path &path, uint32_t flags, std::vector<Node> &outNodes) {
 		FILE *f = fopen(path.string().c_str(), "rb");
 		if (!f) {
-			AR_ASSERT(false, "Could not open file: %s\n", path.string().c_str());
+			AR_ASSERT(false, "Could not open file: {}\n", path.string().c_str());
 			return false;
 		}
 
 		uint32_t header[3];
 		fread(header, 4, 3, f);
 		if (header[0] != 0x46546C67) {
-			AR_ASSERT(false, "%s is not a glTF file\n", path.string().c_str());
+			AR_ASSERT(false, "{} is not a glTF file\n", path.string().c_str());
 			return false;
 		}
 
