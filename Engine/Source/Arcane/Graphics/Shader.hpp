@@ -10,7 +10,7 @@ namespace Arcane {
 		size_t Size;
 	};
 
-	void CompileShader(GraphicsAPI api, const std::filesystem::path &path, const std::filesystem::path &output);
+	void CompileShader(const GraphicsContext &context, const std::filesystem::path &path, const std::filesystem::path &output);
 	ShaderBinary ReadShaderBinary(const std::filesystem::path &path);
 
 }

@@ -24,5 +24,5 @@ void main() {
 		mapped = pow(mapped, vec3(1.0 / uSettings.Gamma));
 	}
 
-	oColor = vec3(guiColor.rgb);
+	oColor = mapped;
 }

@@ -15,34 +15,6 @@ Game::Game() {
 Game::~Game() { }
 
 void Game::Start() {
-	Socket socket = Socket::Create();
-	AR_ENGINE_DEBUG("Established connection to example.com");
-	socket.Connect("93.184.216.34", 80);
-
-	std::string request = "GET /index.html HTTP/1.1\r\n"
-					"Host: example.com\r\n"
-					"Connection: close\r\n"
-					"\r\n";
-
-	
-	socket.Send(request.c_str(), request.size());
-
-	AR_ENGINE_DEBUG("Waiting for data...");
-	Thread::Sleep(1000);
-
-	size_t bytesAvailable = socket.GetBytesAvailable();
-	char *buffer = new char[bytesAvailable + 1];
-
-	std::memset(buffer, 0, bytesAvailable + 1);
-
-	size_t bytesRead = socket.Receive(buffer, bytesAvailable);
-
-	printf("Data:\n%s\n", buffer);
-
-	socket.Close();
-
-	__debugbreak();
-
 	Importer imp;
 	imp.Import("Game/Assets/Models/dragon_floor.glb", ImportFlag_SwapWindingOrder | ImportFlag_GenerateNormals | ImportFlag_GenerateTangents);
 

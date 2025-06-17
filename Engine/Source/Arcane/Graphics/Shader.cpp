@@ -6,7 +6,7 @@
 
 namespace Arcane {
 
-	void CompileShader(GraphicsAPI api, const std::filesystem::path &path, const std::filesystem::path &output) {
+	void CompileShader(const GraphicsContext &context, const std::filesystem::path &path, const std::filesystem::path &output) {
 		AR_ENGINE_INFO("Compiling shader: %s", path.string().c_str());
 
 		std::stringstream cmd;

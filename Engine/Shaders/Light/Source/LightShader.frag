@@ -73,7 +73,7 @@ void main() {
 	result += (1.0 - shadow) * GetDirectionalLightColor(position, albedo, normal, metallic, roughness);
 
 	const vec3 ambient = vec3(0.03) * albedo * ao;
-	oColor = ambient + result;
+	oColor = vec3(iUV, 0.0);
 	// oColor = normal * 0.5 + 0.5;
 }
 
