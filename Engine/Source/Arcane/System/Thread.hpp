@@ -5,6 +5,36 @@
 
 namespace Arcane {
 
+	class Mutex {
+	public:
+		static Mutex Create();
+
+	public:
+		Mutex() = default;
+		Mutex(const Ref<NativeMutex> &mutex) : mNativeMutex(mutex) { }
+		~Mutex() = default;
+
+		inline void Lock() { GetNativeHandle()->Lock(); }
+		inline void Unlock() { GetNativeHandle()->Unlock(); }
+
+		inline Ref<NativeMutex> GetNativeHandle() const {
+			AR_ASSERT(mNativeMutex, "Native mutex handle is null");
+			return mNativeMutex;
+		}
+
+	private:
+		Ref<NativeMutex> mNativeMutex;
+	};
+
+	class ScopedLock {
+	public:
+		ScopedLock(Mutex &mutex) : mMutex(mutex) { mMutex.Lock(); }
+		~ScopedLock() { mMutex.Unlock(); }
+
+	private:
+		Mutex &mMutex;
+	};
+
 	class Thread {
 	public:
 		static Thread Create(ThreadFunc func, void *data);

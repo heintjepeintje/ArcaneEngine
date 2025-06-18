@@ -67,14 +67,14 @@ namespace Arcane {
 		shaderModuleCreateInfos[0].sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 		shaderModuleCreateInfos[0].pNext = nullptr;
 		shaderModuleCreateInfos[0].flags = 0;
-		shaderModuleCreateInfos[0].codeSize = info.VertexShader.Size;
-		shaderModuleCreateInfos[0].pCode = reinterpret_cast<uint32_t*>(info.VertexShader.Data);
+		shaderModuleCreateInfos[0].codeSize = info.VertexShaderBinary.GetSize();
+		shaderModuleCreateInfos[0].pCode = info.VertexShaderBinary.GetPointerAs<uint32_t>();
 
 		shaderModuleCreateInfos[1].sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 		shaderModuleCreateInfos[1].pNext = nullptr;
 		shaderModuleCreateInfos[1].flags = 0;
-		shaderModuleCreateInfos[1].codeSize = info.FragmentShader.Size;
-		shaderModuleCreateInfos[1].pCode = reinterpret_cast<uint32_t*>(info.FragmentShader.Data);
+		shaderModuleCreateInfos[1].codeSize = info.FragmentShaderBinary.GetSize();
+		shaderModuleCreateInfos[1].pCode = info.FragmentShaderBinary.GetPointerAs<uint32_t>();
 
 		VkShaderModule shaderModules[2];
 		AR_VULKAN_CHECK_RESULT(vkCreateShaderModule(context->GetLogicalDevice(), &shaderModuleCreateInfos[0], nullptr, &shaderModules[0]));

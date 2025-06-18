@@ -6,6 +6,18 @@
 
 namespace Arcane {
 
+	class WindowsMutex : public NativeMutex {
+	public:
+		WindowsMutex();
+		~WindowsMutex();
+
+		virtual void Lock() override;
+		virtual void Unlock() override;
+
+	private:
+		HANDLE mMutex;
+	};
+
 	class WindowsThread : public NativeThread {
 	friend class NativeThread;
 	public:

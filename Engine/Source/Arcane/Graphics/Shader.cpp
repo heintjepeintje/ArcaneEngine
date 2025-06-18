@@ -30,11 +30,5 @@ namespace Arcane {
 		AR_ASSERT(code == 0, "Shader compilation failed with code %d: (%s)", code, cmd.str().c_str());
 	}
 
-	ShaderBinary ReadShaderBinary(const std::filesystem::path &path) {
-		ShaderBinary binary;
-		binary.Data = ReadFileBinary(path.string(), &binary.Size);
-		return binary;
-	}
-
 
 }

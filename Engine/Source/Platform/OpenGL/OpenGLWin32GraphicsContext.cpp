@@ -135,7 +135,7 @@ namespace Arcane {
 
 		glGetIntegerv(GL_MAJOR_VERSION, (GLint*)&mMajorVersion);
 		glGetIntegerv(GL_MINOR_VERSION, (GLint*)&mMinorVersion);
-		AR_ASSERT(mMajorVersion >= 4 && mMinorVersion >= 6, "Only OpenGL 4.6 or higher is supported. (current: %u.%u)\n", mMajorVersion, mMinorVersion);
+		AR_ASSERT(mMajorVersion >= 4 && mMinorVersion >= 6, "Only OpenGL 4.6 or higher is supported. (current: {}.{})\n", mMajorVersion, mMinorVersion);
 
 		const GLubyte *deviceName = glGetString(GL_RENDERER);
 		size_t length = strlen((const char *)deviceName);

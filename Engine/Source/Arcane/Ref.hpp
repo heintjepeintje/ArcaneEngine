@@ -21,8 +21,7 @@ namespace Arcane {
 	public:
 		Ref() { }
 
-		Ref(RefBlock<_Type> *block) {
-			mBlock = block;
+		Ref(RefBlock<_Type> *block) : mBlock(block) {
 			mBlock->Count++;
 		}
 
@@ -32,9 +31,8 @@ namespace Arcane {
 			mBlock->Count = 1;
 		}
 
-		Ref(const Ref<_Type> &other) {
-			if (other.mBlock == nullptr) return;
-			mBlock = other.mBlock;
+		Ref(const Ref<_Type> &other) : mBlock(other.mBlock) {
+			if (mBlock == nullptr) return;
 			mBlock->Count++;
 		}
 
@@ -77,6 +75,18 @@ namespace Arcane {
 			mBlock->Count++;
 
 			return *this;
+		}
+
+		inline void Drop() {
+			if (mBlock == nullptr) return;
+			mBlock->Count--;
+
+			if (mBlock->Count != 0) return;
+			
+			delete mBlock->Pointer;
+			delete mBlock;
+
+			mBlock = nullptr;
 		}
 
 		inline bool IsValid() const { return mBlock != nullptr && mBlock->Pointer != nullptr; }

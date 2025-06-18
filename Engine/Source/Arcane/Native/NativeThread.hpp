@@ -7,6 +7,18 @@ namespace Arcane {
 	typedef int32_t ThreadFunc(void *data);
 	typedef uint32_t ThreadID;
 
+	class NativeMutex {
+	public:
+		static Ref<NativeMutex> Create();
+
+	public:
+		NativeMutex() = default;
+		virtual ~NativeMutex() = default;
+
+		virtual void Lock() = 0;
+		virtual void Unlock() = 0;
+	};
+
 	class NativeThread {
 	public:
 		static Ref<NativeThread> Create(ThreadFunc func, void *data);

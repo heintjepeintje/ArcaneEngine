@@ -95,11 +95,11 @@ namespace Arcane {
 		Rect2D Viewport;
 		Rect2D Scissor;
 		
-		ShaderBinary VertexShader;
-		ShaderBinary FragmentShader;
-		ShaderBinary TesselationControlShader;
-		ShaderBinary TesselationEvaluationShader;
-		ShaderBinary GeometryShader;
+		BufferRef VertexShaderBinary;
+		BufferRef FragmentShaderBinary;
+		BufferRef TesselationControlShaderBinary;
+		BufferRef TesselationEvaluationShaderBinary;
+		BufferRef GeometryShaderBinary;
 
 		Descriptor *Descriptors;
 		uint32_t DescriptorCount;

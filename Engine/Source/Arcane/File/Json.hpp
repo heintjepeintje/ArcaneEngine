@@ -17,7 +17,7 @@ namespace Arcane {
 		JsonDocument doc;
 		doc.Parse(json);
 
-		AR_ASSERT(!doc.HasParseError(), "Could not parse json: %u\n", doc.GetParseError());
+		AR_ASSERT(!doc.HasParseError(), "Could not parse json: {}\n", (uint32_t)doc.GetParseError());
 
 		return doc;
 	}

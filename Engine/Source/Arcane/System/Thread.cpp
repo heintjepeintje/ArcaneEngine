@@ -2,6 +2,10 @@
 
 namespace Arcane {
 
+	Mutex Mutex::Create() {
+		return Mutex(NativeMutex::Create());
+	}
+
 	Thread Thread::Create(ThreadFunc func, void *data) {
 		return Thread(NativeThread::Create(func, data));
 	}

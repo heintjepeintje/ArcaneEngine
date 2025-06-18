@@ -159,7 +159,7 @@ namespace Arcane {
 			if (properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) scores[i] += 1000;
 			if (features.geometryShader) scores[i] += 100;
 
-			AR_ENGINE_INFO("Device: %s: %u", properties.deviceName, scores[i]);
+			AR_ENGINE_INFO("Device: %s: {}", properties.deviceName, scores[i]);
 
 			if (scores[i] > bestScore) {
 				bestScore = scores[i];
@@ -389,7 +389,7 @@ namespace Arcane {
 		VkImage *images = new VkImage[imageCount];
 		AR_VULKAN_CHECK_RESULT(vkGetSwapchainImagesKHR(mLogicalDevice, mSwapchain, &imageCount, images));
 
-		AR_ASSERT(imageCount == AR_IMAGE_COUNT, "Swapchain image count does not match expected count: %u != %u", imageCount, AR_IMAGE_COUNT);
+		AR_ASSERT(imageCount == AR_IMAGE_COUNT, "Swapchain image count does not match expected count: {} != {}", imageCount, AR_IMAGE_COUNT);
 
 		VkImageMemoryBarrier imageBarriers[AR_IMAGE_COUNT] = {};
 
@@ -484,10 +484,10 @@ namespace Arcane {
 				Clamp<uint32_t>(mWindow->GetClientSize().Y, mMinImageExtent.height, mMaxImageExtent.height)
 			};
 
-			AR_VULKAN_DEBUG("Resizing to: %ux%u", newSize.width, newSize.height);
-			AR_VULKAN_DEBUG("Current Client Size: %ux%u", (uint32_t)mClientSize.X, (uint32_t)mClientSize.Y);
-			AR_VULKAN_DEBUG("Min Extent: %ux%u", mMinImageExtent.width, mMinImageExtent.height);
-			AR_VULKAN_DEBUG("Max Extent: %ux%u", mMaxImageExtent.width, mMaxImageExtent.height);
+			AR_VULKAN_DEBUG("Resizing to: {}x{}", newSize.width, newSize.height);
+			AR_VULKAN_DEBUG("Current Client Size: {}x{}", (uint32_t)mClientSize.X, (uint32_t)mClientSize.Y);
+			AR_VULKAN_DEBUG("Min Extent: {}x{}", mMinImageExtent.width, mMinImageExtent.height);
+			AR_VULKAN_DEBUG("Max Extent: {}x{}", mMaxImageExtent.width, mMaxImageExtent.height);
 
 			VkSwapchainKHR oldSwapchain = mSwapchain;
 

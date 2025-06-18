@@ -5,12 +5,6 @@
 
 namespace Arcane {
 
-	struct ShaderBinary {
-		uint8_t *Data;
-		size_t Size;
-	};
-
-	void CompileShader(const GraphicsContext &context, const std::filesystem::path &path, const std::filesystem::path &output);
-	ShaderBinary ReadShaderBinary(const std::filesystem::path &path);
+	void CompileShader(GraphicsAPI api, const std::filesystem::path &path, const std::filesystem::path &output);
 
 }

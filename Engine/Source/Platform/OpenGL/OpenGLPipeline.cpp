@@ -46,51 +46,46 @@ namespace Arcane {
 		glProgramParameteri(mProgram, GL_PROGRAM_SEPARABLE, GL_TRUE);
 
 		if (mStageFlags & ShaderStage::Vertex) {
-			AR_OPENGL_ASSERT(info.VertexShader.Size > 0, "Vertex shader binary data is empty");
-			AR_OPENGL_ASSERT(info.VertexShader.Data != nullptr, "Vertex shader binary data is nullptr");
+			AR_OPENGL_ASSERT(info.VertexShaderBinary, "Vertex shader binary is invalid");
 			
 			GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-			glShaderBinary(1, &vertexShader, GL_SHADER_BINARY_FORMAT_SPIR_V, info.VertexShader.Data, info.VertexShader.Size);
+			glShaderBinary(1, &vertexShader, GL_SHADER_BINARY_FORMAT_SPIR_V, info.VertexShaderBinary.GetPointer(), info.VertexShaderBinary.GetSize());
 			glAttachShader(mProgram, vertexShader);
 			glSpecializeShader(vertexShader, "main", 0, nullptr, nullptr);
 		}
 
 		if (mStageFlags & ShaderStage::TessellationControl) {
-			AR_OPENGL_ASSERT(info.TesselationControlShader.Size > 0, "Tessellation control shader binary data is empty");
-			AR_OPENGL_ASSERT(info.TesselationControlShader.Data != nullptr, "Tessellation control shader binary data is nullptr");
+			AR_OPENGL_ASSERT(info.TesselationControlShaderBinary, "Tessellation control shader binary is invalid");
 
 			GLuint tessControlShader = glCreateShader(GL_TESS_CONTROL_SHADER);
-			glShaderBinary(1, &tessControlShader, GL_SHADER_BINARY_FORMAT_SPIR_V, info.TesselationControlShader.Data, info.TesselationControlShader.Size);
+			glShaderBinary(1, &tessControlShader, GL_SHADER_BINARY_FORMAT_SPIR_V, info.TesselationControlShaderBinary.GetPointer(), info.TesselationControlShaderBinary.GetSize());
 			glAttachShader(mProgram, tessControlShader);
 			glSpecializeShader(tessControlShader, "main", 0, nullptr, nullptr);
 		}
 
 		if (mStageFlags & ShaderStage::TessellationEvaluation) {
-			AR_OPENGL_ASSERT(info.TesselationEvaluationShader.Size > 0, "Tessellation evaluation shader binary data is empty");
-			AR_OPENGL_ASSERT(info.TesselationEvaluationShader.Data != nullptr, "Tessellation evaluation shader binary data is nullptr");
+			AR_OPENGL_ASSERT(info.TesselationEvaluationShaderBinary, "Tessellation evaluation shader binary is invalid");
 
 			GLuint tessEvalShader = glCreateShader(GL_TESS_EVALUATION_SHADER);
-			glShaderBinary(1, &tessEvalShader, GL_SHADER_BINARY_FORMAT_SPIR_V, info.TesselationEvaluationShader.Data, info.TesselationEvaluationShader.Size);
+			glShaderBinary(1, &tessEvalShader, GL_SHADER_BINARY_FORMAT_SPIR_V, info.TesselationEvaluationShaderBinary.GetPointer(), info.TesselationEvaluationShaderBinary.GetSize());
 			glAttachShader(mProgram, tessEvalShader);
 			glSpecializeShader(tessEvalShader, "main", 0, nullptr, nullptr);
 		}
 
 		if (mStageFlags & ShaderStage::Geometry) {
-			AR_OPENGL_ASSERT(info.GeometryShader.Size > 0, "Geometry shader binary data is empty");
-			AR_OPENGL_ASSERT(info.GeometryShader.Data != nullptr, "Geometry shader binary data is nullptr");
+			AR_OPENGL_ASSERT(info.GeometryShaderBinary, "Geometry shader binary is invalid");
 
 			GLuint geometryShader = glCreateShader(GL_GEOMETRY_SHADER);
-			glShaderBinary(1, &geometryShader, GL_SHADER_BINARY_FORMAT_SPIR_V, info.GeometryShader.Data, info.GeometryShader.Size);
+			glShaderBinary(1, &geometryShader, GL_SHADER_BINARY_FORMAT_SPIR_V, info.GeometryShaderBinary.GetPointer(), info.GeometryShaderBinary.GetSize());
 			glAttachShader(mProgram, geometryShader);
 			glSpecializeShader(geometryShader, "main", 0, nullptr, nullptr);
 		}
 
 		if (mStageFlags & ShaderStage::Fragment) {
-			AR_OPENGL_ASSERT(info.FragmentShader.Size > 0, "Fragment shader binary data is empty");
-			AR_OPENGL_ASSERT(info.FragmentShader.Data != nullptr, "Fragment shader binary data is nullptr");
+			AR_OPENGL_ASSERT(info.FragmentShaderBinary, "Fragment shader binary is invalid");
 
 			GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-			glShaderBinary(1, &fragmentShader, GL_SHADER_BINARY_FORMAT_SPIR_V, info.FragmentShader.Data, info.FragmentShader.Size);
+			glShaderBinary(1, &fragmentShader, GL_SHADER_BINARY_FORMAT_SPIR_V, info.FragmentShaderBinary.GetPointer(), info.FragmentShaderBinary.GetSize());
 			glAttachShader(mProgram, fragmentShader);
 			glSpecializeShader(fragmentShader, "main", 0, nullptr, nullptr);
 		}
