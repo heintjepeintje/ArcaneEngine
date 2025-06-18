@@ -53,25 +53,22 @@ namespace Arcane {
 			{ InputAttribute::Bitangent, 1, InputElementType::Vector3f32, false },
 		};
 		
-		ShaderBinary vertexShaderBinary = ReadShaderBinary("Engine/Shaders/Geometry/Binaries/Output/GeometryShader.vert.spv");
-		ShaderBinary fragmentShaderBinary = ReadShaderBinary("Engine/Shaders/Geometry/Binaries/Output/GeometryShader.frag.spv");
+		BufferRef vertexShaderBinary = ReadFileBinary("Engine/Shaders/Geometry/Binaries/Output/GeometryShader.vert.spv");
+		BufferRef fragmentShaderBinary = ReadFileBinary("Engine/Shaders/Geometry/Binaries/Output/GeometryShader.frag.spv");
 		
 		PipelineInfo geometryPipelineInfo = PipelineInfo::CreateWithDefaultInfo();
 		geometryPipelineInfo.CullMode = CullMode::None;
 		geometryPipelineInfo.Descriptors = geometryDescriptors;
 		geometryPipelineInfo.DescriptorCount = 8;
 		geometryPipelineInfo.Layout = geometryInputLayout;
-		geometryPipelineInfo.VertexShader = vertexShaderBinary;
-		geometryPipelineInfo.FragmentShader = fragmentShaderBinary;
+		geometryPipelineInfo.VertexShaderBinary = vertexShaderBinary;
+		geometryPipelineInfo.FragmentShaderBinary = fragmentShaderBinary;
 		geometryPipelineInfo.SampleCount = 1;
 
 		mPipeline = Pipeline::Create(mContext, geometryPipelineInfo);
 		mPipeline.SetUniformBuffer(0, cameraData);
 		mPipeline.SetUniformBuffer(1, objectData);
 		mPipeline.SetUniformBuffer(2, shadowData);
-
-		free(vertexShaderBinary.Data);
-		free(fragmentShaderBinary.Data);
 
 		mRenderPass = RenderPass::Create(mContext, mPipeline, geometryAttachments, 6);
 	}

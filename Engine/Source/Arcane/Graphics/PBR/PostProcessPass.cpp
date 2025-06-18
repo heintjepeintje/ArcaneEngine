@@ -39,22 +39,19 @@ namespace Arcane {
 			{ InputAttribute::UV, 1, InputElementType::Vector2f32, false },
 		};
 
-		ShaderBinary vertexShaderBinary = ReadShaderBinary("Engine/Shaders/PostProcess/Binaries/Output/PostProcessShader.vert.spv");
-		ShaderBinary fragmentShaderBinary = ReadShaderBinary("Engine/Shaders/PostProcess/Binaries/Output/PostProcessShader.frag.spv");
+		BufferRef vertexShaderBinary = ReadFileBinary("Engine/Shaders/PostProcess/Binaries/Output/PostProcessShader.vert.spv");
+		BufferRef fragmentShaderBinary = ReadFileBinary("Engine/Shaders/PostProcess/Binaries/Output/PostProcessShader.frag.spv");
 
 		PipelineInfo postProcessPipelineInfo = PipelineInfo::CreateWithDefaultInfo();
 		postProcessPipelineInfo.Descriptors = postProcessDescriptors;
 		postProcessPipelineInfo.DescriptorCount = 2;
 		postProcessPipelineInfo.Layout = postProcessInputLayout;
-		postProcessPipelineInfo.VertexShader = vertexShaderBinary;
-		postProcessPipelineInfo.FragmentShader = fragmentShaderBinary;
+		postProcessPipelineInfo.VertexShaderBinary = vertexShaderBinary;
+		postProcessPipelineInfo.FragmentShaderBinary = fragmentShaderBinary;
 		postProcessPipelineInfo.SampleCount = AR_SAMPLE_COUNT;
 
 		mPipeline = Pipeline::Create(mContext, postProcessPipelineInfo);
 		mPipeline.SetUniformBuffer(0, postProcessSettings);
-
-		free(vertexShaderBinary.Data);
-		free(fragmentShaderBinary.Data);
 
 		mRenderPass = RenderPass::Create(mContext, mPipeline, postProcessAttachments, 2);
 	}

@@ -13,11 +13,9 @@ project "Engine"
 	includedirs {
 		"Source",
 		"Libraries/stb",
-		"Libraries/glm",
 		"Libraries/tracy/public",
 		"Libraries/rapidjson/include",
-		os.getenv("VULKAN_SDK") .. "/Include",
-		"Libraries/ImGui"
+		os.getenv("VULKAN_SDK") .. "/Include"
 	}
 	
 	filter "configurations:Debug"

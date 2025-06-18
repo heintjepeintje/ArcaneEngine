@@ -5,6 +5,6 @@
 
 namespace Arcane {
 
-	void CompileShader(GraphicsAPI api, const std::filesystem::path &path, const std::filesystem::path &output);
+	void CompileShader(const GraphicsContext &context, const std::filesystem::path &path, const std::filesystem::path &output);
 
 }

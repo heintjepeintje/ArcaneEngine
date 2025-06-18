@@ -45,23 +45,20 @@ namespace Arcane {
 			{ InputAttribute::UV, 1, InputElementType::Vector2f32, false },	
 		};
 
-		ShaderBinary vertexShaderBinary = ReadShaderBinary("Engine/Shaders/Light/Binaries/Output/LightShader.vert.spv");
-		ShaderBinary fragmentShaderBinary = ReadShaderBinary("Engine/Shaders/Light/Binaries/Output/LightShader.frag.spv");
+		BufferRef vertexShaderBinary = ReadFileBinary("Engine/Shaders/Light/Binaries/Output/LightShader.vert.spv");
+		BufferRef fragmentShaderBinary = ReadFileBinary("Engine/Shaders/Light/Binaries/Output/LightShader.frag.spv");
 
 		PipelineInfo lightPipelineInfo = PipelineInfo::CreateWithDefaultInfo();
 		lightPipelineInfo.Descriptors = lightDescriptors;
 		lightPipelineInfo.DescriptorCount = 8;
 		lightPipelineInfo.Layout = lightInputLayout;
-		lightPipelineInfo.VertexShader = vertexShaderBinary;
-		lightPipelineInfo.FragmentShader = fragmentShaderBinary;
+		lightPipelineInfo.VertexShaderBinary = vertexShaderBinary;
+		lightPipelineInfo.FragmentShaderBinary = fragmentShaderBinary;
 		lightPipelineInfo.SampleCount = AR_SAMPLE_COUNT;
 
 		mPipeline = Pipeline::Create(mContext, lightPipelineInfo);
 		mPipeline.SetUniformBuffer(0, cameraData);
 		mPipeline.SetUniformBuffer(1, lightData);
-
-		free(vertexShaderBinary.Data);
-		free(fragmentShaderBinary.Data);
 
 		mRenderPass = RenderPass::Create(mContext, mPipeline, lightAttachments, 2);
 	}

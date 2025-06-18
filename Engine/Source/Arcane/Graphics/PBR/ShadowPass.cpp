@@ -39,16 +39,16 @@ namespace Arcane {
 			{ InputAttribute::Bitangent, 1, InputElementType::Vector3f32, false },
 		};
 
-		ShaderBinary vertexShaderBinary = ReadShaderBinary("Engine/Shaders/Shadow/Binaries/Output/ShadowShader.vert.spv");
-		ShaderBinary fragmentShaderBinary = ReadShaderBinary("Engine/Shaders/Shadow/Binaries/Output/ShadowShader.frag.spv");
+		BufferRef vertexShaderBinary = ReadFileBinary("Engine/Shaders/Shadow/Binaries/Output/ShadowShader.vert.spv");
+		BufferRef fragmentShaderBinary = ReadFileBinary("Engine/Shaders/Shadow/Binaries/Output/ShadowShader.frag.spv");
 
 		PipelineInfo shadowPipelineInfo = PipelineInfo::CreateWithDefaultInfo();
 		shadowPipelineInfo.CullMode = CullMode::None;
 		shadowPipelineInfo.Descriptors = shadowDescriptors;
 		shadowPipelineInfo.DescriptorCount = 2;
 		shadowPipelineInfo.Layout = shadowInputLayout;
-		shadowPipelineInfo.VertexShader = vertexShaderBinary;
-		shadowPipelineInfo.FragmentShader = fragmentShaderBinary;
+		shadowPipelineInfo.VertexShaderBinary = vertexShaderBinary;
+		shadowPipelineInfo.FragmentShaderBinary = fragmentShaderBinary;
 		shadowPipelineInfo.Viewport.Size = Vector2(AR_SHADOW_MAP_WIDTH, AR_SHADOW_MAP_HEIGHT);
 		shadowPipelineInfo.Scissor.Size = Vector2(AR_SHADOW_MAP_WIDTH, AR_SHADOW_MAP_HEIGHT);
 		shadowPipelineInfo.SampleCount = AR_SAMPLE_COUNT;
@@ -56,9 +56,6 @@ namespace Arcane {
 		mPipeline = Pipeline::Create(mContext, shadowPipelineInfo);
 		mPipeline.SetUniformBuffer(0, mObjectBuffer);
 		mPipeline.SetUniformBuffer(1, shadowData);
-
-		free(vertexShaderBinary.Data);
-		free(fragmentShaderBinary.Data);
 
 		mRenderPass = RenderPass::Create(mContext, mPipeline, shadowAttachments, 1);
 	}

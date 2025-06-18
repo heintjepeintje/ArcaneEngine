@@ -13,8 +13,6 @@
 #include <Arcane/Graphics/Camera.hpp>
 #include <Arcane/Graphics/Transform.hpp>
 
-#include <Arcane/GUI/GUI.hpp>
-
 #include <Arcane/Math/Math.hpp>
 #include <Arcane/Math/Rect2D.hpp>
 #include <Arcane/Math/Vector2.hpp>

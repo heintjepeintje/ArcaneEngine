@@ -118,10 +118,6 @@ void Game::Update() {
 	}
 }
 
-void Game::RenderUI() {
-	ImGui::ShowDemoWindow();
-}
-
 void Game::Render() {
 	SceneRenderer::Draw();
 	const FrameStatistics &frameStats = Renderer::GetRenderer().GetFrameStatistics();

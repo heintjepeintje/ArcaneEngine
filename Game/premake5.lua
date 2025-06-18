@@ -13,9 +13,7 @@ project "Game"
 	includedirs {
 		"Source",
 		"../Engine/Source",
-		"../Engine/Libraries/glm",
-		"../Engine/Libraries/tracy/public",
-		"../Engine/Libraries/ImGui"
+		"../Engine/Libraries/tracy/public"
 	}
 
 	libdirs {
@@ -27,7 +25,6 @@ project "Game"
 		"opengl32",
 		"Engine",
 		"tracy",
-		"ImGui",
 		"ws2_32",
 		"winmm",
 		"dbghelp",

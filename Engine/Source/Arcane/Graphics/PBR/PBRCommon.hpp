@@ -7,6 +7,10 @@
 #include <Arcane/Graphics/Base/Texture.hpp>
 #include <Arcane/Graphics/Base/Mesh.hpp>
 
+#include <Arcane/Data/BufferData.hpp>
+#include <Arcane/Graphics/Shader.hpp>
+#include <Arcane/Util/FileUtil.hpp>
+
 #define AR_SHADOW_MAP_WIDTH 1024
 #define AR_SHADOW_MAP_HEIGHT 1024
 

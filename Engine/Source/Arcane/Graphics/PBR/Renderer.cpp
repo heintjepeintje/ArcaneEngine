@@ -6,7 +6,6 @@
 #include <Arcane/Graphics/Base/Pipeline.hpp>
 #include <Arcane/Util/FileUtil.hpp>
 #include <Arcane/System/Time.hpp>
-#include <Arcane/Gui/GUI.hpp>
 #include "PBRCommon.hpp"
 
 #include "GeometryPass.hpp"
@@ -134,7 +133,6 @@ namespace Arcane {
 		sGeometryPass = GeometryPass(sContext, sRendererAPI, sCameraBuffer, sObjectBuffer, sShadowBuffer, sDefaultSampler);
 		sShadowPass = ShadowPass(sContext, sRendererAPI, sObjectBuffer, sShadowBuffer);
 		sLightPass = LightPass(sContext, sRendererAPI, sCameraBuffer, sLightBuffer, sDefaultSampler, sShadowSampler);
-		GUI::Init(sContext.GetWindow(), sContext, sRendererAPI);
 		sPostProcessPass = PostProcessPass(sContext, sRendererAPI, sPostProcessSettingsBuffer, sDefaultSampler);
 	}
 
@@ -209,7 +207,6 @@ namespace Arcane {
 		sGeometryPass.Execute(sCamera, sRenderSubmissions);
 		sShadowPass.Execute(sCamera, sRenderSubmissions);
 		sLightPass.Execute(sCamera, sQuadMesh, sGeometryPass.GetFramebuffer(), sShadowPass.GetFramebuffer());
-		GUI::Draw();
 		sPostProcessPass.Execute(sCamera, sQuadMesh, sLightPass.GetFramebuffer());
 
 		sRendererAPI.End();
