@@ -7,9 +7,6 @@
 [submodule "Engine/Libraries/tracy"]
 	path = Engine/Libraries/tracy
 	url = https://github.com/wolfpld/tracy
-[submodule "Engine/Libraries/json"]
-	path = Engine/Libraries/json
-	url = https://github.com/nlohmann/json
 [submodule "Engine/Libraries/rapidjson"]
 	path = Engine/Libraries/rapidjson
 	url = https://github.com/Tencent/rapidjson
