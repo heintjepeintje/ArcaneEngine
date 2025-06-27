@@ -16,9 +16,9 @@ namespace Arcane {
 		
 		const ImageFormat geometryAttachments[] = {
 			ImageFormat::RGB32F,
+			ImageFormat::RGBA8U,
 			ImageFormat::RGB32F,
-			ImageFormat::RGB32F,
-			ImageFormat::RGB32F,
+			ImageFormat::RGB8U,
 			ImageFormat::RGB32F,
 			ImageFormat::D24S8,
 		};

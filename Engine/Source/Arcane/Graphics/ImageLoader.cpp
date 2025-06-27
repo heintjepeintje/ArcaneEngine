@@ -33,12 +33,12 @@ namespace Arcane {
 		const uint32_t requestedChannels = ImageFormatToChannels(requestedFormat);
 
 		FILE *f = fopen(path.c_str(), "rb");
-		AR_ASSERT(f, "Failed to open image: %s\n", path.c_str());
+		AR_ASSERT(f, "Failed to open image: {}\n", path);
 
 		const stbi_uc *pixels = stbi_load_from_file(f, &width, &height, &channels, requestedChannels);
 		fclose(f);
 
-		AR_ASSERT(pixels, "Failed to load image: %s\n\t%s\n", path.c_str(), stbi_failure_reason());
+		AR_ASSERT(pixels, "Failed to load image: {}\n\t{}\n", path, stbi_failure_reason());
 
 		ImageData data;
 		data.Width = width;

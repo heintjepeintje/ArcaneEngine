@@ -17,14 +17,14 @@ layout (binding = 3) uniform sampler2D uRoughness;
 layout (binding = 4) uniform sampler2D uAmbientOcclusion;
 
 layout (location = 0) out vec3 oPosition;
-layout (location = 1) out vec3 oAlbedo;
+layout (location = 1) out vec4 oAlbedo;
 layout (location = 2) out vec3 oNormal;
 layout (location = 3) out vec3 oMRA;
 layout (location = 4) out vec3 oLightSpacePos;
 
 void main() {
 	oPosition = vec3(1.0, 0.0, 0.0);
-	oAlbedo = texture(uAlbedo, iUV).rgb;
+	oAlbedo = texture(uAlbedo, iUV);
 	oNormal = iNormal;
 	// oNormal = normalize(iTBN * (texture(uNormal, iUV).rgb * 2.0 - 1.0));
 	oMRA = vec3(texture(uMetallic, iUV).r, texture(uRoughness, iUV).r, texture(uAmbientOcclusion, iUV).r);

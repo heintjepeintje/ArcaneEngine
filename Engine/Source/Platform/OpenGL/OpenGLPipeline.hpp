@@ -54,6 +54,9 @@ namespace Arcane {
 		inline size_t GetCombinedImageSamplerDescriptorCount() const { return mCombinedImageSamplerDescriptorCount; }
 		inline OpenGLCombinedImageSamplerDescriptor *GetCombinedImageSamplerDescriptors() const { return mCombinedImageSamplerDescriptors; }
 
+		virtual void Destroy() override;
+		virtual bool IsValid() const override;
+
 	private:
 		Ref<OpenGLGraphicsContext> mContext;
 		GLuint mProgram;

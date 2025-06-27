@@ -15,4 +15,14 @@ namespace Arcane {
 		delete[] mAttachments;
 	}
 
+	void OpenGLRenderPass::Destroy() {
+		delete[] mAttachments;
+		mAttachmentCount = 0;
+	}
+
+	bool OpenGLRenderPass::IsValid() const {
+		AR_PROFILE_FUNCTION();
+		return mAttachments != nullptr;
+	}
+
 }

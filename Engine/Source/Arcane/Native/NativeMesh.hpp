@@ -21,6 +21,9 @@ namespace Arcane {
 		virtual Ref<NativeBuffer> GetIndexBuffer() = 0;
 
 		virtual InputLayout GetLayout() const = 0;
+
+		virtual void Destroy() = 0;
+		virtual bool IsValid() const = 0;
 	};
 
 }

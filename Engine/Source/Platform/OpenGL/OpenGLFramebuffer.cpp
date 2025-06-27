@@ -92,9 +92,7 @@ namespace Arcane {
 	}
 
 	OpenGLFramebuffer::~OpenGLFramebuffer() {
-		AR_PROFILE_FUNCTION_GPU_CPU();
-		delete[] mAttachments;
-		glDeleteFramebuffers(1, &mFramebuffer);
+		Destroy();
 	}
 
 	void OpenGLFramebuffer::Resize(uint32_t width, uint32_t height) {
@@ -151,6 +149,19 @@ namespace Arcane {
 		AR_ASSERT(status != GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT, "Framebuffer must have at least 1 attachment\n");
 		AR_ASSERT(status != GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER, "A framebuffer draw buffer is invalid\n");
 		AR_ASSERT(status != GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER, "A framebuffer read buffer is invalid\n");
+	}
+
+	bool OpenGLFramebuffer::IsValid() const {
+		AR_PROFILE_FUNCTION_GPU_CPU();
+		return glIsFramebuffer(mFramebuffer) && glCheckNamedFramebufferStatus(mFramebuffer, GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE;
+	}
+
+	void OpenGLFramebuffer::Destroy() {
+		AR_PROFILE_FUNCTION_GPU_CPU();
+		delete[] mAttachments;
+		delete[] mColorTextures;
+		glDeleteFramebuffers(1, &mFramebuffer);
+		mFramebuffer = 0;
 	}
 
 	Ref<NativeTexture> OpenGLFramebuffer::GetColorTexture(uint32_t index) {

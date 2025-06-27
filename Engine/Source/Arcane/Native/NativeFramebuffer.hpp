@@ -38,6 +38,9 @@ namespace Arcane {
 
 		virtual const ImageFormat *GetAttachments() const = 0;
 		virtual size_t GetAttachmentCount() const = 0;
+
+		virtual void Destroy() = 0;
+		virtual bool IsValid() const = 0;
 	};
 
 }

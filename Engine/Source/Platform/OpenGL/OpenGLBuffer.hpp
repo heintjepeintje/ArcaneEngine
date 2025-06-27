@@ -22,6 +22,9 @@ namespace Arcane {
 
 		inline GLuint GetOpenGLID() const { return mBuffer; }
 
+		virtual void Destroy() override;
+		virtual bool IsValid() const override;
+
 	private:
 		Ref<OpenGLGraphicsContext> mContext;
 		size_t mSize;

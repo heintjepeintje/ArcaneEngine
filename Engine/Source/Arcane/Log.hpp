@@ -6,13 +6,13 @@
 
 #ifdef _DEBUG
 #	define AR_ASSERT(x, ...) { if (!(x)) { ::Arcane::GetEngineLogger().Log(LogLevel::Fatal, __VA_ARGS__); __debugbreak(); } }
-#	define AR_ENGINE_LOG(level, ...) { ::Arcane::GetEngineLogger().Log(level, message, __VA_ARGS__); }
-#	define AR_ENGINE_TRACE(...) { ::Arcane::GetEngineLogger().Log(LogLevel::Trace, __VA_ARGS__); }
-#	define AR_ENGINE_INFO(...) { ::Arcane::GetEngineLogger().Log(LogLevel::Info, __VA_ARGS__); }
-#	define AR_ENGINE_DEBUG(...) { ::Arcane::GetEngineLogger().Log(LogLevel::Debug, __VA_ARGS__); }
-#	define AR_ENGINE_WARNING(...) { ::Arcane::GetEngineLogger().Log(LogLevel::Warning, __VA_ARGS__); }
-#	define AR_ENGINE_ERROR(...) { ::Arcane::GetEngineLogger().Log(LogLevel::Error, __VA_ARGS__); }
-#	define AR_ENGINE_FATAL(...) { ::Arcane::GetEngineLogger().Log(LogLevel::Fatal, __VA_ARGS__); }
+#	define AR_ENGINE_LOG(level, ...) ::Arcane::GetEngineLogger().Log(level, message, __VA_ARGS__)
+#	define AR_ENGINE_TRACE(...) ::Arcane::GetEngineLogger().Log(LogLevel::Trace, __VA_ARGS__)
+#	define AR_ENGINE_INFO(...) ::Arcane::GetEngineLogger().Log(LogLevel::Info, __VA_ARGS__)
+#	define AR_ENGINE_DEBUG(...) ::Arcane::GetEngineLogger().Log(LogLevel::Debug, __VA_ARGS__)
+#	define AR_ENGINE_WARNING(...) ::Arcane::GetEngineLogger().Log(LogLevel::Warning, __VA_ARGS__)
+#	define AR_ENGINE_ERROR(...) ::Arcane::GetEngineLogger().Log(LogLevel::Error, __VA_ARGS__)
+#	define AR_ENGINE_FATAL(...) ::Arcane::GetEngineLogger().Log(LogLevel::Fatal, __VA_ARGS__)
 #else
 #	define AR_ENGINE_LOG(level, ...)
 #	define AR_ENGINE_TRACE(...)
@@ -42,7 +42,7 @@ namespace Arcane {
 
 		template<typename ..._Args>
 		inline void Log(LogLevel level, const std::format_string<_Args...> message, _Args &&...args) {
-			if (level < mLevel) return;
+			if (level > mLevel) return;
 			const std::string fmt = std::format(message, std::forward<_Args>(args)...);
 			switch (level) {
 				case LogLevel::Fatal:   std::cout << "\033[101m\033[97m[" << mName << "] FATAL: " << fmt << "\033[0m\n"; break;

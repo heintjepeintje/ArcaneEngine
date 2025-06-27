@@ -29,6 +29,13 @@ namespace Arcane {
 		template<typename _Type>
 		inline const _Type *GetPointerAs() const { return static_cast<const _Type*>(GetPointer()); }
 
+		template<typename _Type>
+		inline _Type &At(uint32_t index) {
+			AR_ASSERT(mData != nullptr, "BufferRef is not valid");
+			AR_ASSERT(index < mData->Size / sizeof(_Type), "Index out of bounds");
+			return reinterpret_cast<_Type*>(mData->Pointer)[index];
+		}
+
 		inline void Drop();
 
 		inline bool IsValid() const { return mData != nullptr; }

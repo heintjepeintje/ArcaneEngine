@@ -1,8 +1,10 @@
 #include "LightPass.hpp"
 
+#include <Arcane/Graphics/Loader.hpp>
+
 namespace Arcane {
 
-	LightPass::LightPass(const GraphicsContext &context, const RendererAPI &rendererApi, const Buffer &cameraData, const Buffer &lightData, const Sampler &sampler, const Sampler &shadowSampler) : mContext(context), mRendererAPI(rendererApi), mSampler(sampler), mShadowSampler(shadowSampler) {
+	LightPass::LightPass(const GraphicsContext &context, const RendererAPI &rendererApi, const Buffer &cameraData, const Buffer &lightData, const Sampler &sampler, const Sampler &shadowSampler) : mContext(context), mRendererAPI(rendererApi), mSampler(sampler), mShadowSampler(shadowSampler) {		
 		CompileShader(mContext,
 			"Engine/Shaders/Light/Source/LightShader.vert",
 			"Engine/Shaders/Light/Binaries/Output/LightShader.vert.spv"

@@ -11,7 +11,7 @@ namespace Arcane {
 		AR_WINDOWS_ASSERT(processHeap != INVALID_HANDLE_VALUE, "Failed to get process heap");
 
 		void *ptr = HeapAlloc(processHeap, HEAP_ZERO_MEMORY, size);
-		AR_WINDOWS_ASSERT(ptr != nullptr, "Failed to allocate memory: %s", GetWindowsErrorMessageString(GetLastError()).c_str());
+		AR_WINDOWS_ASSERT(ptr != nullptr, "Failed to allocate memory: {}", GetWindowsErrorMessageString(GetLastError()));
 
 		TracyAlloc(ptr, size);
 
@@ -25,7 +25,7 @@ namespace Arcane {
 		AR_WINDOWS_ASSERT(processHeap != INVALID_HANDLE_VALUE, "Failed to get process heap");
 
 		void *newPtr = HeapReAlloc(processHeap, HEAP_ZERO_MEMORY, ptr, size);
-		AR_WINDOWS_ASSERT(newPtr != nullptr, "Failed to reallocate memory: %s", GetWindowsErrorMessageString(GetLastError()).c_str());
+		AR_WINDOWS_ASSERT(newPtr != nullptr, "Failed to reallocate memory: {}", GetWindowsErrorMessageString(GetLastError()));
 
 		TracyFree(ptr);
 		TracyAlloc(newPtr, size);
@@ -40,7 +40,7 @@ namespace Arcane {
 		AR_WINDOWS_ASSERT(processHeap != INVALID_HANDLE_VALUE, "Failed to get process heap");
 
 		BOOL result = HeapFree(processHeap, 0, ptr);
-		AR_WINDOWS_ASSERT(result, "Failed to free memory: %s", GetWindowsErrorMessageString(GetLastError()).c_str());
+		AR_WINDOWS_ASSERT(result, "Failed to free memory: {}", GetWindowsErrorMessageString(GetLastError()));
 
 		TracyFree(ptr);
 	}

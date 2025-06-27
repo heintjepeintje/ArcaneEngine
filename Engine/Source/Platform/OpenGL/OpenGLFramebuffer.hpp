@@ -32,6 +32,9 @@ namespace Arcane {
 		inline virtual size_t GetAttachmentCount() const override { return mAttachmentCount; } 
 
 		inline GLuint GetOpenGLID() const { return mFramebuffer; }
+
+		virtual void Destroy() override;
+		virtual bool IsValid() const override;
 		
 	private:
 		Ref<OpenGLGraphicsContext> mContext;

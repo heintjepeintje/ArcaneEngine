@@ -39,7 +39,7 @@ namespace Arcane {
 
 	OpenGLMesh::~OpenGLMesh() {
 		AR_PROFILE_FUNCTION_GPU_CPU();
-		glDeleteVertexArrays(1, &mVertexArray);
+		Destroy();
 	}
 
 	void OpenGLMesh::SetVertexBuffer(uint32_t index, const InputLayout &layout, const Ref<NativeBuffer> &vertexBuffer, size_t offset, size_t stride) {
@@ -76,6 +76,14 @@ namespace Arcane {
 		mIndexBuffer = indexBuffer;
 
 		glVertexArrayElementBuffer(mVertexArray, buffer->GetOpenGLID());
+	}
+
+	void OpenGLMesh::Destroy() {
+		glDeleteVertexArrays(1, &mVertexArray);
+	}
+
+	bool OpenGLMesh::IsValid() const {
+		return glIsVertexArray(mVertexArray);
 	}
 
 	Ref<NativeBuffer> OpenGLMesh::GetVertexBuffer(uint32_t index) {

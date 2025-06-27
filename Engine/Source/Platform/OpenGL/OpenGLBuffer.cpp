@@ -24,7 +24,7 @@ namespace Arcane {
 
 	OpenGLBuffer::~OpenGLBuffer() {
 		AR_PROFILE_FUNCTION_GPU_CPU();
-		glDeleteBuffers(1, &mBuffer);
+		Destroy();
 	}
 
 	void *OpenGLBuffer::Map(MapMode mode) {
@@ -59,6 +59,17 @@ namespace Arcane {
 		AR_ASSERT(offset + size <= mSize, "Offset + size cannot be larger than buffer size {} + {} > {}\n", offset, size, mSize);
 		
 		glNamedBufferSubData(mBuffer, offset, size, data);
+	}
+
+	void OpenGLBuffer::Destroy() {
+		AR_PROFILE_FUNCTION_GPU_CPU();
+		glDeleteBuffers(1, &mBuffer);
+		mBuffer = 0;
+	}
+
+	bool OpenGLBuffer::IsValid() const {
+		AR_PROFILE_FUNCTION_GPU_CPU();
+		return glIsBuffer(mBuffer);
 	}
 
 }

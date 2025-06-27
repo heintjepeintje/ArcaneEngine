@@ -15,8 +15,8 @@ Game::Game() {
 Game::~Game() { }
 
 void Game::Start() {
-	Importer imp;
-	imp.Import("Game/Assets/Models/dragon_floor.glb", ImportFlag_SwapWindingOrder | ImportFlag_GenerateNormals | ImportFlag_GenerateTangents);
+	Importer importer;
+	importer.Import("Game/Assets/Models/dragon_floor.glb", ImportFlag_SwapWindingOrder | ImportFlag_GenerateNormals | ImportFlag_GenerateTangents);
 
 	ImageData colorTexture = LoadImage(Color::White(), ImageFormat::RGB8);
 	ImageData aoTexture = LoadImage(Color::White(), ImageFormat::RGB8);
@@ -27,8 +27,20 @@ void Game::Start() {
 	mFloor = Entity();
 	mFloor.Add<Tag>("Floor");
 
-	const Node &floorNode = imp.GetNode(1);
+	const Node &floorNode = importer.GetNode(1);
 	mFloor.Add<Mesh>(Mesh::Create(mContext, floorNode.Mesh));
+
+	Mesh &m = mFloor.Get<Mesh>();
+	const Vector3 *positions = m.GetVertexBuffer(0).Map<Vector3>(MapMode::Read);
+	const size_t count = m.GetVertexBuffer(0).GetSize() / sizeof(Vector3);
+
+	AR_ENGINE_DEBUG("Floor positions: {}", count);
+	for (size_t i = 0; i < count; i++) {
+		const Vector3 &pos = positions[i];
+		AR_ENGINE_DEBUG("{}, {}, {}", pos.X, pos.Y, pos.Z);
+	}
+
+	m.GetVertexBuffer(0).Unmap();
 	
 	Material &floorMaterial = mFloor.Add<Material>();
 	floorMaterial.AlbedoMap = Texture::Create(mContext, colorTexture);
@@ -43,7 +55,7 @@ void Game::Start() {
 	mBox = Entity();
 	mBox.Add<Tag>("Box");
 	
-	mBox.Add<Mesh>(Mesh::Create(mContext, imp.GetNode(0).Mesh));
+	mBox.Add<Mesh>(Mesh::Create(mContext, importer.GetNode(0).Mesh));
 	
 	Material &boxMaterial = mBox.Add<Material>();
 	boxMaterial.AlbedoMap = Texture::Create(mContext, colorTexture);
@@ -85,13 +97,13 @@ void Game::Update() {
 		if (pitch <= -89.9f) pitch = -89.9f;
 
 		Camera3D &cam = mPlayer.Get<RenderCamera>().GetCamera();
+		// mPlayer.Get<Transform>().Rotation = Vector3(yaw, pitch, 0.0f);
 
 		Vector3 direction = Vector3(0);
 		direction.X = Cos(ToRadians(yaw)) * Cos(ToRadians(pitch));
 		direction.Y = Sin(ToRadians(pitch));
 		direction.Z = Sin(ToRadians(yaw)) * Cos(ToRadians(pitch));
-		cam.Front = Vector3::Normalize(direction);
-
+		// cam.Front = mPlayer.Get<Transform>().GetDirection();
 
 		if (IsKeyDown(KeyCode::R)) {
 			Renderer::Reload();
@@ -110,7 +122,7 @@ void Game::Update() {
 			cam.Position -= Vector3::Normalize(Vector3::Cross(cam.Up, cam.Front)) * speed * GetDeltaTime();
 		if (IsKeyPressed(KeyCode::D))
 			cam.Position += Vector3::Normalize(Vector3::Cross(cam.Up, cam.Front)) * speed * GetDeltaTime();
-		
+			
 		mPlayer.Get<Transform>().Position = cam.Position;
 	} else {
 		SetCursorLocked(false);

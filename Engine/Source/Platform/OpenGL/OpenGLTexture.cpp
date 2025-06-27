@@ -371,4 +371,15 @@ namespace Arcane {
 		glGenerateTextureMipmap(mTexture);
 	}
 
+	void OpenGLTexture::Destroy() {
+		AR_PROFILE_FUNCTION_GPU_CPU();
+		glDeleteTextures(1, &mTexture);
+		mTexture = 0;
+	}
+
+	bool OpenGLTexture::IsValid() const {
+		AR_PROFILE_FUNCTION_GPU_CPU();
+		return glIsTexture(mTexture);
+	}
+
 }

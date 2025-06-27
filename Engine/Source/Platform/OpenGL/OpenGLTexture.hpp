@@ -27,6 +27,9 @@ namespace Arcane {
 		inline virtual bool HasFixedSampleLocations() const override { return mFixedSampleLocations; }
 
 		inline GLuint GetOpenGLID() const { return mTexture; }
+
+		virtual void Destroy() override;
+		virtual bool IsValid() const override;
 	private:
 		Ref<OpenGLGraphicsContext> mContext;
 		GLuint mTexture;

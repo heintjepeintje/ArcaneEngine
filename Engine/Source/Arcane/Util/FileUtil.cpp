@@ -4,7 +4,7 @@ namespace Arcane {
 
 	std::string ReadFile(const std::string &path) {
 		FILE *f = fopen(path.c_str(), "r");
-		AR_ASSERT(f, "Could not open file: %s", path.c_str());
+		AR_ASSERT(f, "Could not open file: {}", path);
 
 
 		long begin = ftell(f);
@@ -21,7 +21,7 @@ namespace Arcane {
 	
 	BufferRef ReadFileBinary(const std::string &path) {
 		FILE *f = fopen(path.c_str(), "rb");
-		AR_ASSERT(f, "Could not open file: %s", path.c_str());
+		AR_ASSERT(f, "Could not open file: {}", path);
 
 		long begin = ftell(f);
 		fseek(f, 0, SEEK_END);

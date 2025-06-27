@@ -18,6 +18,9 @@ namespace Arcane {
 		inline virtual const ImageFormat *GetAttachments() const override { return mAttachments; }
 		inline virtual size_t GetAttachmentCount() const override { return mAttachmentCount; }
 
+		virtual void Destroy() override;
+		virtual bool IsValid() const override;
+
 	private:
 		Ref<OpenGLGraphicsContext> mContext;
 		Ref<OpenGLPipeline> mPipeline;

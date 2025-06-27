@@ -14,8 +14,8 @@ namespace Arcane {
 
 	public:
 		Mesh() { }
-		Mesh(const Mesh &other) { mNativeMesh = other.mNativeMesh; }
-		Mesh(Mesh &&other) { mNativeMesh = other.mNativeMesh; }
+		Mesh(const Mesh &other) : mNativeMesh(other.mNativeMesh) { }
+		Mesh(const Ref<NativeMesh> &mesh) : mNativeMesh(mesh) { }
 		~Mesh() { }
 
 		inline void operator=(const Mesh &other) { mNativeMesh = other.mNativeMesh; }
@@ -33,9 +33,6 @@ namespace Arcane {
 			AR_ASSERT(mNativeMesh, "Native mesh is invalid");
 			return mNativeMesh; 
 		}
-
-	private:
-		Mesh(const Ref<NativeMesh> &mesh) : mNativeMesh(mesh) { }
 
 	private:
 		Ref<NativeMesh> mNativeMesh;

@@ -349,9 +349,8 @@ namespace Arcane {
 					BufferView view(binaryData, bufferView.ByteOffset, bufferView.ByteLength);
 
 					if (attribute.Type == GltfAttributeType::POSITION) {
-						node.Mesh.HasPositions = true;
-						node.Mesh.Positions.resize(accessor.Count);
 						node.Mesh.VertexCount = accessor.Count;
+						node.Mesh.Positions = AllocateBuffer(accessor.Count * sizeof(Vector3));
 
 						if (accessor.ComponentType == GltfComponentType::FLOAT) {
 							for (uint32_t componentIndex = 0; componentIndex < accessor.Count; componentIndex++) {
@@ -369,12 +368,11 @@ namespace Arcane {
 									node.BoundingBox.Max = Vector3::Max(node.BoundingBox.Max, position);
 								}
 
-								node.Mesh.Positions[componentIndex] = position;
+								node.Mesh.Positions.At<Vector3>(componentIndex) = position;
 							}
 						}
 					} else if (attribute.Type == GltfAttributeType::NORMAL) {
-						node.Mesh.HasNormals = true;
-						node.Mesh.Normals.resize(accessor.Count);
+						node.Mesh.Normals = AllocateBuffer(accessor.Count * sizeof(Vector3));
 
 						if (accessor.ComponentType == GltfComponentType::FLOAT) {
 							for (uint32_t componentIndex = 0; componentIndex < accessor.Count; componentIndex++) {
@@ -385,26 +383,25 @@ namespace Arcane {
 									1.0
 								);
 
-								node.Mesh.Normals[componentIndex] = Vector3::Normalize({transformed.X, transformed.Y, transformed.Z });
+								node.Mesh.Normals.At<Vector3>(componentIndex) = Vector3::Normalize({transformed.X, transformed.Y, transformed.Z });
 							}
 						}
 					} else if (attribute.Type == GltfAttributeType::TANGENT) {
-						node.Mesh.HasTangents = true;
-						node.Mesh.Tangents.resize(accessor.Count);
-						node.Mesh.Bitangents.resize(accessor.Count);
+						node.Mesh.Tangents = AllocateBuffer(accessor.Count * sizeof(Vector3));
+						node.Mesh.Bitangents = AllocateBuffer(accessor.Count * sizeof(Vector3));
+
 					} else if (attribute.Type == GltfAttributeType::TEXCOORD_0) {
-						node.Mesh.HasUVs = true;
-						node.Mesh.UVs.resize(accessor.Count);
+						node.Mesh.UVs = AllocateBuffer(accessor.Count * sizeof(Vector2));
 
 						if (accessor.ComponentType == GltfComponentType::FLOAT) {
 							for (uint32_t componentIndex = 0; componentIndex < accessor.Count; componentIndex++) {
 								if (flags & ImportFlag_FlipUVs) {
-									node.Mesh.UVs[componentIndex] = {
+									node.Mesh.UVs.At<Vector2>(componentIndex) = {
 										ToNativeEndian<Endianness::LittleEndian>(view.Next<float>()),
 										1.0f - ToNativeEndian<Endianness::LittleEndian>(view.Next<float>())
 									};
 								} else {
-									node.Mesh.UVs[componentIndex] = {
+									node.Mesh.UVs.At<Vector2>(componentIndex) = {
 										ToNativeEndian<Endianness::LittleEndian>(view.Next<float>()),
 										ToNativeEndian<Endianness::LittleEndian>(view.Next<float>())
 									};
@@ -413,12 +410,12 @@ namespace Arcane {
 						} else if (accessor.ComponentType == GltfComponentType::UNSIGNED_BYTE) {
 							for (uint32_t componentIndex = 0; componentIndex < accessor.Count; componentIndex++) {
 								if (flags & ImportFlag_FlipUVs) {
-									node.Mesh.UVs[componentIndex] = {
+									node.Mesh.UVs.At<Vector2>(componentIndex) = {
 										(float)ToNativeEndian<Endianness::LittleEndian>(view.Next<uint8_t>()),
 										1.0f - (float)ToNativeEndian<Endianness::LittleEndian>(view.Next<uint8_t>())
 									};
 								} else {
-									node.Mesh.UVs[componentIndex] = {
+									node.Mesh.UVs.At<Vector2>(componentIndex) = {
 										(float)ToNativeEndian<Endianness::LittleEndian>(view.Next<uint8_t>()),
 										(float)ToNativeEndian<Endianness::LittleEndian>(view.Next<uint8_t>())
 									};
@@ -427,12 +424,12 @@ namespace Arcane {
 						} else if (accessor.ComponentType == GltfComponentType::UNSIGNED_SHORT) {
 							for (uint32_t componentIndex = 0; componentIndex < accessor.Count; componentIndex++) {
 								if (flags & ImportFlag_FlipUVs) {
-									node.Mesh.UVs[componentIndex] = {
+									node.Mesh.UVs.At<Vector2>(componentIndex) = {
 										(float)ToNativeEndian<Endianness::LittleEndian>(view.Next<uint16_t>()),
 										1.0f - (float)ToNativeEndian<Endianness::LittleEndian>(view.Next<uint16_t>())
 									};
 								} else {
-									node.Mesh.UVs[componentIndex] = {
+									node.Mesh.UVs.At<Vector2>(componentIndex) = {
 										(float)ToNativeEndian<Endianness::LittleEndian>(view.Next<uint16_t>()),
 										(float)ToNativeEndian<Endianness::LittleEndian>(view.Next<uint16_t>())
 									};
@@ -449,32 +446,31 @@ namespace Arcane {
 
 					BufferView view(binaryData, bufferView.ByteOffset, bufferView.ByteLength);
 
-					node.Mesh.HasIndices = true;
-					node.Mesh.Indices.resize(accessor.Count);
+					node.Mesh.Indices = AllocateBuffer(accessor.Count * sizeof(uint32_t));
 					node.Mesh.IndexCount = accessor.Count;
 
 					if (accessor.ComponentType == GltfComponentType::UNSIGNED_INT) {
 						for (uint32_t i = 0; i < accessor.Count; i += 3) {
 							if (flags & ImportFlag_SwapWindingOrder) {
-								node.Mesh.Indices[i + 2] = ToNativeEndian<Endianness::LittleEndian>(view.Next<uint32_t>());
-								node.Mesh.Indices[i + 1] = ToNativeEndian<Endianness::LittleEndian>(view.Next<uint32_t>());
-								node.Mesh.Indices[i] = ToNativeEndian<Endianness::LittleEndian>(view.Next<uint32_t>());
+								node.Mesh.Indices.At<uint32_t>(i + 2) = ToNativeEndian<Endianness::LittleEndian>(view.Next<uint32_t>());
+								node.Mesh.Indices.At<uint32_t>(i + 1) = ToNativeEndian<Endianness::LittleEndian>(view.Next<uint32_t>());
+								node.Mesh.Indices.At<uint32_t>(i) = ToNativeEndian<Endianness::LittleEndian>(view.Next<uint32_t>());
 							} else {
-								node.Mesh.Indices[i] = ToNativeEndian<Endianness::LittleEndian>(view.Next<uint32_t>());
-								node.Mesh.Indices[i + 1] = ToNativeEndian<Endianness::LittleEndian>(view.Next<uint32_t>());
-								node.Mesh.Indices[i + 3] = ToNativeEndian<Endianness::LittleEndian>(view.Next<uint32_t>());
+								node.Mesh.Indices.At<uint32_t>(i) = ToNativeEndian<Endianness::LittleEndian>(view.Next<uint32_t>());
+								node.Mesh.Indices.At<uint32_t>(i + 1) = ToNativeEndian<Endianness::LittleEndian>(view.Next<uint32_t>());
+								node.Mesh.Indices.At<uint32_t>(i + 3) = ToNativeEndian<Endianness::LittleEndian>(view.Next<uint32_t>());
 							}
 						}
 					} else if (accessor.ComponentType == GltfComponentType::UNSIGNED_SHORT) {
 						for (uint32_t i = 0; i < accessor.Count; i += 3) {
 							if (flags & ImportFlag_SwapWindingOrder) {
-								node.Mesh.Indices[i] = ToNativeEndian<Endianness::LittleEndian>(view.Next<uint16_t>());
-								node.Mesh.Indices[i + 1] = ToNativeEndian<Endianness::LittleEndian>(view.Next<uint16_t>());
-								node.Mesh.Indices[i + 2] = ToNativeEndian<Endianness::LittleEndian>(view.Next<uint16_t>());
+								node.Mesh.Indices.At<uint16_t>(i) = ToNativeEndian<Endianness::LittleEndian>(view.Next<uint16_t>());
+								node.Mesh.Indices.At<uint16_t>(i + 1) = ToNativeEndian<Endianness::LittleEndian>(view.Next<uint16_t>());
+								node.Mesh.Indices.At<uint16_t>(i + 2) = ToNativeEndian<Endianness::LittleEndian>(view.Next<uint16_t>());
 							} else {
-								node.Mesh.Indices[i + 2] = ToNativeEndian<Endianness::LittleEndian>(view.Next<uint16_t>());
-								node.Mesh.Indices[i + 1] = ToNativeEndian<Endianness::LittleEndian>(view.Next<uint16_t>());
-								node.Mesh.Indices[i] = ToNativeEndian<Endianness::LittleEndian>(view.Next<uint16_t>());
+								node.Mesh.Indices.At<uint16_t>(i + 2) = ToNativeEndian<Endianness::LittleEndian>(view.Next<uint16_t>());
+								node.Mesh.Indices.At<uint16_t>(i + 1) = ToNativeEndian<Endianness::LittleEndian>(view.Next<uint16_t>());
+								node.Mesh.Indices.At<uint16_t>(i) = ToNativeEndian<Endianness::LittleEndian>(view.Next<uint16_t>());
 							}
 						}
 					}
@@ -485,50 +481,47 @@ namespace Arcane {
 		for (uint32_t nodeIndex = 0; nodeIndex < outNodes.size(); nodeIndex++) {
 			Node &n = outNodes[nodeIndex];
 			
-			n.Mesh.Normals.resize(n.Mesh.VertexCount);
-			n.Mesh.Tangents.resize(n.Mesh.VertexCount);
-			n.Mesh.Bitangents.resize(n.Mesh.VertexCount);
-
-			if (flags & ImportFlag_GenerateNormals) {
-				n.Mesh.HasNormals = true;
+			if (!n.Mesh.Normals.IsValid() && flags & ImportFlag_GenerateNormals) {
+				n.Mesh.Normals = AllocateBuffer(n.Mesh.VertexCount * sizeof(Vector3));
 			}
 
-			if (flags & ImportFlag_GenerateTangents) {
-				n.Mesh.HasTangents = true;
+			if (!n.Mesh.Tangents.IsValid() && flags & ImportFlag_GenerateTangents) {
+				n.Mesh.Tangents = AllocateBuffer(n.Mesh.VertexCount * sizeof(Vector3));
+				n.Mesh.Bitangents = AllocateBuffer(n.Mesh.VertexCount * sizeof(Vector3));
 			}
 
 			for (uint32_t i = 0; i < n.Mesh.IndexCount; i += 3) {
-				uint32_t index0 = n.Mesh.Indices[i];
-				uint32_t index1 = n.Mesh.Indices[i + 1];
-				uint32_t index2 = n.Mesh.Indices[i + 2];
+				uint32_t index0 = n.Mesh.Indices.At<uint32_t>(i);
+				uint32_t index1 = n.Mesh.Indices.At<uint32_t>(i + 1);
+				uint32_t index2 = n.Mesh.Indices.At<uint32_t>(i + 2);
 
-				Vector3 edge0 = n.Mesh.Positions[index1] - n.Mesh.Positions[index0];
-				Vector3 edge1 = n.Mesh.Positions[index2] - n.Mesh.Positions[index0];
-				
-				if (!n.Mesh.HasNormals && flags & ImportFlag_GenerateNormals) {
+				Vector3 edge0 = n.Mesh.Positions.At<Vector3>(index1) - n.Mesh.Positions.At<Vector3>(index0);
+				Vector3 edge1 = n.Mesh.Positions.At<Vector3>(index2) - n.Mesh.Positions.At<Vector3>(index0);
+
+				if (flags & ImportFlag_GenerateNormals) {
 					Vector3 normal = Vector3::Normalize(Vector3::Cross(edge0, edge1));
 
-					n.Mesh.Normals[index0] = normal;
-					n.Mesh.Normals[index1] = normal;
-					n.Mesh.Normals[index2] = normal;
+					n.Mesh.Normals.At<Vector3>(index0) = normal;
+					n.Mesh.Normals.At<Vector3>(index1) = normal;
+					n.Mesh.Normals.At<Vector3>(index2) = normal;
 				}
 
-				if (!n.Mesh.HasTangents && flags & ImportFlag_GenerateTangents) {
-					Vector2 deltaUV0 = n.Mesh.UVs[index1] - n.Mesh.UVs[index0];
-					Vector2 deltaUV1 = n.Mesh.UVs[index2] - n.Mesh.UVs[index0];
+				if (flags & ImportFlag_GenerateTangents) {
+					Vector2 deltaUV0 = n.Mesh.UVs.At<Vector2>(index1) - n.Mesh.UVs.At<Vector2>(index0);
+					Vector2 deltaUV1 = n.Mesh.UVs.At<Vector2>(index2) - n.Mesh.UVs.At<Vector2>(index0);
 
 					float f = 1.0f / (deltaUV0.X * deltaUV1.Y - deltaUV0.Y * deltaUV1.X);
 					
 					Vector3 tangent = Vector3::Normalize((edge0 * deltaUV1.Y - edge1 * deltaUV0.Y) * f);
 					Vector3 bitangent = -Vector3::Normalize((edge1 * deltaUV0.X + edge0 * -deltaUV1.X) * f);
 
-					n.Mesh.Tangents[index0] = tangent;
-					n.Mesh.Tangents[index1] = tangent;
-					n.Mesh.Tangents[index2] = tangent;
+					n.Mesh.Tangents.At<Vector3>(index0) = tangent;
+					n.Mesh.Tangents.At<Vector3>(index1) = tangent;
+					n.Mesh.Tangents.At<Vector3>(index2) = tangent;
 
-					n.Mesh.Bitangents[index0] = bitangent;
-					n.Mesh.Bitangents[index1] = bitangent;
-					n.Mesh.Bitangents[index2] = bitangent;
+					n.Mesh.Bitangents.At<Vector3>(index0) = bitangent;
+					n.Mesh.Bitangents.At<Vector3>(index1) = bitangent;
+					n.Mesh.Bitangents.At<Vector3>(index2) = bitangent;
 				}
 			}
 		}

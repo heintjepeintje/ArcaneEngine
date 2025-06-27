@@ -23,6 +23,9 @@ namespace Arcane {
 
 		inline GLuint GetVertexArray() const { return mVertexArray; }
 
+		virtual void Destroy() override;
+		virtual bool IsValid() const override;
+
 	private:
 		Ref<OpenGLGraphicsContext> mContext;
 		GLuint mVertexArray;

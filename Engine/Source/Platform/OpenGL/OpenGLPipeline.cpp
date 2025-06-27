@@ -101,7 +101,7 @@ namespace Arcane {
 			char *buffer = (char*)alloca(length * sizeof(char));
 			glGetProgramInfoLog(mProgram, length, NULL, buffer);
 
-			AR_ASSERT(false, "Shader Program Linker Error: %s\n", buffer);
+			AR_OPENGL_ASSERT(false, "Shader Program Linker Error: {}\n", buffer);
 			return;
 		}
 
@@ -121,10 +121,7 @@ namespace Arcane {
 	}
 
 	OpenGLPipeline::~OpenGLPipeline() {
-		AR_PROFILE_FUNCTION_GPU_CPU();
-		glDeleteProgram(mProgram);
-		glDeleteProgramPipelines(1, &mProgramPipeline);
-		delete[] mDescriptors;
+		Destroy();
 	}
 
 	void OpenGLPipeline::SetUniformBuffer(uint32_t binding, const Ref<NativeBuffer> &uniformBuffer, size_t offset, size_t size) {
@@ -141,6 +138,19 @@ namespace Arcane {
 		mCombinedImageSamplerDescriptors[binding].binding = binding;
 		mCombinedImageSamplerDescriptors[binding].texture = CastRef<OpenGLTexture>(texture)->GetOpenGLID();
 		mCombinedImageSamplerDescriptors[binding].sampler = CastRef<OpenGLSampler>(sampler)->GetOpenGLID();
+	}
+
+	void OpenGLPipeline::Destroy() {
+		AR_PROFILE_FUNCTION_GPU_CPU();
+		delete[] mUniformBufferDescriptors;
+		delete[] mCombinedImageSamplerDescriptors;
+		glDeleteProgram(mProgram);
+		glDeleteProgramPipelines(1, &mProgramPipeline);
+	}
+
+	bool OpenGLPipeline::IsValid() const {
+		AR_PROFILE_FUNCTION_GPU_CPU();
+		return glIsProgram(mProgram) && glIsProgramPipeline(mProgramPipeline);
 	}
 
 }

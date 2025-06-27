@@ -45,6 +45,9 @@ namespace Arcane {
 		virtual uint32_t GetLayers() const = 0;
 		virtual uint32_t GetSampleCount() const = 0;
 		virtual bool HasFixedSampleLocations() const = 0;
+
+		virtual void Destroy() = 0;
+		virtual bool IsValid() const = 0;
 	};
 
 	enum class SamplerFilter {

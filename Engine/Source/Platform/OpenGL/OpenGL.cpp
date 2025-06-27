@@ -737,7 +737,7 @@ namespace Arcane {
 		if (proc == 0 || proc == (void*)0x01 || proc == (void*)0x02 || proc == (void*)0x03 || proc == (void*)-1) {
 			proc = (void*)GetProcAddress(OpenGLModule, name);
 		}
-		AR_ASSERT(proc != NULL, "Failed to load OpenGL function %s\n", name);
+		AR_ASSERT(proc != NULL, "Failed to load OpenGL function {}\n", name);
 		return proc;
 #endif
 	}

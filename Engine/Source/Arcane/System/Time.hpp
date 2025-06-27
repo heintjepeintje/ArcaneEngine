@@ -22,21 +22,5 @@ namespace Arcane {
 	private:
 		uint64_t mTime;
 	};
-
-	class ScopedTimer {
-	public:
-		ScopedTimer(const std::string &name) : mName(name) {
-			mTime = GetCurrentTimeMillis();
-		}
-
-		~ScopedTimer() {
-			uint64_t elapsed = GetCurrentTimeMillis() - mTime;
-			std::printf("%s: %llums\n", mName.c_str(), elapsed);
-		}
-
-	private:
-		uint64_t mTime;
-		std::string mName;
-	};
 	
 }

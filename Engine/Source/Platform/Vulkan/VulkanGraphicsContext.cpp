@@ -11,16 +11,16 @@ namespace Arcane {
 	VkBool32 DebugMessageCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageTypes, const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData, void *pUserData) {
 		switch (messageSeverity) {
 			case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
-				AR_VULKAN_TRACE("%s", pCallbackData->pMessage);
+				AR_VULKAN_TRACE("{}", pCallbackData->pMessage);
 				break;
 			case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
-				AR_VULKAN_INFO("%s", pCallbackData->pMessage);
+				AR_VULKAN_INFO("{}", pCallbackData->pMessage);
 				break;
 			case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
-				AR_VULKAN_WARNING("%s", pCallbackData->pMessage);
+				AR_VULKAN_WARNING("{}", pCallbackData->pMessage);
 				break;
 			case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
-				AR_VULKAN_ERROR("%s", pCallbackData->pMessage);
+				AR_VULKAN_ERROR("{}", pCallbackData->pMessage);
 				break;
 		}
 		return VK_FALSE;
@@ -55,7 +55,7 @@ namespace Arcane {
 					break;
 				}
 			}
-			AR_ASSERT(found, "Could not find required vulkan layer: %s\n", requiredLayers[i]);
+			AR_VULKAN_ASSERT(found, "Could not find required vulkan layer: {}\n", requiredLayers[i]);
 		}
 
 		std::vector<const char *> requiredExtensions = {
@@ -81,7 +81,7 @@ namespace Arcane {
 					break;
 				}
 			}
-			AR_ASSERT(found, "Could not find required vulkan extension: %s\n", requiredExtensions[i]);
+			AR_VULKAN_ASSERT(found, "Could not find required vulkan extension: {}\n", requiredExtensions[i]);
 		}
 
 		VkInstanceCreateInfo createInfo{};
@@ -159,7 +159,7 @@ namespace Arcane {
 			if (properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) scores[i] += 1000;
 			if (features.geometryShader) scores[i] += 100;
 
-			AR_ENGINE_INFO("Device: %s: {}", properties.deviceName, scores[i]);
+			AR_ENGINE_INFO("Device: {}: {}", properties.deviceName, scores[i]);
 
 			if (scores[i] > bestScore) {
 				bestScore = scores[i];
@@ -178,7 +178,7 @@ namespace Arcane {
 		mMinImageExtent = surfaceCapabilities.minImageExtent;
 		mMaxImageExtent = surfaceCapabilities.maxImageExtent;
 		
-		AR_ENGINE_INFO("Using GPU: %s", properties.deviceName);
+		AR_ENGINE_INFO("Using GPU: {}", properties.deviceName);
 
 		mLimits.Max3DTextureSize = properties.limits.maxImageDimension3D;
 		mLimits.MaxTextureSize = properties.limits.maxImageDimension2D;
@@ -275,7 +275,7 @@ namespace Arcane {
 					break;
 				}
 			}
-			AR_ASSERT(found, "Could not find required vulkan device extension: %s\n", deviceExtensions[i]);
+			AR_ASSERT(found, "Could not find required vulkan device extension: {}\n", deviceExtensions[i]);
 		}
 
 		VkDeviceCreateInfo deviceCreateInfo{};

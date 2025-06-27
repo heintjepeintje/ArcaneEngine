@@ -34,7 +34,7 @@ namespace Arcane {
 
 	WindowsMutex::WindowsMutex() {
 		mMutex = CreateMutexA(NULL, FALSE, nullptr);
-		AR_ASSERT(mMutex != nullptr, "Failed to create mutex: %s", GetWindowsErrorMessageString(GetLastError()).c_str());
+		AR_ASSERT(mMutex != nullptr, "Failed to create mutex: {}", GetWindowsErrorMessageString(GetLastError()));
 	}
 
 	WindowsMutex::~WindowsMutex() {
@@ -43,12 +43,12 @@ namespace Arcane {
 
 	void WindowsMutex::Lock() {
 		DWORD result = WaitForSingleObject(mMutex, INFINITE);
-		AR_ASSERT(result == WAIT_OBJECT_0, "Failed to lock mutex: %s", GetWindowsErrorMessageString(GetLastError()).c_str());
+		AR_ASSERT(result == WAIT_OBJECT_0, "Failed to lock mutex: {}", GetWindowsErrorMessageString(GetLastError()));
 	}
 
 	void WindowsMutex::Unlock() {
 		BOOL result = ReleaseMutex(mMutex);
-		AR_ASSERT(result, "Failed to unlock mutex: %s", GetWindowsErrorMessageString(GetLastError()).c_str());
+		AR_ASSERT(result, "Failed to unlock mutex: {}", GetWindowsErrorMessageString(GetLastError()));
 	}
 
 	WindowsThread::WindowsThread(ThreadFunc func, void *data) {
