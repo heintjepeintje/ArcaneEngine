@@ -1,5 +1,8 @@
 project "Arcane.Editor"
 	kind "ConsoleApp"
+
+	language "C++"
+	cppdialect "C++23"
 	
 	location "./Build"
 	targetdir "./Binaries/Output/%{cfg.buildcfg}"
@@ -10,6 +13,7 @@ project "Arcane.Editor"
 	}
 
 	includedirs {
+		"%{wks.location}/../Arcane.Core/Source",
 		"./Source"
 	}
 

@@ -1,5 +1,8 @@
 project "Arcane.Core"
 	kind "StaticLib"
+
+	language "C++"
+	cppdialect "C++23"
 	
 	location "./Build"
 	targetdir "./Binaries/Output/%{cfg.buildcfg}"

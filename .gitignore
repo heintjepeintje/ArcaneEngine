@@ -9,3 +9,6 @@ Binaries
 Build
 *.mk
 Makefile
+
+# Editor Files
+.vscode

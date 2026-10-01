@@ -22,4 +22,8 @@ namespace Arcane {
 
 	using B8 = AR_UINT8_TYPE;
 
+	template<typename T> class RemoveReference { public: using Type = T; };
+	template<typename T> class RemoveReference<T&> { public: using Type = T; };
+	template<typename T> class RemoveReference<T&&> { public: using Type = T; };
+
 }
