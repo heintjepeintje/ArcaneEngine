@@ -8,8 +8,8 @@ namespace Arcane {
 	public:
 		virtual ~ISystem() = default;
 
-		virtual B8 Initialize() = 0;
-		virtual void Shutdown() = 0;
+		virtual B8 initialize() = 0;
+		virtual void shutdown() = 0;
 	};
 
 }

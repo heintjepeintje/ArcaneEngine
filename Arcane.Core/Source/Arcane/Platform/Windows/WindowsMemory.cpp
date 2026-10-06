@@ -5,11 +5,11 @@
 namespace Arcane::Windows {
 
 	struct PageAccessMappingTableEntry {
-		PageAccessFlags allocationFlags;
-		DWORD protectionType;
+		PageAccessFlags allocation_flags;
+		DWORD protection_type;
 	};
 
-	constexpr PageAccessMappingTableEntry gPageAccessMapping[] = {
+	constexpr PageAccessMappingTableEntry g_page_access_mapping[] = {
 		{ PAGE_ACCESS_READ | PAGE_ACCESS_WRITE | PAGE_ACCESS_EXECUTE, PAGE_EXECUTE_READWRITE },
 		{ PAGE_ACCESS_READ | PAGE_ACCESS_WRITE, PAGE_READWRITE },
 		{ PAGE_ACCESS_READ | PAGE_ACCESS_EXECUTE, PAGE_EXECUTE_READ },
@@ -17,50 +17,50 @@ namespace Arcane::Windows {
 		{ PAGE_ACCESS_READ, PAGE_READONLY }
 	};
 	
-	DWORD MapAllocationFlagsToAllocationType(PageAllocationFlags allocationFlags) {
-		DWORD allocationType = 0;
-		if (allocationFlags & PAGE_ALLOCATION_PRIVATE) allocationType = MEM_COMMIT;
+	DWORD map_allocation_flags_to_allocation_type(PageAllocationFlags allocation_flags) {
+		DWORD allocation_type = 0;
+		if (allocation_flags & PAGE_ALLOCATION_PRIVATE) allocation_type = MEM_COMMIT;
 
-		return allocationType; 
+		return allocation_type;
 	}
 
-	DWORD MapAccessFlagsToMemoryProtectionType(PageAccessFlags allocationFlags) {
-		for (const PageAccessMappingTableEntry& entry : gPageAccessMapping) {
-			if (allocationFlags == entry.allocationFlags) return entry.protectionType;
+	DWORD map_access_flags_to_memory_protection_type(PageAccessFlags allocation_flags) {
+		for (const PageAccessMappingTableEntry& entry : g_page_access_mapping) {
+			if (allocation_flags == entry.allocation_flags) return entry.protection_type;
 		}
 
 		return PAGE_NOACCESS;
 	}
 
-	B8 MemorySystem::Initialize() {
+	B8 MemorySystem::initialize() {
 		SYSTEM_INFO systemInfo = {};
 		GetSystemInfo(&systemInfo);
 
-		mPageSize = systemInfo.dwPageSize;
+		m_page_size = systemInfo.dwPageSize;
 
 		return true;
 	}
 
-	void MemorySystem::Shutdown() {
+	void MemorySystem::shutdown() {
 		
 	}
 
-	void *MemorySystem::MapMemory(U64 pageCount, PageAccessFlags accessFlags, PageAllocationFlags allocationFlags) {
-		if (pageCount == 0) return nullptr;
+	void *MemorySystem::map_memory(U64 page_count, PageAccessFlags access_flags, PageAllocationFlags allocation_flags) {
+		if (page_count == 0) return nullptr;
 
-		DWORD allocationType = MapAllocationFlagsToAllocationType(allocationFlags);
-		DWORD protectionType = MapAccessFlagsToMemoryProtectionType(accessFlags);
+		DWORD allocation_type = map_allocation_flags_to_allocation_type(allocation_flags);
+		DWORD protection_type = map_access_flags_to_memory_protection_type(access_flags);
 
-		LPVOID pageAddress = VirtualAlloc(
+		LPVOID page_address = VirtualAlloc(
 				NULL,
-				pageCount * mPageSize,
-				allocationType,
-				protectionType);
+				page_count * m_page_size,
+				allocation_type,
+				protection_type);
 
-		return pageAddress;
+		return page_address;
 	}
 
-	void MemorySystem::UnmapMemory(void *pointer, U64 size) {
+	void MemorySystem::unmap_memory(void *pointer, U64 size) {
 		if (size == 0) return;
 
 		BOOL success = VirtualFree(

@@ -11,11 +11,11 @@ namespace Arcane {
 
 	class Platform {
 	public:
-		IMemorySystem& GetMemorySystem() { return mMemorySystem; }
+		IMemorySystem& memory_system() { return m_memory_system; }
 
 	private:
 #if defined(AR_PLATFORM_OS_WINDOWS)
-		Windows::MemorySystem mMemorySystem;
+		Windows::MemorySystem m_memory_system;
 #endif
 	};
 

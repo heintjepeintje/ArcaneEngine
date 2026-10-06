@@ -26,4 +26,7 @@ namespace Arcane {
 	template<typename T> class RemoveReference<T&> { public: using Type = T; };
 	template<typename T> class RemoveReference<T&&> { public: using Type = T; };
 
+	template<typename T> class RemoveConst { public: using Type = T; };
+	template<typename T> class RemoveConst<const T> { public: using Type = T; };
+
 }
